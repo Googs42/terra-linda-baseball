@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/seano/Desktop/tlbaseball/NR>=459 && NR<=540 {gsub\\(/data:image[^\"]*/**)",
+      "Bash(awk 'NR<459 || NR>506' public/app.html)"
+    ]
+  }
+}
