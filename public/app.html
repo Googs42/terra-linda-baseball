@@ -565,9 +565,6 @@ textarea.form-input { resize: vertical; min-height: 90px; }
       <div class="nav-item" onclick="showSection('maxpreps', this)">
         <span class="nav-icon">&#9632;</span> MaxPreps Hub
       </div>
-      <div class="nav-item" onclick="showSection('maxpreps', this)">
-        <span class="nav-icon">&#9632;</span> MaxPreps Hub
-      </div>
       <div class="nav-item" onclick="showSection('contact', this)">
         <span class="nav-icon">&#9632;</span> Contact / Outreach
       </div>
@@ -3433,8 +3430,8 @@ window.addUser = async function() {
 };
 
 // ── Override login to use API ─────────────────────────────────
-const _localAttemptLogin = attemptLogin;
-attemptLogin = async function() {
+const _localAttemptLogin = (typeof attemptLogin !== 'undefined') ? attemptLogin : null;
+window.attemptLogin = async function() {
   const username = document.getElementById('login-username').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
   const err      = document.getElementById('login-err');
