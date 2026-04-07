@@ -1,0 +1,18 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: #001F5B;
+  color: #F8F6F0;
+  overflow: hidden;
+}
+
+#__next {
+  height: 100%;
+}
