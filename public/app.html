@@ -2474,7 +2474,7 @@ function saveUsers() {
   localStorage.setItem('tl_users', JSON.stringify(USERS));
 }
 
-let currentUser = null;
+let currentUser = { role: 'coach', name: 'Coach', username: 'coach' };
 let selectedRole = null;
 
 // ── Role selection ───────────────────────────────────────────
@@ -2614,9 +2614,11 @@ function activateSection(name) {
 }
 
 // ── Override showSection to respect role ────────────────────
-const _origShowSection = showSection;
-function showSection(name, navEl) {
-  if (!currentUser) return;
+window.showSection = function(name, navEl) {
+  if (!currentUser) {
+    // sign-in disabled: act as coach
+    currentUser = { role: 'coach', name: 'Coach' };
+  }
   const allowed = NAV_ACCESS[currentUser.role];
   // Map home aliases
   const effectiveName = name;

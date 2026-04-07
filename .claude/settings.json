@@ -7,7 +7,14 @@
       "Bash(printf '%s\\\\n' '{\"redirects\":[{\"source\":\"/\",\"destination\":\"/app.html\",\"permanent\":false}]}')",
       "Bash(awk 'NR>=2470 && NR<=2540' public/app.html)",
       "Bash(awk 'NR>=3215 && NR<=3300' public/app.html)",
-      "Bash(ls .env*)"
+      "Bash(ls .env*)",
+      "Read(//<script>/,/</**)",
+      "Bash(sed '1d;$d')",
+      "Bash(node --check /tmp/app.js)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(awk 'NR>=510 && NR<=535' public/app.html)",
+      "Read(//c/Users/seano/Desktop/tlbaseball/NR>=510 && NR<=535 {gsub\\(/data:image[^\"]*/**)",
+      "Bash(awk '/<script>/,/<\\\\/script>/' public/app.html)"
     ]
   }
 }
