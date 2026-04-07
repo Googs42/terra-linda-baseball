@@ -3523,7 +3523,7 @@ async function submitContact(btn) {
 document.addEventListener('DOMContentLoaded', function() {
   // Ensure portal is shown first
   const portal = document.getElementById('portal-screen');
-  if (portal) portal.style.display = 'flex';
+  if (portal) portal.style.display = 'none';
   // Render schedule tables with existing data
   if (typeof varsityGames !== 'undefined') {
     renderScheduleTable(varsityGames, 'varsity-sched-body');
@@ -3683,7 +3683,7 @@ addContrib = async function() {
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
   const portal=document.getElementById('portal-screen');
-  if(portal) portal.style.display='flex';
+  if(portal) portal.style.display='none';
   if(typeof varsityGames!=='undefined'){
     renderScheduleTable(varsityGames,'varsity-sched-body');
     renderScheduleTable(jvGames,'jv-sched-body');
