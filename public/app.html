@@ -3086,14 +3086,14 @@ function renderScheduleTable(games, tbodyId) {
     const rowStyle = isNext ? 'background:rgba(255,199,44,0.06);' : '';
     const nextMarker = isNext ? '<span style="font-size:9px;font-weight:700;color:var(--gold);margin-left:4px">NEXT</span>' : '';
     return '<tr style="' + rowStyle + '">' +
-      '<td style="font-family:'DM Mono',monospace;font-size:12px;white-space:nowrap">' + fmtDate(g.date) + nextMarker + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;font-size:12px;white-space:nowrap">' + fmtDate(g.date) + nextMarker + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + fmtDay(g.date) + '</td>' +
       '<td style="font-weight:500">' + g.opp + '</td>' +
       '<td>' + haBadge(g.ha) + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px;max-width:130px">' + g.loc + '</td>' +
-      '<td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">' + fmtTime(g.time) + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text-muted)">' + fmtTime(g.time) + '</td>' +
       '<td>' + resultBadge(g.result, g.score) + '</td>' +
-      '<td style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--gold)">' + (g.score || '-') + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:500;color:var(--gold)">' + (g.score || '-') + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (g.notes || '') + '</td>' +
     '</tr>';
   }).join('');
