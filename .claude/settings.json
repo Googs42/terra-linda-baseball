@@ -4,7 +4,9 @@
       "Read(//c/Users/seano/Desktop/tlbaseball/NR>=459 && NR<=540 {gsub\\(/data:image[^\"]*/**)",
       "Bash(awk 'NR<459 || NR>506' public/app.html)",
       "Bash(xxd vercel.json)",
-      "Bash(printf '%s\\\\n' '{\"redirects\":[{\"source\":\"/\",\"destination\":\"/app.html\",\"permanent\":false}]}')"
+      "Bash(printf '%s\\\\n' '{\"redirects\":[{\"source\":\"/\",\"destination\":\"/app.html\",\"permanent\":false}]}')",
+      "Bash(awk 'NR>=2470 && NR<=2540' public/app.html)",
+      "Bash(awk 'NR>=3215 && NR<=3300' public/app.html)"
     ]
   }
 }
