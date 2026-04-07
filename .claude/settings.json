@@ -6,7 +6,8 @@
       "Bash(xxd vercel.json)",
       "Bash(printf '%s\\\\n' '{\"redirects\":[{\"source\":\"/\",\"destination\":\"/app.html\",\"permanent\":false}]}')",
       "Bash(awk 'NR>=2470 && NR<=2540' public/app.html)",
-      "Bash(awk 'NR>=3215 && NR<=3300' public/app.html)"
+      "Bash(awk 'NR>=3215 && NR<=3300' public/app.html)",
+      "Bash(ls .env*)"
     ]
   }
 }

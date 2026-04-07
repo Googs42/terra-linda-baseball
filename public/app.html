@@ -2505,18 +2505,35 @@ function backToRoles() {
   selectedRole = null;
 }
 
-// ── Login attempt ────────────────────────────────────────────
-function attemptLogin() {
+// ── Login attempt (Supabase via /api/auth/login) ─────────────
+async function attemptLogin() {
   const username = document.getElementById('login-username').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
   const err = document.getElementById('login-err');
   err.style.display = 'none';
 
-  const user = USERS.find(u =>
-    u.username.toLowerCase() === username &&
-    u.password === password &&
-    u.role === selectedRole
-  );
+  let user = null;
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password, role: selectedRole })
+    });
+    if (r.ok) {
+      const j = await r.json();
+      user = j.user;
+      if (user) user.playerLink = user.player_link;
+    }
+  } catch (e) { /* fall through to local */ }
+
+  // Fallback: local USERS (offline / dev)
+  if (!user) {
+    user = USERS.find(u =>
+      u.username.toLowerCase() === username &&
+      u.password === password &&
+      u.role === selectedRole
+    );
+  }
 
   if (!user) {
     err.style.display = 'block';
