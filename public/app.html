@@ -3314,7 +3314,7 @@ async function apiDelete(endpoint, id) {
 }
 
 // ── Override addPlayer to persist to Supabase ─────────────────
-const _localAddPlayer = addPlayer;
+const _localAddPlayer = (typeof addPlayer !== 'undefined') ? addPlayer : null;
 addPlayer = async function() {
   const first = document.getElementById('p-first').value.trim();
   const last  = document.getElementById('p-last').value.trim();
@@ -3337,7 +3337,7 @@ addPlayer = async function() {
 };
 
 // ── Override addGame to persist to Supabase ──────────────────
-const _localAddGame = addGame;
+const _localAddGame = (typeof addGame !== 'undefined') ? addGame : null;
 addGame = async function() {
   const date   = document.getElementById('g-date').value;
   const opp    = document.getElementById('g-opp').value.trim();
@@ -3370,7 +3370,7 @@ addGame = async function() {
 };
 
 // ── Override addTask to persist to Supabase ──────────────────
-const _localAddTask = addTask;
+const _localAddTask = (typeof addTask !== 'undefined') ? addTask : null;
 addTask = async function() {
   const name   = document.getElementById('task-name').value.trim();
   const pri    = document.getElementById('task-pri').value;
@@ -3472,7 +3472,7 @@ window.attemptLogin = async function() {
 };
 
 // ── Override addContrib to persist ───────────────────────────
-const _localAddContrib = addContrib;
+const _localAddContrib = (typeof addContrib !== 'undefined') ? addContrib : null;
 addContrib = async function() {
   const name   = document.getElementById('cb-name').value.trim();
   const amount = document.getElementById('cb-amount').value;
