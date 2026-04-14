@@ -522,7 +522,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
       </div>
       <div class="nav-item" onclick="showSection('roster', this)">
         <span class="nav-icon">&#9632;</span> Roster
-        <span class="nav-badge">28</span>
+        <span class="nav-badge">30</span>
       </div>
       <div class="nav-item" onclick="showSection('stats', this)">
         <span class="nav-icon">&#9632;</span> Game Stats
@@ -3152,6 +3152,8 @@ function exportSchedule() {
 document.addEventListener('DOMContentLoaded', function() {
   renderScheduleTable(varsityGames, 'varsity-sched-body');
   renderScheduleTable(jvGames, 'jv-sched-body');
+  // Auto-init as coach (sign-in disabled)
+  applyRoleAccess(currentUser);
 });
 
 function addFundraiser() {
