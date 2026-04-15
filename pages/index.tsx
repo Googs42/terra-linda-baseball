@@ -56,39 +56,47 @@ export default function App(props: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const [
-    { data: roster },
-    { data: varsitySchedule },
-    { data: jvSchedule },
-    { data: battingStats },
-    { data: pitchingStats },
-    { data: fieldingStats },
-    { data: fundraisers },
-    { data: fieldTasks },
-    { data: clinics },
-  ] = await Promise.all([
-    supabase.from('roster').select('*').order('num'),
-    supabase.from('schedule').select('*').eq('team', 'Varsity').order('game_date'),
-    supabase.from('schedule').select('*').eq('team', 'JV').order('game_date'),
-    supabase.from('batting_stats').select('*').order('avg', { ascending: false }),
-    supabase.from('pitching_stats').select('*').order('era'),
-    supabase.from('fielding_stats').select('*').order('player_name'),
-    supabase.from('fundraisers').select('*').order('created_at'),
-    supabase.from('field_tasks').select('*').order('created_at'),
-    supabase.from('clinics').select('*').order('clinic_date'),
-  ])
+  const empty = {
+    roster: [], varsitySchedule: [], jvSchedule: [],
+    battingStats: [], pitchingStats: [], fieldingStats: [],
+    fundraisers: [], fieldTasks: [], clinics: [],
+  }
 
-  return {
-    props: {
-      roster:          roster          || [],
-      varsitySchedule: varsitySchedule || [],
-      jvSchedule:      jvSchedule      || [],
-      battingStats:    battingStats    || [],
-      pitchingStats:   pitchingStats   || [],
-      fieldingStats:   fieldingStats   || [],
-      fundraisers:     fundraisers     || [],
-      fieldTasks:      fieldTasks      || [],
-      clinics:         clinics         || [],
-    },
+  if (!supabase) return { props: empty }
+
+  try {
+    const [
+      { data: roster },
+      { data: varsitySchedule },
+      { data: jvSchedule },
+      { data: battingStats },
+      { data: pitchingStats },
+      { data: fieldingStats },
+      { data: fundraisers },
+      { data: fieldTasks },
+      { data: clinics },
+    ] = await Promise.all([
+      supabase.from('roster').select('*').order('num'),
+      supabase.from('schedule').select('*').eq('team', 'Varsity').order('game_date'),
+      supabase.from('schedule').select('*').eq('team', 'JV').order('game_date'),
+      supabase.from('batting_stats').select('*').order('avg', { ascending: false }),
+      supabase.from('pitching_stats').select('*').order('era'),
+      supabase.from('fielding_stats').select('*').order('player_name'),
+      supabase.from('fundraisers').select('*').order('created_at'),
+      supabase.from('field_tasks').select('*').order('created_at'),
+      supabase.from('clinics').select('*').order('clinic_date'),
+    ])
+
+    return {
+      props: {
+        roster: roster || [], varsitySchedule: varsitySchedule || [],
+        jvSchedule: jvSchedule || [], battingStats: battingStats || [],
+        pitchingStats: pitchingStats || [], fieldingStats: fieldingStats || [],
+        fundraisers: fundraisers || [], fieldTasks: fieldTasks || [],
+        clinics: clinics || [],
+      },
+    }
+  } catch {
+    return { props: empty }
   }
 }
