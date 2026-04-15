@@ -17,7 +17,15 @@
       "Bash(awk '/<script>/,/<\\\\/script>/' public/app.html)",
       "Bash(awk 'NR>=1 && NR<=10' public/app.html)",
       "Bash(node --check public/js/app.js)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s \"https://terra-linda-baseball.vercel.app/\")",
+      "Bash(curl -sI \"https://terra-linda-baseball.vercel.app/js/app.js\")",
+      "Bash(curl -s \"https://terra-linda-baseball.vercel.app/js/app.js\")",
+      "Bash(node -e ' *)",
+      "Bash(node --check /tmp/live-app.js)",
+      "Bash(node /tmp/test-app.js)",
+      "Bash(git commit *)",
+      "Bash(xxd public/js/app.js)"
     ]
   }
 }
