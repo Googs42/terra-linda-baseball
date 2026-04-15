@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sort -t: -k1 -n)"
+      "Bash(sort -t: -k1 -n)",
+      "Bash(xxd)",
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
