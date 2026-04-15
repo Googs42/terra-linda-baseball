@@ -14,7 +14,10 @@
       "Bash(echo \"exit=$?\")",
       "Bash(awk 'NR>=510 && NR<=535' public/app.html)",
       "Read(//c/Users/seano/Desktop/tlbaseball/NR>=510 && NR<=535 {gsub\\(/data:image[^\"]*/**)",
-      "Bash(awk '/<script>/,/<\\\\/script>/' public/app.html)"
+      "Bash(awk '/<script>/,/<\\\\/script>/' public/app.html)",
+      "Bash(awk 'NR>=1 && NR<=10' public/app.html)",
+      "Bash(node --check public/js/app.js)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

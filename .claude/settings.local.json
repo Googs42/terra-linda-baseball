@@ -6,7 +6,8 @@
       "Bash(npm install *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -sI \"https://terra-linda-baseball.vercel.app/app.html\")"
     ]
   }
 }
