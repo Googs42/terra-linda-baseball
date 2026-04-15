@@ -1,5 +1,6 @@
 
 
+console.log('APP.JS: script start');
 const rosterData = [
   // ── Varsity ──
   {num:0,name:'Alek Wehn',pos:'',year:'',bt:'R/R',team:'Varsity',status:'Active'},
@@ -1313,4 +1314,5 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   renderRoster();
 });
+console.log('APP.JS: script end, showSection =', typeof showSection);
 
