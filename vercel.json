@@ -1,8 +1,5 @@
 {
   "buildCommand": "echo 'static site'",
   "outputDirectory": "public",
-  "framework": null,
-  "redirects": [
-    {"source": "/", "destination": "/app.html", "permanent": false}
-  ]
+  "framework": null
 }
