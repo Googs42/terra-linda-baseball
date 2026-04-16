@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test</title></head>
+<body>
+<h1 id="title">If you see this, static hosting works</h1>
+<button onclick="testClick()">Click me</button>
+<p id="result"></p>
+<script>
+function testClick() {
+  document.getElementById('result').textContent = 'JS works! Time: ' + new Date().toLocaleTimeString();
+}
+</script>
+</body>
+</html>
