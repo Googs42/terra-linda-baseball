@@ -3992,12 +3992,37 @@ addPlayer = async function() {
   const bat=document.getElementById('p-bat').value, thr=document.getElementById('p-throw').value;
   const statusEl=document.getElementById('p-status'); const status=(statusEl&&statusEl.value)||'Active';
   if (!first||!last){ alert('Please enter at least a first and last name.'); return; }
-  const saved = await apiPost('roster',{ num, name:first+' '+last, pos, year, bats:bat, throws:thr, team, status });
-  if (saved.error){ alert('Error saving: '+saved.error); return; }
-  rosterData.push({ num, name:first+' '+last, pos, year, bt:bat+'/'+thr, team, status, id:saved.id });
+
+  // Try Supabase first. If the server rejects (e.g. NOT NULL on pos/year)
+  // or the network fails, save locally so the coach is never blocked.
+  let savedId = Date.now();
+  let syncNote = '';
+  try {
+    const saved = await apiPost('roster', {
+      num, name: first+' '+last,
+      // DB requires non-null pos/year; send a placeholder when the coach
+      // doesn't know yet so the row still persists
+      pos: pos || 'TBD', year: year || 'TBD',
+      bats: bat, throws: thr, team, status
+    });
+    if (saved && saved.error) {
+      console.warn('addPlayer API error:', saved.error);
+      syncNote = ' (saved locally only — server said: ' + saved.error + ')';
+    } else if (saved && saved.id) {
+      savedId = saved.id;
+    } else {
+      syncNote = ' (saved locally only — server returned no id)';
+    }
+  } catch (err) {
+    console.warn('addPlayer network error:', err);
+    syncNote = ' (saved locally only — could not reach server)';
+  }
+
+  rosterData.push({ num, name:first+' '+last, pos, year, bt:bat+'/'+thr, team, status, id:savedId });
   closeModal('addPlayer');
   showSection('roster', document.querySelector('[onclick*=roster]'));
-  ['p-first','p-last','p-num'].forEach(id=>document.getElementById(id).value='');
+  ['p-first','p-last','p-num'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  if (syncNote) alert('Player added' + syncNote);
 };
 
 // ── Override addGame ──────────────────────────────────────────

@@ -13,10 +13,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     const db = supabaseAdmin()
-    const { num, name, pos, year, bats, throws, team } = req.body
+    const { num, name, pos, year, bats, throws, team, status } = req.body
+    if (!name || !team) {
+      return res.status(400).json({ error: 'Name and team are required' })
+    }
     const { data, error } = await db
       .from('roster')
-      .insert({ num, name, pos, year, bats, throws, team, status: 'Active' })
+      .insert({
+        num: num || 0,
+        name,
+        pos: pos || 'TBD',
+        year: year || 'TBD',
+        bats: bats || 'R',
+        throws: throws || 'R',
+        team,
+        status: status || 'Active',
+      })
       .select()
       .single()
     if (error) return res.status(500).json({ error: error.message })
