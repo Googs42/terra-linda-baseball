@@ -25,9 +25,12 @@ alter table users add column if not exists email text;
 alter table users add column if not exists phone text;
 alter table users add column if not exists notes text;
 
--- No users are seeded. The login API has a hardcoded 'coach'/'trojans2025'
--- fallback so the first login always works; create real accounts via the
--- Manage Users screen after signing in.
+-- Seed the default coach account (can be deleted later in Manage Users —
+-- the login API has a hardcoded 'coach'/'trojans2025' fallback so the coach
+-- can never lock themselves out)
+insert into users (name, username, password, role)
+values ('Head Coach', 'coach', 'trojans2025', 'coach')
+on conflict (username) do nothing;
 
 -- ── ROSTER ────────────────────────────────────────────────────
 create table if not exists roster (
@@ -237,10 +240,115 @@ create policy "Service role manages contribs"  on contributions for all using (t
 create policy "Service role manages clinics"   on clinics       for all using (true);
 
 -- ═══════════════════════════════════════════════════════════
--- No seed data. Every row (users, roster, schedule, stats,
--- fundraisers, field tasks, clinics) is added by the coach via
--- the app after first login.
+-- SAMPLE DATA
+-- These rows show up on first login as ideas/inspiration. Every row
+-- is editable and deletable through the app — nothing here is protected.
+-- Delete anything you don't want; the schema won't re-insert on subsequent
+-- runs because each block uses ON CONFLICT DO NOTHING.
 -- ═══════════════════════════════════════════════════════════
+
+-- Varsity roster (sample)
+insert into roster (num, name, pos, year, bats, throws, team) values
+(4,  'Jake Morales',    'SS',    'Junior',    'R','R','Varsity'),
+(12, 'Tyler Kim',       'P/OF',  'Senior',    'L','L','Varsity'),
+(18, 'Marcus Chen',     '2B',    'Sophomore', 'R','R','Varsity'),
+(22, 'Alex Garcia',     '1B',    'Senior',    'L','R','Varsity'),
+(8,  'Brandon Williams','C',     'Junior',    'R','R','Varsity'),
+(33, 'Ethan Torres',    'CF',    'Junior',    'R','R','Varsity'),
+(10, 'Raj Patel',       '3B',    'Sophomore', 'R','R','Varsity'),
+(15, 'Dante Nguyen',    'P',     'Senior',    'R','L','Varsity'),
+(27, 'Chris Martin',    'P',     'Junior',    'R','R','Varsity'),
+(3,  'Jose Reyes',      'P/RP',  'Senior',    'R','R','Varsity'),
+(9,  'Noah Alvarez',    'LF',    'Sophomore', 'L','L','Varsity'),
+(21, 'Sam Johnson',     'RF',    'Junior',    'R','R','Varsity'),
+(16, 'Kai Nakamura',    'SS/2B', 'Sophomore', 'R','R','Varsity'),
+(5,  'Owen Clark',      'DH',    'Senior',    'L','R','Varsity'),
+(11, 'Mateo Flores',    'C/1B',  'Junior',    'R','R','Varsity'),
+(30, 'Liam Bradley',    '3B/OF', 'Sophomore', 'R','R','Varsity')
+on conflict do nothing;
+
+-- JV roster (sample)
+insert into roster (num, name, pos, year, bats, throws, team) values
+(7,  'Ryan Lopez',     'C',     'Freshman',  'R','R','JV'),
+(23, 'Derek Sanchez',  '1B',    'Sophomore', 'L','L','JV'),
+(2,  'Aidan Murphy',   'SS',    'Freshman',  'R','R','JV'),
+(14, 'Javier Rios',    'P',     'Freshman',  'R','R','JV'),
+(6,  'Cole Bennett',   '2B',    'Sophomore', 'R','R','JV'),
+(19, 'Tristan Lee',    'CF',    'Freshman',  'L','L','JV'),
+(25, 'Finn McCarthy',  '3B',    'Sophomore', 'R','R','JV'),
+(13, 'Zachary Powell', 'RF',    'Freshman',  'R','R','JV'),
+(28, 'Isaiah Green',   'P/OF',  'Sophomore', 'L','L','JV'),
+(1,  'Miles Turner',   'LF',    'Freshman',  'R','R','JV'),
+(17, 'Hudson White',   'C',     'Sophomore', 'R','R','JV'),
+(20, 'Preston Hill',   'UTIL',  'Freshman',  'R','R','JV')
+on conflict do nothing;
+
+-- Batting stats (sample)
+insert into batting_stats (player_name, team, g, ab, h, doubles, triples, hr, rbi, bb, so, avg, obp, slg) values
+('Jake Morales',     'Varsity', 18, 64, 22, 4, 1, 2, 14, 8, 12, 0.344, 0.417, 0.500),
+('Marcus Chen',      'Varsity', 18, 60, 19, 3, 2, 0,  9,10,  8, 0.317, 0.403, 0.417),
+('Alex Garcia',      'Varsity', 17, 55, 17, 5, 0, 3, 18, 6, 14, 0.309, 0.370, 0.527),
+('Brandon Williams', 'Varsity', 18, 58, 16, 2, 1, 1, 11, 9, 10, 0.276, 0.360, 0.379),
+('Tyler Kim',        'Varsity', 14, 41, 11, 2, 0, 2,  8, 5,  9, 0.268, 0.340, 0.439),
+('Ethan Torres',     'Varsity', 16, 48, 12, 1, 0, 0,  5, 7, 11, 0.250, 0.345, 0.271),
+('Raj Patel',        'Varsity', 18, 52, 13, 3, 1, 1, 10, 4, 13, 0.250, 0.298, 0.385)
+on conflict do nothing;
+
+-- Pitching stats (sample)
+insert into pitching_stats (player_name, team, g, gs, w, l, sv, ip, hits, er, bb, k, era, whip) values
+('Tyler Kim',    'Varsity', 10, 8, 5, 2, 0, 48.1, 38, 12, 14, 52, 2.24, 1.08),
+('Dante Nguyen', 'Varsity',  9, 7, 4, 2, 1, 42.0, 36, 14, 18, 44, 3.00, 1.29),
+('Chris Martin', 'Varsity',  8, 6, 3, 3, 0, 36.2, 34, 16, 16, 33, 3.93, 1.37),
+('Jose Reyes',   'Varsity', 12, 0, 1, 1, 4, 18.0, 14,  5,  7, 22, 2.50, 1.17)
+on conflict do nothing;
+
+-- Varsity schedule (sample)
+insert into schedule (game_date, opponent, home_away, location, game_time, result, score, notes, team) values
+('2025-03-06','San Rafael',     'Away','San Rafael HS',  '15:30','W','8-3', 'League opener','Varsity'),
+('2025-03-08','Novato',         'Home','TL Field',       '11:00','W','6-2', 'League','Varsity'),
+('2025-03-11','Petaluma',       'Away','Petaluma HS',    '15:30','L','3-5', 'League','Varsity'),
+('2025-03-13','Redwood',        'Home','TL Field',       '15:30','W','9-4', 'League','Varsity'),
+('2025-03-15','Marin Catholic', 'Away','MC Field',       '11:00','W','4-2', 'League','Varsity'),
+('2025-03-18','San Marin',      'Home','TL Field',       '15:30','L','2-4', 'League','Varsity'),
+('2025-03-20','Tamalpais',      'Away','Tam HS',         '15:30','W','7-1', 'League','Varsity'),
+('2025-03-22','Archie Williams','Home','TL Field',       '11:00','W','5-3', 'League','Varsity'),
+('2025-03-25','San Rafael',     'Home','TL Field',       '15:30','W','10-2','League','Varsity'),
+('2025-03-27','Novato',         'Away','Novato HS',      '15:30','L','1-4', 'League','Varsity'),
+('2025-04-01','Petaluma',       'Home','TL Field',       '11:00','W','6-3', 'League','Varsity'),
+('2025-04-03','Redwood',        'Away','Redwood HS',     '15:30','L','3-6', 'League','Varsity'),
+('2025-04-05','Marin Catholic', 'Home','TL Field',       '15:30','W','8-5', 'League','Varsity'),
+('2025-04-07','San Marin',      'Away','San Marin HS',   '11:00','W','5-2', 'League','Varsity'),
+('2025-04-08','Tamalpais',      'Home','TL Field',       '15:30','L','4-7', 'League','Varsity'),
+('2025-04-10','Novato',         'Home','TL Field',       '15:30','Upcoming','','League','Varsity'),
+('2025-04-12','San Rafael',     'Away','San Rafael HS',  '11:00','Upcoming','','League','Varsity'),
+('2025-04-15','Marin Catholic', 'Home','TL Field',       '15:30','Upcoming','','League','Varsity'),
+('2025-04-17','Redwood',        'Away','Redwood HS',     '15:30','Upcoming','','League','Varsity'),
+('2025-04-19','Petaluma',       'Home','TL Field',       '11:00','Upcoming','','League','Varsity'),
+('2025-04-22','San Marin',      'Away','San Marin HS',   '15:30','Upcoming','','League','Varsity'),
+('2025-04-24','Tamalpais',      'Home','TL Field',       '15:30','Upcoming','','League','Varsity'),
+('2025-05-01','NCS Playoffs',   'TBD', 'TBD',            null,   'Upcoming','','NCS Bracket TBD','Varsity')
+on conflict do nothing;
+
+-- Fundraisers (sample)
+insert into fundraisers (name, goal, raised, event_date, location, status) values
+('Pasta Dinner Night',     2000, 1240, '2025-04-18', 'TL Cafeteria',    'Active'),
+('Car Wash - Northgate',   1000,  380, '2025-04-27', 'Northgate Drive', 'Active'),
+('Booster Club Pledge Drive', 5000, 3200, null,      'Online/Mail',     'Active'),
+('Golf Tournament',        3000,    0, '2025-05-17', 'Marin Country Club','Upcoming'),
+('Silent Auction Night',   3000,    0, '2025-06-06', 'TL Gym',           'Upcoming')
+on conflict do nothing;
+
+-- Field tasks (sample)
+insert into field_tasks (task_name, priority, assigned_to, done) values
+('Mound clay pack & level',       'low', 'Coaching staff', true),
+('Infield drag & chalk lines',    'low', 'JV players rotation', true),
+('Bullpen rubber inspection',     'low', 'Coaching staff', true),
+('Outfield mow - 3 inch cut',     'med', 'Grounds crew', false),
+('Foul lines repaint',            'high','Unassigned', false),
+('Warning track re-grade',        'high','Unassigned', false),
+('Home plate area clay fill',     'med', 'Coaching staff', false),
+('Batting cage net inspection',   'low', 'Coaching staff', true)
+on conflict do nothing;
 
 -- ═══════════════════════════════════════════════════════════
 -- Done! Your database is ready.
