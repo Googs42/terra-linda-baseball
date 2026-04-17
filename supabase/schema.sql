@@ -238,44 +238,9 @@ create policy "Service role manages contribs"  on contributions for all using (t
 create policy "Service role manages clinics"   on clinics       for all using (true);
 
 -- ═══════════════════════════════════════════════════════════
--- SEED DATA - starter schedule, roster, stats
+-- SEED DATA - starter schedule, stats
+-- (Real players are added by the coach via the app, not seeded.)
 -- ═══════════════════════════════════════════════════════════
-
--- Varsity roster
-insert into roster (num, name, pos, year, bats, throws, team) values
-(4,  'Jake Morales',    'SS',    'Junior',    'R','R','Varsity'),
-(12, 'Tyler Kim',       'P/OF',  'Senior',    'L','L','Varsity'),
-(18, 'Marcus Chen',     '2B',    'Sophomore', 'R','R','Varsity'),
-(22, 'Alex Garcia',     '1B',    'Senior',    'L','R','Varsity'),
-(8,  'Brandon Williams','C',     'Junior',    'R','R','Varsity'),
-(33, 'Ethan Torres',    'CF',    'Junior',    'R','R','Varsity'),
-(10, 'Raj Patel',       '3B',    'Sophomore', 'R','R','Varsity'),
-(15, 'Dante Nguyen',    'P',     'Senior',    'R','L','Varsity'),
-(27, 'Chris Martin',    'P',     'Junior',    'R','R','Varsity'),
-(3,  'Jose Reyes',      'P/RP',  'Senior',    'R','R','Varsity'),
-(9,  'Noah Alvarez',    'LF',    'Sophomore', 'L','L','Varsity'),
-(21, 'Sam Johnson',     'RF',    'Junior',    'R','R','Varsity'),
-(16, 'Kai Nakamura',    'SS/2B', 'Sophomore', 'R','R','Varsity'),
-(5,  'Owen Clark',      'DH',    'Senior',    'L','R','Varsity'),
-(11, 'Mateo Flores',    'C/1B',  'Junior',    'R','R','Varsity'),
-(30, 'Liam Bradley',    '3B/OF', 'Sophomore', 'R','R','Varsity')
-on conflict do nothing;
-
--- JV roster
-insert into roster (num, name, pos, year, bats, throws, team) values
-(7,  'Ryan Lopez',     'C',     'Freshman',  'R','R','JV'),
-(23, 'Derek Sanchez',  '1B',    'Sophomore', 'L','L','JV'),
-(2,  'Aidan Murphy',   'SS',    'Freshman',  'R','R','JV'),
-(14, 'Javier Rios',    'P',     'Freshman',  'R','R','JV'),
-(6,  'Cole Bennett',   '2B',    'Sophomore', 'R','R','JV'),
-(19, 'Tristan Lee',    'CF',    'Freshman',  'L','L','JV'),
-(25, 'Finn McCarthy',  '3B',    'Sophomore', 'R','R','JV'),
-(13, 'Zachary Powell', 'RF',    'Freshman',  'R','R','JV'),
-(28, 'Isaiah Green',   'P/OF',  'Sophomore', 'L','L','JV'),
-(1,  'Miles Turner',   'LF',    'Freshman',  'R','R','JV'),
-(17, 'Hudson White',   'C',     'Sophomore', 'R','R','JV'),
-(20, 'Preston Hill',   'UTIL',  'Freshman',  'R','R','JV')
-on conflict do nothing;
 
 -- Batting stats
 insert into batting_stats (player_name, team, g, ab, h, doubles, triples, hr, rbi, bb, so, avg, obp, slg) values
