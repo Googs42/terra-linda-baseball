@@ -930,38 +930,38 @@ body.sidebar-open .sidebar-backdrop { display: block; }
       <!-- DASHBOARD -->
       <div class="section active" id="section-dashboard">
         <div class="stats-row">
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer" onclick="jumpToTile('roster','varsity')" role="button" tabindex="0">
             <div class="stat-label">Varsity roster</div>
-            <div class="stat-num">16</div>
-            <div class="stat-sub"><span class="stat-accent">2</span> spots open</div>
+            <div class="stat-num" id="tile-varsity-count">0</div>
+            <div class="stat-sub" id="tile-varsity-sub">View roster &rarr;</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer" onclick="jumpToTile('roster','jv')" role="button" tabindex="0">
             <div class="stat-label">JV roster</div>
-            <div class="stat-num">12</div>
-            <div class="stat-sub">Full roster</div>
+            <div class="stat-num" id="tile-jv-count">0</div>
+            <div class="stat-sub" id="tile-jv-sub">View roster &rarr;</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer" onclick="jumpToTile('clinics')" role="button" tabindex="0">
             <div class="stat-label">Clinics this month</div>
-            <div class="stat-num">3</div>
-            <div class="stat-sub"><span class="stat-accent">14</span> spots left</div>
+            <div class="stat-num" id="tile-clinics-count">0</div>
+            <div class="stat-sub" id="tile-clinics-sub">View clinics &rarr;</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" style="cursor:pointer" onclick="jumpToTile('camp')" role="button" tabindex="0">
             <div class="stat-label">Summer camp openings</div>
-            <div class="stat-num">8</div>
-            <div class="stat-sub">June session</div>
+            <div class="stat-num" id="tile-camp-count">0</div>
+            <div class="stat-sub" id="tile-camp-sub">View camp &rarr;</div>
           </div>
         </div>
 
         <div class="grid-2" style="margin-bottom:1.25rem">
-          <div class="card">
+          <div class="card" style="cursor:pointer" onclick="jumpToTile('roster','all')">
             <div class="card-title">Recent roster</div>
             <div id="recent-roster-list"></div>
             <div style="text-align:center;padding-top:10px">
-              <button class="btn" onclick="showSection('roster',document.querySelector('[onclick*=roster]'))">View full roster &rarr;</button>
+              <button class="btn" onclick="event.stopPropagation();jumpToTile('roster','all')">View full roster &rarr;</button>
             </div>
           </div>
 
-          <div class="card">
+          <div class="card" style="cursor:pointer" onclick="jumpToTile('skills')">
             <div class="card-title">This week's drills</div>
             <div class="drill-row">
               <div class="drill-dot" style="background:var(--blue)"></div>
@@ -1007,7 +1007,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
         </div>
 
         <div class="grid-2">
-          <div class="card">
+          <div class="card" style="cursor:pointer" onclick="jumpToTile('clinics')">
             <div class="card-title">Upcoming academy events</div>
             <div class="event-item">
               <div class="event-name">Pitching Mechanics Clinic</div>
@@ -1027,7 +1027,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
             </div>
           </div>
 
-          <div class="card">
+          <div class="card" style="cursor:pointer" onclick="jumpToTile('field')">
             <div class="card-title">Field maintenance status</div>
             <div class="prog-row">
               <div class="prog-label">Mound clay pack</div>
@@ -1072,8 +1072,8 @@ body.sidebar-open .sidebar-backdrop { display: block; }
         </div>
 
         <div class="tabs">
-          <div class="tab active" onclick="rosterTab(this,'varsity')">Varsity (16)</div>
-          <div class="tab" onclick="rosterTab(this,'jv')">JV (12)</div>
+          <div class="tab active" onclick="rosterTab(this,'varsity')">Varsity <span id="roster-tab-varsity-n">(0)</span></div>
+          <div class="tab" onclick="rosterTab(this,'jv')">JV <span id="roster-tab-jv-n">(0)</span></div>
           <div class="tab" onclick="rosterTab(this,'all')">All Players</div>
         </div>
 
@@ -2593,6 +2593,7 @@ let currentRosterFilter = 'varsity';
 let searchTerm = '';
 
 function renderRoster() {
+  if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
   const tbody = document.getElementById('roster-body');
   let filtered = rosterData.filter(p => {
     const matchTeam = currentRosterFilter === 'all' || p.team === (currentRosterFilter === 'varsity' ? 'Varsity' : 'JV');
@@ -4149,11 +4150,58 @@ async function bootstrapLiveData() {
     if (typeof loadClinics    === 'function') loadClinics();
     if (typeof loadFundraisers === 'function') loadFundraisers();
     if (typeof loadStats      === 'function') loadStats();
+    if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
   } catch (err) {
     console.warn('bootstrapLiveData failed:', err);
   }
 }
 if (!window.__TL_DATA__) bootstrapLiveData();
+
+// ═══════════════════════════════════════════════════════════════
+//  DASHBOARD TILE NAVIGATION + LIVE COUNTS
+// ═══════════════════════════════════════════════════════════════
+function jumpToTile(section, subFilter) {
+  const navEl = document.querySelector("[onclick*=\"showSection('" + section + "'\"]");
+  if (typeof showSection === 'function') showSection(section, navEl);
+  if (section === 'roster' && subFilter) {
+    // Flip to the right Varsity/JV/All tab on the roster page
+    setTimeout(() => {
+      const tabs = document.querySelectorAll('#section-roster .tab');
+      const idx = subFilter === 'varsity' ? 0 : subFilter === 'jv' ? 1 : 2;
+      if (tabs[idx] && typeof rosterTab === 'function') rosterTab(tabs[idx], subFilter);
+    }, 0);
+  }
+}
+
+function updateDashboardCounts() {
+  const varsityN = rosterData.filter(p => p.team === 'Varsity').length;
+  const jvN      = rosterData.filter(p => p.team === 'JV').length;
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setText('tile-varsity-count', varsityN);
+  setText('tile-jv-count', jvN);
+  setText('roster-tab-varsity-n', '(' + varsityN + ')');
+  setText('roster-tab-jv-n', '(' + jvN + ')');
+  // Nav badge on the Roster nav item
+  const navBadge = document.querySelector('.nav-item[onclick*="roster"] .nav-badge');
+  if (navBadge) navBadge.textContent = rosterData.length;
+
+  // Clinics this month
+  if (typeof CLINICS !== 'undefined' && Array.isArray(CLINICS)) {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const thisMonth = CLINICS.filter(c => {
+      if (!c.clinic_date) return false;
+      const d = new Date(c.clinic_date + 'T00:00:00');
+      return d.getFullYear() === y && d.getMonth() === m;
+    });
+    const spotsLeft = thisMonth.reduce((s, c) => s + Math.max(0, (c.max_spots||0) - (c.spots_filled||0)), 0);
+    setText('tile-clinics-count', thisMonth.length);
+    setText('tile-clinics-sub', spotsLeft + ' spots left');
+  }
+
+  // Summer camp openings (total registrations vs a nominal 30-spot capacity; tweak freely)
+  // We don't have a camp table load yet, so leave the count blank if we haven't fetched it.
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  DYNAMIC RENDERS (tasks, clinics, fundraisers, stats)
@@ -4217,6 +4265,7 @@ async function loadClinics() {
     CLINICS = r.ok ? await r.json() : [];
   } catch { CLINICS = []; }
   renderClinics();
+  if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
 }
 function renderClinics() {
   const c = document.getElementById('clinics-grid');
