@@ -4174,40 +4174,51 @@ function jumpToTile(section, subFilter) {
 }
 
 function updateDashboardCounts() {
-  const varsityN = rosterData.filter(p => p.team === 'Varsity').length;
-  const jvN      = rosterData.filter(p => p.team === 'JV').length;
-  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  setText('tile-varsity-count', varsityN);
-  setText('tile-jv-count', jvN);
-  setText('roster-tab-varsity-n', '(' + varsityN + ')');
-  setText('roster-tab-jv-n', '(' + jvN + ')');
-  // Nav badge on the Roster nav item
-  const navBadge = document.querySelector('.nav-item[onclick*="roster"] .nav-badge');
-  if (navBadge) navBadge.textContent = rosterData.length;
+  try {
+    const varsityN = rosterData.filter(p => p.team === 'Varsity').length;
+    const jvN      = rosterData.filter(p => p.team === 'JV').length;
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setText('tile-varsity-count', varsityN);
+    setText('tile-jv-count', jvN);
+    setText('roster-tab-varsity-n', '(' + varsityN + ')');
+    setText('roster-tab-jv-n', '(' + jvN + ')');
+    const navBadge = document.querySelector('.nav-item[onclick*="roster"] .nav-badge');
+    if (navBadge) navBadge.textContent = rosterData.length;
 
-  // Clinics this month
-  if (typeof CLINICS !== 'undefined' && Array.isArray(CLINICS)) {
-    const now = new Date();
-    const y = now.getFullYear(), m = now.getMonth();
-    const thisMonth = CLINICS.filter(c => {
-      if (!c.clinic_date) return false;
-      const d = new Date(c.clinic_date + 'T00:00:00');
-      return d.getFullYear() === y && d.getMonth() === m;
-    });
-    const spotsLeft = thisMonth.reduce((s, c) => s + Math.max(0, (c.max_spots||0) - (c.spots_filled||0)), 0);
-    setText('tile-clinics-count', thisMonth.length);
-    setText('tile-clinics-sub', spotsLeft + ' spots left');
+    // Read CLINICS off window to dodge the temporal-dead-zone on the top-level `let`.
+    const clinics = (typeof window !== 'undefined') ? window.CLINICS : null;
+    if (Array.isArray(clinics)) {
+      const now = new Date();
+      const y = now.getFullYear(), m = now.getMonth();
+      const thisMonth = clinics.filter(c => {
+        if (!c.clinic_date) return false;
+        const d = new Date(c.clinic_date + 'T00:00:00');
+        return d.getFullYear() === y && d.getMonth() === m;
+      });
+      const spotsLeft = thisMonth.reduce((s, c) => s + Math.max(0, (c.max_spots||0) - (c.spots_filled||0)), 0);
+      setText('tile-clinics-count', thisMonth.length);
+      setText('tile-clinics-sub', spotsLeft + ' spots left');
+    }
+  } catch (err) {
+    // Never let a dashboard-count glitch break the caller (e.g. renderRoster)
+    console.warn('updateDashboardCounts failed:', err);
   }
-
-  // Summer camp openings (total registrations vs a nominal 30-spot capacity; tweak freely)
-  // We don't have a camp table load yet, so leave the count blank if we haven't fetched it.
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  DYNAMIC RENDERS (tasks, clinics, fundraisers, stats)
 //  Every row loaded from Supabase, every row persistently deletable.
 // ═══════════════════════════════════════════════════════════════
-let TASKS = [], CLINICS = [], FUNDRAISERS = [], BATTING = [], PITCHING = [], FIELDING = [];
+// Shared collections exposed on `window` so functions defined earlier in
+// the file can read them without hitting the let temporal-dead-zone.
+window.TASKS = window.TASKS || [];
+window.CLINICS = window.CLINICS || [];
+window.FUNDRAISERS = window.FUNDRAISERS || [];
+window.BATTING = window.BATTING || [];
+window.PITCHING = window.PITCHING || [];
+window.FIELDING = window.FIELDING || [];
+let TASKS = window.TASKS, CLINICS = window.CLINICS, FUNDRAISERS = window.FUNDRAISERS,
+    BATTING = window.BATTING, PITCHING = window.PITCHING, FIELDING = window.FIELDING;
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtClinicDate(d, start, end) {
