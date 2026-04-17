@@ -904,7 +904,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
           <table class="stats-table" id="roster-table">
             <thead>
               <tr>
-                <th>#</th><th>Name</th><th>Position</th><th>Year</th><th>B/T</th><th>Team</th><th>Status</th>
+                <th>#</th><th>Name</th><th>Position</th><th>Year</th><th>B/T</th><th>Team</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody id="roster-body"></tbody>
@@ -2398,6 +2398,7 @@ function renderRoster() {
   });
   filtered.sort((a,b) => a.num - b.num);
   tbody.innerHTML = filtered.map(p => {
+    const realIdx = rosterData.indexOf(p);
     const tagClass = p.team === 'Varsity' ? 'varsity-tag' : 'jv-tag';
     const statusColor = p.status === 'Pending' ? '#F39C12' : 'var(--success)';
     const numDisplay = p.num ? '#' + p.num : '<span style="color:#F39C12">—</span>';
@@ -2410,8 +2411,68 @@ function renderRoster() {
       <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">${p.bt}</td>
       <td><span class="team-tag ${tagClass}">${p.team}</span></td>
       <td style="color:${statusColor};font-size:12px">${p.status}</td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="font-size:10px;padding:3px 8px;margin-right:4px" onclick="editPlayer(${realIdx})">Edit</button>
+        <button class="btn" style="font-size:10px;padding:3px 8px;background:rgba(231,76,60,0.15);color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deletePlayer(${realIdx})">Delete</button>
+      </td>
     </tr>`;
   }).join('');
+}
+
+function deletePlayer(idx) {
+  const p = rosterData[idx];
+  if (!p) return;
+  if (!confirm('Remove ' + p.name + ' from the roster?')) return;
+  rosterData.splice(idx, 1);
+  renderRoster();
+  renderRecentRoster();
+}
+
+let editingPlayerIdx = null;
+function editPlayer(idx) {
+  const p = rosterData[idx];
+  if (!p) return;
+  editingPlayerIdx = idx;
+  const parts = p.name.split(' ');
+  document.getElementById('p-first').value = parts[0] || '';
+  document.getElementById('p-last').value = parts.slice(1).join(' ') || '';
+  document.getElementById('p-num').value = p.num || '';
+  document.getElementById('p-pos').value = p.pos || '';
+  document.getElementById('p-team').value = p.team || 'Varsity';
+  document.getElementById('p-year').value = p.year || 'Freshman';
+  const bt = (p.bt || 'R/R').split('/');
+  document.getElementById('p-bat').value = bt[0] || 'R';
+  document.getElementById('p-throw').value = bt[1] || 'R';
+  // Switch button label
+  const btn = document.querySelector('#modal-addPlayer .btn-red');
+  if (btn) { btn.textContent = 'Save Changes'; btn.onclick = savePlayerEdit; }
+  const title = document.querySelector('#modal-addPlayer .modal-title, #modal-addPlayer h2, #modal-addPlayer [class*=title]');
+  if (title) title.textContent = 'Edit Player';
+  openModal('addPlayer');
+}
+
+function savePlayerEdit() {
+  if (editingPlayerIdx === null) return;
+  const first = document.getElementById('p-first').value.trim();
+  const last = document.getElementById('p-last').value.trim();
+  if (!first || !last) { alert('Name required.'); return; }
+  const num = parseInt(document.getElementById('p-num').value) || 0;
+  const pos = document.getElementById('p-pos').value;
+  const p = rosterData[editingPlayerIdx];
+  p.name = first + ' ' + last;
+  p.num = num;
+  p.pos = pos || '';
+  p.year = document.getElementById('p-year').value || '';
+  p.team = document.getElementById('p-team').value;
+  p.bt = document.getElementById('p-bat').value + '/' + document.getElementById('p-throw').value;
+  p.status = (!num || !pos) ? 'Pending' : 'Active';
+  closeModal('addPlayer');
+  // Restore button to Add mode
+  const btn = document.querySelector('#modal-addPlayer .btn-red');
+  if (btn) { btn.textContent = 'Add Player'; btn.onclick = addPlayer; }
+  editingPlayerIdx = null;
+  renderRoster();
+  renderRecentRoster();
 }
 
 function filterRoster(val) {
@@ -2922,6 +2983,7 @@ function addPlayer() {
   rosterData.push({ num: num || 0, name: first + ' ' + last, pos: pos || '', year: year || '', bt: bat+'/'+thr, team, status });
   closeModal('addPlayer');
   showSection('roster', document.querySelector('[onclick*=roster]'));
+  renderRecentRoster();
   document.getElementById('p-first').value = '';
   document.getElementById('p-last').value = '';
   document.getElementById('p-num').value = '';
