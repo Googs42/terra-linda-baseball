@@ -4000,11 +4000,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════════════════════════════════════════════════════════════
 //  SUPABASE LIVE DATA LOADER
 // ═══════════════════════════════════════════════════════════════
-if (typeof window !== 'undefined' && window.__TL_DATA__) {
-  const d = window.__TL_DATA__;
+function applyTLData(d) {
+  if (!d) return;
   if (d.roster && d.roster.length) {
     rosterData.length = 0;
-    d.roster.forEach(p => rosterData.push({ num:p.num, name:p.name, pos:p.pos, year:p.year, bt:p.bats+'/'+p.throws, team:p.team, status:p.status||'Active', id:p.id }));
+    d.roster.forEach(p => rosterData.push({ num:p.num, name:p.name, pos:p.pos, year:p.year, bt:(p.bats||'R')+'/'+(p.throws||'R'), team:p.team, status:p.status||'Active', id:p.id }));
   }
   if (d.varsitySchedule && d.varsitySchedule.length) {
     varsityGames.length = 0;
@@ -4015,6 +4015,37 @@ if (typeof window !== 'undefined' && window.__TL_DATA__) {
     d.jvSchedule.forEach(g => jvGames.push({ id:g.id, date:g.game_date, opp:g.opponent, ha:g.home_away, loc:g.location||'', time:g.game_time?g.game_time.slice(0,5):'', result:g.result, score:g.score||'', notes:g.notes||'' }));
   }
 }
+
+// Server-injected fast path (used when served through a Next page shell)
+if (typeof window !== 'undefined' && window.__TL_DATA__) applyTLData(window.__TL_DATA__);
+
+// Static-file fast path: the root is now served directly from public/index.html,
+// so there's no server-side injection. Fetch initial data from /api/* on load
+// and re-render the dashboard + roster + schedule views.
+async function bootstrapLiveData() {
+  try {
+    const [rosterRes, varsityRes, jvRes] = await Promise.all([
+      fetch('/api/roster').then(r => r.ok ? r.json() : []),
+      fetch('/api/schedule?team=Varsity').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/schedule?team=JV').then(r => r.ok ? r.json() : []).catch(() => []),
+    ]);
+    applyTLData({
+      roster: Array.isArray(rosterRes) ? rosterRes : [],
+      varsitySchedule: Array.isArray(varsityRes) ? varsityRes : [],
+      jvSchedule: Array.isArray(jvRes) ? jvRes : [],
+    });
+    if (typeof renderRoster === 'function') renderRoster();
+    if (typeof renderRecentRoster === 'function') renderRecentRoster();
+    if (typeof renderScheduleTable === 'function') {
+      renderScheduleTable(varsityGames, 'varsity-sched-body');
+      renderScheduleTable(jvGames, 'jv-sched-body');
+    }
+    if (typeof renderLineupCard === 'function') renderLineupCard();
+  } catch (err) {
+    console.warn('bootstrapLiveData failed:', err);
+  }
+}
+if (!window.__TL_DATA__) bootstrapLiveData();
 
 async function apiPost(ep, body) {
   try {
