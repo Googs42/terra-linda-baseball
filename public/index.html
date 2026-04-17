@@ -2334,11 +2334,19 @@ textarea.form-input { resize: vertical; min-height: 90px; }
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Role</label>
+      <label class="form-label">Role / Title</label>
       <select class="form-input form-select" id="u-role" onchange="togglePlayerLink()">
-        <option value="coach">Coach</option>
-        <option value="player">Player</option>
-        <option value="parent">Parent</option>
+        <optgroup label="Coaching staff">
+          <option value="head_coach">Head Coach</option>
+          <option value="assistant_coach">Assistant Coach</option>
+          <option value="coach">Coach</option>
+          <option value="costumes">Man of Many Costumes</option>
+          <option value="idea_guy">Idea Guy</option>
+        </optgroup>
+        <optgroup label="Team">
+          <option value="player">Player</option>
+          <option value="parent">Parent</option>
+        </optgroup>
       </select>
     </div>
     <div class="form-group" id="player-link-group" style="display:none">
@@ -2908,10 +2916,11 @@ function renderUsersTable() {
     const phoneCell = u.phone
       ? '<a href="tel:' + u.phone.replace(/[^\d+]/g,'') + '" style="color:#7AADFF;font-size:11px;text-decoration:none">' + u.phone + '</a>'
       : '<span style="color:var(--text-muted);font-size:11px">-</span>';
+    const displayTitle = (typeof titleLabel === 'function') ? titleLabel(u.title || u.role) : (u.title || u.role);
     return '<tr>' +
       '<td style="font-weight:500">' + u.name + '</td>' +
       '<td style="font-family:\'DM Mono\',monospace;color:var(--text-muted)">' + u.username + '</td>' +
-      '<td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.06);color:' + (roleColors[u.role]||'white') + '">' + u.role + '</span></td>' +
+      '<td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.06);color:' + (roleColors[u.role]||'white') + '">' + displayTitle + '</span></td>' +
       '<td>' + emailCell + '</td>' +
       '<td>' + phoneCell + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (u.playerLink || (u.role==='player'?'<span style=color:#E74C3C>Not linked</span>':'-')) + '</td>' +
@@ -2929,8 +2938,24 @@ function renderUsersTable() {
   document.getElementById('count-total').textContent = USERS.length;
 }
 
+// Map the selectable title (head_coach, costumes, etc.) to a DB-valid role value.
+const TITLE_LABELS = {
+  head_coach: 'Head Coach',
+  assistant_coach: 'Assistant Coach',
+  coach: 'Coach',
+  costumes: 'Man of Many Costumes',
+  idea_guy: 'Idea Guy',
+  player: 'Player',
+  parent: 'Parent',
+};
+function titleToRole(t) {
+  return (t === 'player' || t === 'parent') ? t : 'coach';
+}
+function titleLabel(t) { return TITLE_LABELS[t] || t; }
+
 function togglePlayerLink() {
-  const role = document.getElementById('u-role').value;
+  const title = document.getElementById('u-role').value;
+  const role = titleToRole(title);
   const grp = document.getElementById('player-link-group');
   grp.style.display = role === 'player' ? 'block' : 'none';
   if (role === 'player') {
@@ -2943,7 +2968,8 @@ function togglePlayerLink() {
 function addUser() {
   const first = document.getElementById('u-first').value.trim();
   const last = document.getElementById('u-last').value.trim();
-  const role = document.getElementById('u-role').value;
+  const title = document.getElementById('u-role').value;
+  const role = titleToRole(title);
   const username = document.getElementById('u-username').value.trim().toLowerCase();
   const password = document.getElementById('u-password').value.trim();
   const email = (document.getElementById('u-email')||{}).value?.trim() || '';
@@ -2959,7 +2985,7 @@ function addUser() {
   const newUser = {
     id: Date.now(),
     name: first + ' ' + last,
-    username, password, role,
+    username, password, role, title,
     email, phone, notes,
     playerLink: playerLink || null
   };
@@ -2968,10 +2994,10 @@ function addUser() {
   renderUsersTable();
   closeModal('addUser');
   ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('u-role').value='coach';
+  document.getElementById('u-role').value='head_coach';
   document.getElementById('player-link-group').style.display='none';
 
-  alert('Account created!\n\nName: ' + newUser.name + '\nUsername: ' + newUser.username + '\nPassword: ' + newUser.password + '\nRole: ' + newUser.role + '\n\nShare these credentials with the ' + newUser.role + '.');
+  alert('Account created!\n\nName: ' + newUser.name + '\nTitle: ' + titleLabel(title) + '\nUsername: ' + newUser.username + '\nPassword: ' + newUser.password + '\n\nShare these credentials.');
 }
 
 function deleteUser(idx) {
@@ -3560,7 +3586,8 @@ const _localAddUser = (typeof addUser !== 'undefined') ? addUser : null;
 window.addUser = async function() {
   const first      = document.getElementById('u-first').value.trim();
   const last       = document.getElementById('u-last').value.trim();
-  const role       = document.getElementById('u-role').value;
+  const title      = document.getElementById('u-role').value;
+  const role       = titleToRole(title);
   const username   = document.getElementById('u-username').value.trim().toLowerCase();
   const password   = document.getElementById('u-password').value.trim();
   const email      = (document.getElementById('u-email')||{}).value?.trim() || '';
@@ -3574,19 +3601,19 @@ window.addUser = async function() {
     alert('That username is already taken.'); return;
   }
   const saved = await apiPost('users', {
-    name: first+' '+last, username, password, role,
+    name: first+' '+last, username, password, role, title,
     player_link: playerLink||null,
     email: email||null, phone: phone||null, notes: notes||null
   });
   if (saved.error) { alert('Error creating account: ' + saved.error); return; }
-  USERS.push({ id: saved.id, name: first+' '+last, username, password, role, email, phone, notes, playerLink: playerLink||null });
+  USERS.push({ id: saved.id, name: first+' '+last, username, password, role, title, email, phone, notes, playerLink: playerLink||null });
   saveUsers();
   renderUsersTable();
   closeModal('addUser');
   ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('u-role').value='coach';
+  document.getElementById('u-role').value='head_coach';
   document.getElementById('player-link-group').style.display='none';
-  alert('Account created!\n\nName: '+first+' '+last+'\nUsername: '+username+'\nPassword: '+password+'\nRole: '+role+'\n\nShare these credentials with the '+role+'.');
+  alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.');
 };
 
 // ── Override login to use API ─────────────────────────────────
@@ -3810,7 +3837,8 @@ async function toggleTaskDb(el,id) {
 // ── Override addUser ──────────────────────────────────────────
 window.addUser = async function() {
   const first=document.getElementById('u-first').value.trim(), last=document.getElementById('u-last').value.trim();
-  const role=document.getElementById('u-role').value, username=document.getElementById('u-username').value.trim().toLowerCase();
+  const title=document.getElementById('u-role').value, role=titleToRole(title);
+  const username=document.getElementById('u-username').value.trim().toLowerCase();
   const password=document.getElementById('u-password').value.trim();
   const email=(document.getElementById('u-email')||{}).value?.trim()||'';
   const phone=(document.getElementById('u-phone')||{}).value?.trim()||'';
@@ -3820,13 +3848,13 @@ window.addUser = async function() {
   if(!username){alert('Please enter a username.');return;}
   if(!password){alert('Please enter a password.');return;}
   if(USERS.find(u=>u.username.toLowerCase()===username)){alert('Username already taken.');return;}
-  const saved=await apiPost('users',{ name:first+' '+last, username, password, role, player_link:playerLink||null, email:email||null, phone:phone||null, notes:notes||null });
+  const saved=await apiPost('users',{ name:first+' '+last, username, password, role, title, player_link:playerLink||null, email:email||null, phone:phone||null, notes:notes||null });
   if(saved.error){alert('Error: '+saved.error);return;}
-  USERS.push({id:saved.id,name:first+' '+last,username,password,role,email,phone,notes,playerLink:playerLink||null});
+  USERS.push({id:saved.id,name:first+' '+last,username,password,role,title,email,phone,notes,playerLink:playerLink||null});
   saveUsers(); renderUsersTable(); closeModal('addUser');
   ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('u-role').value='coach'; document.getElementById('player-link-group').style.display='none';
-  alert('Account created!\n\nName: '+first+' '+last+'\nUsername: '+username+'\nPassword: '+password+'\nRole: '+role+'\n\nShare these credentials.');
+  document.getElementById('u-role').value='head_coach'; document.getElementById('player-link-group').style.display='none';
+  alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.');
 };
 
 // ── Override addContrib ───────────────────────────────────────
