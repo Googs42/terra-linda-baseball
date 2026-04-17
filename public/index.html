@@ -1001,6 +1001,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
           <input class="search-box" placeholder="Search player name, position..." oninput="filterRoster(this.value)">
           <button class="btn btn-red" onclick="openAddPlayerModal()">+ Add Player</button>
           <button class="btn" onclick="exportRoster()">Export CSV</button>
+          <button class="btn coach-only" style="color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="clearPlaceholderRoster()" title="Delete the 28 original seed players from schema.sql">Clear placeholders</button>
         </div>
 
         <div class="tabs">
@@ -2713,13 +2714,72 @@ function renderRoster() {
   }).join('');
 }
 
-function deletePlayer(idx) {
+async function deletePlayer(idx) {
   const p = rosterData[idx];
   if (!p) return;
   if (!confirm('Remove ' + p.name + ' from the roster?')) return;
+
+  if (p.id && typeof apiDelete === 'function') {
+    try {
+      const res = await apiDelete('roster', p.id);
+      if (res && res.error) {
+        alert('Could not delete from Supabase: ' + res.error + '\n\nPlayer removed locally only.');
+      }
+    } catch (err) {
+      alert('Network error deleting player: ' + err.message + '\n\nPlayer removed locally only.');
+    }
+  }
+
   rosterData.splice(idx, 1);
   renderRoster();
-  renderRecentRoster();
+  if (typeof renderRecentRoster === 'function') renderRecentRoster();
+}
+
+// Delete all 28 placeholder players from the original schema seed.
+// Matches by name so it won't touch any real players you've added.
+async function clearPlaceholderRoster() {
+  const seedNames = [
+    'Jake Morales','Tyler Kim','Marcus Chen','Alex Garcia','Brandon Williams',
+    'Ethan Torres','Raj Patel','Dante Nguyen','Chris Martin','Jose Reyes',
+    'Noah Alvarez','Sam Johnson','Kai Nakamura','Owen Clark','Mateo Flores',
+    'Liam Bradley',
+    'Ryan Lopez','Derek Sanchez','Aidan Murphy','Javier Rios','Cole Bennett',
+    'Tristan Lee','Finn McCarthy','Zachary Powell','Isaiah Green','Miles Turner',
+    'Hudson White','Preston Hill'
+  ];
+  const matches = rosterData.filter(p => seedNames.includes(p.name));
+  if (!matches.length) {
+    alert('No placeholder players found to remove.');
+    return;
+  }
+  if (!confirm('Remove ' + matches.length + ' placeholder players from Supabase?\n\nThis will wipe: ' + seedNames.slice(0,5).join(', ') + ', etc.\n\nYour real players will NOT be touched.')) return;
+
+  let removed = 0, failed = 0;
+  for (const p of matches) {
+    if (!p.id) { failed++; continue; }
+    try {
+      const res = await apiDelete('roster', p.id);
+      if (res && res.error) failed++;
+      else removed++;
+    } catch { failed++; }
+  }
+
+  // Rebuild rosterData from whatever's left in Supabase
+  try {
+    const fresh = await fetch('/api/roster').then(r => r.json());
+    if (Array.isArray(fresh)) {
+      rosterData.length = 0;
+      fresh.forEach(p => rosterData.push({
+        num:p.num, name:p.name, pos:p.pos, year:p.year,
+        bt:(p.bats||'R')+'/'+(p.throws||'R'),
+        team:p.team, status:p.status||'Active', id:p.id,
+      }));
+    }
+  } catch {}
+
+  renderRoster();
+  if (typeof renderRecentRoster === 'function') renderRecentRoster();
+  alert('Placeholder cleanup done.\n\nRemoved: ' + removed + '\nFailed:  ' + failed + '\n\nAdd your real roster using + Add Player.');
 }
 
 let editingPlayerIdx = null;
@@ -3260,30 +3320,48 @@ function addUser() {
 }
 
 async function deleteUser(id, idx) {
+  console.log('deleteUser called with', { id, idx, USERS });
+
   // Resolve user by id first, fall back to idx for legacy callers
   let realIdx = (typeof idx === 'number') ? idx : -1;
   if (id) {
     const found = USERS.findIndex(u => String(u.id) === String(id));
     if (found !== -1) realIdx = found;
   }
-  if (realIdx < 0 || !USERS[realIdx]) { console.warn('deleteUser: user not found', id, idx); return; }
-  if (realIdx === 0) return; // protect seed coach
+  if (realIdx < 0 || !USERS[realIdx]) {
+    alert('Could not find that user to delete. Try reloading the page.');
+    console.warn('deleteUser: user not found', { id, idx, USERS });
+    return;
+  }
+  if (realIdx === 0) {
+    alert('The default coach account cannot be removed.');
+    return;
+  }
   const target = USERS[realIdx];
   if (!confirm('Remove ' + target.name + "'s account? They will no longer be able to log in.")) return;
 
   // Persist the delete to Supabase if we have an id that looks like a server id
+  let syncWarning = '';
   if (target.id && typeof apiDelete === 'function') {
     try {
       const res = await apiDelete('users', target.id);
-      if (res && res.error) console.warn('deleteUser API error:', res.error);
+      if (res && res.error) {
+        syncWarning = '\n\n(Supabase reported: ' + res.error + ' — removed locally only)';
+        console.warn('deleteUser API error:', res.error);
+      }
     } catch (err) {
+      syncWarning = '\n\n(Network error: ' + err.message + ' — removed locally only)';
       console.warn('deleteUser network error:', err);
     }
+  } else {
+    syncWarning = '\n\n(This account had no server id — removed locally only)';
   }
 
   USERS.splice(realIdx, 1);
   saveUsers();
   renderUsersTable();
+
+  if (syncWarning) alert('Removed ' + target.name + '.' + syncWarning);
 }
 
 function rosterTab(el, filter) {
