@@ -35,7 +35,8 @@
       "Bash(awk '/<script>/,/<\\\\/script>/' public/index.html)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\seano\\Desktop\\tlbaseball"
+      "C:\\Users\\seano\\Desktop\\tlbaseball",
+      "\\tmp"
     ]
   }
 }
