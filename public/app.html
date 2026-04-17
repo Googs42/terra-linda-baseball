@@ -326,6 +326,155 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
 
 /* ═══════════════════════════════════════
+   LINEUP CARD BUILDER
+═══════════════════════════════════════ */
+.lineup-controls {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.lineup-size-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.lineup-size-toggle button {
+  background: transparent; border: none; color: var(--text-muted);
+  padding: 7px 14px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all 0.15s;
+}
+.lineup-size-toggle button.active { background: var(--gold); color: var(--navy); font-weight: 600; }
+
+.lineup-workspace {
+  display: grid; grid-template-columns: 280px 1fr; gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 1100px) { .lineup-workspace { grid-template-columns: 1fr; } }
+
+.lineup-pool {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem;
+  max-height: 78vh; overflow-y: auto;
+}
+.lineup-pool-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px;
+}
+.lineup-pool-item {
+  padding: 8px 10px; margin-bottom: 6px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 6px; font-size: 12px; cursor: grab;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  transition: all 0.15s;
+}
+.lineup-pool-item:hover { background: rgba(255,199,44,0.08); border-color: rgba(255,199,44,0.3); }
+.lineup-pool-item.dragging { opacity: 0.4; }
+.lineup-pool-item.assigned { opacity: 0.35; }
+.lineup-pool-item .pool-num {
+  font-family: 'DM Mono', monospace; color: var(--gold); font-weight: 600;
+  min-width: 24px; text-align: right;
+}
+.lineup-pool-item .pool-pos {
+  font-size: 10px; color: var(--text-muted); font-family: 'DM Mono', monospace;
+}
+
+/* The printable card itself */
+.lineup-card-wrap {
+  background: #555; padding: 20px; border-radius: 10px;
+  display: flex; justify-content: center;
+  overflow-x: auto;
+}
+.lineup-card {
+  background: white; color: #111;
+  font-family: 'Times New Roman', Times, serif;
+  padding: 0.5in; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  position: relative;
+}
+.lineup-card.size-letter { width: 8.5in; min-height: 11in; }
+.lineup-card.size-half   { width: 4in;   min-height: 8in; padding: 0.35in; font-size: 10px; }
+
+.lineup-card-header {
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 14px;
+}
+.lineup-card-header img { width: 52px; height: auto; }
+.lineup-card.size-half .lineup-card-header img { width: 34px; }
+.lineup-card-title {
+  font-family: 'Times New Roman', serif; font-weight: 700;
+  font-size: 26px; letter-spacing: 1px; flex: 1; text-align: center;
+}
+.lineup-card.size-half .lineup-card-title { font-size: 16px; }
+
+.lineup-table {
+  width: 100%; border-collapse: collapse;
+}
+.lineup-table th, .lineup-table td {
+  border: 1px solid #111; padding: 6px 8px; font-size: 13px;
+  text-align: center; vertical-align: middle; height: 30px;
+}
+.lineup-table th {
+  background: #eee; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; font-size: 11px;
+}
+.lineup-card.size-half .lineup-table th,
+.lineup-card.size-half .lineup-table td { font-size: 10px; padding: 3px 4px; height: 22px; }
+
+.lineup-table .col-order { width: 9%; }
+.lineup-table .col-num   { width: 9%; }
+.lineup-table .col-name  { width: 32%; text-align: left; padding-left: 10px; }
+.lineup-table .col-pos   { width: 13%; }
+
+.lineup-slot {
+  min-height: 24px; cursor: default; outline: none;
+}
+.lineup-slot.droptarget { background: #fff7cc; }
+.lineup-slot .slot-name { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.lineup-slot .slot-remove {
+  display: none; border: none; background: transparent; color: #b00;
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0 4px;
+}
+.lineup-slot:hover .slot-remove { display: inline-block; }
+.lineup-slot[data-filled="true"] { background: #fafaf0; }
+
+.sub-heading {
+  text-align: center; font-weight: 700; letter-spacing: 0.1em;
+  margin: 14px 0 6px; text-transform: uppercase; font-size: 12px;
+  border-top: 2px solid #111; padding-top: 10px;
+}
+
+.meta-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.meta-table td {
+  border: 1px solid #111; padding: 6px 10px; font-size: 12px;
+  height: 28px;
+}
+.meta-table .meta-label { font-weight: 700; text-transform: uppercase; width: 18%; background: #eee; font-size: 10px; letter-spacing: 0.05em; }
+.lineup-card.size-half .meta-table td { font-size: 10px; padding: 3px 6px; }
+.lineup-card.size-half .meta-table .meta-label { font-size: 9px; }
+
+.meta-input, .slot-input, .pos-input {
+  border: none; outline: none; background: transparent;
+  width: 100%; font-family: inherit; font-size: inherit; color: #111;
+  padding: 2px;
+}
+.slot-input { text-align: left; padding-left: 8px; }
+.pos-input { text-align: center; }
+.meta-input:focus, .slot-input:focus, .pos-input:focus { background: #fff7cc; }
+
+/* Print rules */
+@media print {
+  body * { visibility: hidden !important; }
+  #lineup-print-area, #lineup-print-area * { visibility: visible !important; }
+  #lineup-print-area {
+    position: absolute; left: 0; top: 0; width: 100%;
+    background: white; padding: 0; margin: 0;
+  }
+  #lineup-print-area .lineup-card { box-shadow: none; margin: 0 auto; }
+  .lineup-slot .slot-remove { display: none !important; }
+}
+@page { margin: 0.4in; }
+body.print-size-letter { }
+body.print-size-half { }
+@media print {
+  body.print-size-letter #lineup-print-area .lineup-card { width: 8.5in; min-height: 10.5in; }
+  body.print-size-half   #lineup-print-area .lineup-card { width: 4in;   min-height: 7.5in; }
+}
+
+/* ═══════════════════════════════════════
    PORTAL / LOGIN SYSTEM
 ═══════════════════════════════════════ */
 #portal-screen {
@@ -529,6 +678,9 @@ textarea.form-input { resize: vertical; min-height: 90px; }
       </div>
       <div class="nav-item" onclick="showSection('schedule', this)">
         <span class="nav-icon">&#9632;</span> Schedule
+      </div>
+      <div class="nav-item coach-only" onclick="showSection('lineup', this)">
+        <span class="nav-icon">&#9632;</span> Lineup Card
       </div>
     </div>
 
@@ -1556,6 +1708,92 @@ textarea.form-input { resize: vertical; min-height: 90px; }
           </div>
         </div>
 
+      </div>
+
+
+      <!-- LINEUP CARD BUILDER -->
+      <div class="section" id="section-lineup">
+        <div class="lineup-controls">
+          <div style="font-size:12px;color:var(--text-muted);margin-right:auto">
+            Drag players from the roster into the lineup. Edit positions, fill in game info, then print.
+          </div>
+          <select class="form-input form-select" id="lineup-team-filter" style="width:auto;padding:7px 12px;font-size:12px" onchange="renderLineupPool()">
+            <option value="Varsity">Varsity pool</option>
+            <option value="JV">JV pool</option>
+            <option value="all">All players</option>
+          </select>
+          <div class="lineup-size-toggle">
+            <button class="active" data-size="letter" onclick="setLineupSize('letter')">8.5&times;11"</button>
+            <button data-size="half" onclick="setLineupSize('half')">4&times;8"</button>
+          </div>
+          <button class="btn" onclick="clearLineup()">Clear</button>
+          <button class="btn btn-red" onclick="printLineup()">Print / Save PDF</button>
+        </div>
+
+        <div class="lineup-workspace">
+          <!-- AVAILABLE PLAYERS -->
+          <div class="lineup-pool">
+            <div class="lineup-pool-title">Available players</div>
+            <div id="lineup-pool-body"></div>
+          </div>
+
+          <!-- PRINTABLE CARD -->
+          <div class="lineup-card-wrap" id="lineup-print-area">
+            <div class="lineup-card size-letter" id="lineup-card">
+              <div class="lineup-card-header">
+                <img src="/TL.png" alt="TL" onerror="this.style.display='none'">
+                <div class="lineup-card-title">TERRA LINDA BASEBALL</div>
+                <div style="width:52px"></div>
+              </div>
+
+              <table class="lineup-table">
+                <thead>
+                  <tr>
+                    <th class="col-order">Order</th>
+                    <th class="col-num">#</th>
+                    <th class="col-name">Player Name</th>
+                    <th class="col-pos">Position</th>
+                    <th>Substitute</th>
+                    <th class="col-pos">Position</th>
+                  </tr>
+                </thead>
+                <tbody id="lineup-rows"></tbody>
+              </table>
+
+              <div class="sub-heading">Substitutes</div>
+              <table class="lineup-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th class="col-name">Player Name</th>
+                    <th class="col-num">#</th>
+                    <th class="col-name">Player Name</th>
+                  </tr>
+                </thead>
+                <tbody id="lineup-subs"></tbody>
+              </table>
+
+              <table class="meta-table">
+                <tr>
+                  <td class="meta-label">Opponent</td>
+                  <td><input class="meta-input" id="meta-opponent" placeholder=""></td>
+                  <td class="meta-label">Location</td>
+                  <td><input class="meta-input" id="meta-location" placeholder=""></td>
+                </tr>
+                <tr>
+                  <td class="meta-label">Game Date</td>
+                  <td><input class="meta-input" id="meta-date" type="date"></td>
+                  <td class="meta-label">Game Time</td>
+                  <td><input class="meta-input" id="meta-time" type="time"></td>
+                </tr>
+                <tr>
+                  <td class="meta-label">Head Coach</td>
+                  <td colspan="3"><input class="meta-input" id="meta-coach" placeholder="Craig DeMartini"></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
 

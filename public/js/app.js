@@ -72,7 +72,7 @@ function filterRoster(val) {
 
 // Nav access rules per role
 const NAV_ACCESS = {
-  coach:  ['dashboard','users','roster','stats','schedule','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
+  coach:  ['dashboard','users','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   player: ['player-home','roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
   parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
 };
@@ -81,7 +81,7 @@ const NAV_ACCESS = {
 const NAV_LABELS = {
   dashboard:'Dashboard', users:'Manage Users', roster:'Roster',
   stats:'Game Stats', schedule:'Schedule', skills:'Position Skills',
-  workouts:'Workout Plans', field:'Field Maintenance',
+  lineup:'Lineup Card', workouts:'Workout Plans', field:'Field Maintenance',
   clinics:'Clinics', camp:'Summer Camp', fundraising:'Fundraising',
   maxpreps:'MaxPreps Hub', contact:'Contact / Outreach',
   'player-home':'My Dashboard', 'parent-home':'My Dashboard',
@@ -233,6 +233,7 @@ function activateSection(name) {
     renderScheduleTable(jvGames, 'jv-sched-body');
   }
   if (name === 'users') renderUsersTable();
+  if (name === 'lineup') renderLineupCard();
 }
 
 // ── Override showSection to respect role ────────────────────
@@ -257,6 +258,7 @@ window.showSection = function(name, navEl) {
     renderScheduleTable(jvGames, 'jv-sched-body');
   }
   if (name === 'users') renderUsersTable();
+  if (name === 'lineup') renderLineupCard();
 }
 
 // ── User menu toggle ─────────────────────────────────────────
@@ -1301,6 +1303,184 @@ addContrib = async function() {
   ['cb-name','cb-amount','cb-notes'].forEach(id=>document.getElementById(id).value='');
 };
 
+// ═══════════════════════════════════════════════════════════════
+//  LINEUP CARD BUILDER
+// ═══════════════════════════════════════════════════════════════
+let lineupSize = 'letter';
+// lineupState.order: array of 9 { num, name, pos } or null
+// lineupState.subs:  array of 8 { num, name } or null
+const lineupState = {
+  order: new Array(9).fill(null),
+  subs:  new Array(8).fill(null),
+};
+
+function setLineupSize(size) {
+  lineupSize = size;
+  const card = document.getElementById('lineup-card');
+  if (!card) return;
+  card.classList.remove('size-letter','size-half');
+  card.classList.add(size === 'half' ? 'size-half' : 'size-letter');
+  document.querySelectorAll('.lineup-size-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.size === size);
+  });
+}
+
+function renderLineupPool() {
+  const body = document.getElementById('lineup-pool-body');
+  if (!body) return;
+  const filter = (document.getElementById('lineup-team-filter') || {}).value || 'Varsity';
+  const assigned = new Set();
+  lineupState.order.forEach(s => { if (s) assigned.add((s.num||'') + '|' + s.name); });
+  lineupState.subs.forEach(s => { if (s) assigned.add((s.num||'') + '|' + s.name); });
+
+  const players = rosterData
+    .filter(p => filter === 'all' || p.team === filter)
+    .sort((a,b) => (parseInt(a.num)||99) - (parseInt(b.num)||99));
+
+  body.innerHTML = players.map(p => {
+    const key = (p.num||'') + '|' + p.name;
+    const isAssigned = assigned.has(key);
+    return '<div class="lineup-pool-item' + (isAssigned ? ' assigned' : '') +
+           '" draggable="true"' +
+           ' data-num="' + (p.num||'') + '"' +
+           ' data-name="' + p.name + '"' +
+           ' data-pos="' + (p.pos||'') + '"' +
+           ' ondragstart="lineupDragStart(event)"' +
+           ' ondragend="lineupDragEnd(event)">' +
+           '<span class="pool-num">' + (p.num||'') + '</span>' +
+           '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + p.name + '</span>' +
+           '<span class="pool-pos">' + (p.pos||'') + '</span>' +
+           '</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px">No players in this pool.</div>';
+}
+
+function renderLineupCard() {
+  const rows = document.getElementById('lineup-rows');
+  const subs = document.getElementById('lineup-subs');
+  if (!rows || !subs) return;
+
+  let rowsHtml = '';
+  for (let i = 0; i < 9; i++) {
+    const slot = lineupState.order[i];
+    const filled = !!slot;
+    rowsHtml += '<tr>' +
+      '<td><strong>' + (i+1) + '</strong></td>' +
+      '<td class="lineup-slot" data-filled="' + filled + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'order\', ' + i + ', \'num\')">' +
+        (filled ? slot.num : '') + '</td>' +
+      '<td class="col-name lineup-slot" data-filled="' + filled + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'order\', ' + i + ')">' +
+        (filled
+          ? '<div class="slot-name"><span>' + slot.name + '</span>' +
+            '<button class="slot-remove" onclick="clearSlot(\'order\', ' + i + ')">&times;</button></div>'
+          : '') +
+      '</td>' +
+      '<td><input class="pos-input" data-slot="order" data-idx="' + i + '" value="' +
+        (slot ? (slot.pos||'') : '') + '" oninput="updateSlotPos(this)"></td>' +
+      '<td class="col-name"><input class="slot-input" id="sub-name-'+i+'" placeholder=""></td>' +
+      '<td><input class="pos-input" id="sub-pos-'+i+'" placeholder=""></td>' +
+      '</tr>';
+  }
+  rows.innerHTML = rowsHtml;
+
+  let subsHtml = '';
+  for (let r = 0; r < 4; r++) {
+    const left = lineupState.subs[r*2];
+    const right = lineupState.subs[r*2 + 1];
+    subsHtml += '<tr>' +
+      '<td class="lineup-slot" data-filled="' + !!left + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'subs\', ' + (r*2) + ', \'num\')">' +
+        (left ? left.num : '') + '</td>' +
+      '<td class="col-name lineup-slot" data-filled="' + !!left + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'subs\', ' + (r*2) + ')">' +
+        (left
+          ? '<div class="slot-name"><span>' + left.name + '</span>' +
+            '<button class="slot-remove" onclick="clearSlot(\'subs\', ' + (r*2) + ')">&times;</button></div>'
+          : '') +
+      '</td>' +
+      '<td class="lineup-slot" data-filled="' + !!right + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'subs\', ' + (r*2+1) + ', \'num\')">' +
+        (right ? right.num : '') + '</td>' +
+      '<td class="col-name lineup-slot" data-filled="' + !!right + '"' +
+        ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
+        ' ondrop="lineupDrop(event, \'subs\', ' + (r*2+1) + ')">' +
+        (right
+          ? '<div class="slot-name"><span>' + right.name + '</span>' +
+            '<button class="slot-remove" onclick="clearSlot(\'subs\', ' + (r*2+1) + ')">&times;</button></div>'
+          : '') +
+      '</td>' +
+      '</tr>';
+  }
+  subs.innerHTML = subsHtml;
+
+  renderLineupPool();
+}
+
+function lineupDragStart(e) {
+  const el = e.currentTarget;
+  e.dataTransfer.setData('text/plain', JSON.stringify({
+    num: el.dataset.num, name: el.dataset.name, pos: el.dataset.pos
+  }));
+  e.dataTransfer.effectAllowed = 'copy';
+  el.classList.add('dragging');
+}
+function lineupDragEnd(e) { e.currentTarget.classList.remove('dragging'); }
+function lineupDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  e.currentTarget.classList.add('droptarget');
+}
+function lineupDragLeave(e) { e.currentTarget.classList.remove('droptarget'); }
+function lineupDrop(e, bucket, idx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('droptarget');
+  let payload;
+  try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); }
+  catch { return; }
+  if (!payload || !payload.name) return;
+
+  // Remove this player from any other slot first (avoid duplicates)
+  const key = (p) => p && ((p.num||'') + '|' + p.name) === ((payload.num||'') + '|' + payload.name);
+  lineupState.order = lineupState.order.map(s => key(s) ? null : s);
+  lineupState.subs  = lineupState.subs.map(s => key(s) ? null : s);
+
+  if (bucket === 'order') {
+    lineupState.order[idx] = { num: payload.num, name: payload.name, pos: payload.pos };
+  } else {
+    lineupState.subs[idx] = { num: payload.num, name: payload.name };
+  }
+  renderLineupCard();
+}
+
+function clearSlot(bucket, idx) {
+  if (bucket === 'order') lineupState.order[idx] = null;
+  else lineupState.subs[idx] = null;
+  renderLineupCard();
+}
+function updateSlotPos(input) {
+  const idx = parseInt(input.dataset.idx, 10);
+  if (lineupState.order[idx]) lineupState.order[idx].pos = input.value;
+}
+function clearLineup() {
+  if (!confirm('Clear the entire lineup card?')) return;
+  lineupState.order = new Array(9).fill(null);
+  lineupState.subs  = new Array(8).fill(null);
+  ['meta-opponent','meta-location','meta-date','meta-time','meta-coach'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  renderLineupCard();
+}
+function printLineup() {
+  document.body.classList.remove('print-size-letter','print-size-half');
+  document.body.classList.add(lineupSize === 'half' ? 'print-size-half' : 'print-size-letter');
+  window.print();
+}
+
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
   const portal=document.getElementById('portal-screen');
@@ -1310,6 +1490,7 @@ document.addEventListener('DOMContentLoaded',function(){
     renderScheduleTable(jvGames,'jv-sched-body');
   }
   renderRoster();
+  renderLineupCard();
 });
 console.log('APP.JS: script end, showSection =', typeof showSection);
 
