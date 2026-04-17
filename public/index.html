@@ -3230,11 +3230,8 @@ function renderUsersTable() {
       ? '<a href="tel:' + u.phone.replace(/[^\d+]/g,'') + '" style="color:#7AADFF;font-size:11px;text-decoration:none">' + u.phone + '</a>'
       : '<span style="color:var(--text-muted);font-size:11px">-</span>';
     const displayTitle = (typeof titleLabel === 'function') ? titleLabel(u.title || u.role) : (u.title || u.role);
-    const isSeed = i === 0;
     const removeAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)"' +
-      (isSeed
-        ? ' disabled title="The default coach account cannot be removed"'
-        : ' onclick="deleteUser(\'' + (u.id || '') + '\', ' + i + ')"');
+      ' onclick="deleteUser(\'' + (u.id || '') + '\', ' + i + ')"';
     return '<tr>' +
       '<td style="font-weight:500">' + u.name + '</td>' +
       '<td style="font-family:\'DM Mono\',monospace;color:var(--text-muted)">' + u.username + '</td>' +
@@ -3330,10 +3327,6 @@ async function deleteUser(id, idx) {
   if (realIdx < 0 || !USERS[realIdx]) {
     alert('Could not find that user to delete. Try reloading the page.');
     console.warn('deleteUser: user not found', { id, idx, USERS });
-    return;
-  }
-  if (realIdx === 0) {
-    alert('The default coach account cannot be removed.');
     return;
   }
   const target = USERS[realIdx];
