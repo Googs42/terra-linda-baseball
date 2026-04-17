@@ -49,11 +49,11 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
     .select()
     .single()
 
-  if (ins.error) {
+  if (ins.error || !ins.data) {
     return res.status(200).json({
       ok: false,
       stage: 'write',
-      error: ins.error.message,
+      error: ins.error?.message || 'insert returned no row',
       hint: 'SUPABASE_SERVICE_ROLE_KEY is likely missing or wrong, or RLS is blocking writes.',
     })
   }
