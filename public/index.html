@@ -1098,45 +1098,26 @@ body.sidebar-open .sidebar-backdrop { display: block; }
         </div>
 
         <div id="batting-stats" class="card">
-          <div class="card-title" style="margin-bottom:.75rem">Batting statistics - 2025 season</div>
+          <div class="card-title" style="margin-bottom:.75rem">Batting statistics</div>
           <table class="stats-table">
-            <thead><tr><th>Player</th><th>G</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>AVG</th><th>OBP</th><th>SLG</th></tr></thead>
-            <tbody>
-              <tr><td>Morales, J.</td><td>18</td><td>64</td><td>22</td><td>4</td><td>1</td><td>2</td><td>14</td><td>8</td><td>12</td><td class="stat-highlight">.344</td><td class="stat-highlight">.417</td><td class="stat-highlight">.500</td></tr>
-              <tr><td>Chen, M.</td><td>18</td><td>60</td><td>19</td><td>3</td><td>2</td><td>0</td><td>9</td><td>10</td><td>8</td><td class="stat-highlight">.317</td><td class="stat-highlight">.403</td><td class="stat-highlight">.417</td></tr>
-              <tr><td>Garcia, A.</td><td>17</td><td>55</td><td>17</td><td>5</td><td>0</td><td>3</td><td>18</td><td>6</td><td>14</td><td class="stat-highlight">.309</td><td class="stat-highlight">.370</td><td class="stat-highlight">.527</td></tr>
-              <tr><td>Williams, B.</td><td>18</td><td>58</td><td>16</td><td>2</td><td>1</td><td>1</td><td>11</td><td>9</td><td>10</td><td class="stat-highlight">.276</td><td class="stat-highlight">.360</td><td class="stat-highlight">.379</td></tr>
-              <tr><td>Kim, T.</td><td>14</td><td>41</td><td>11</td><td>2</td><td>0</td><td>2</td><td>8</td><td>5</td><td>9</td><td class="stat-highlight">.268</td><td class="stat-highlight">.340</td><td class="stat-highlight">.439</td></tr>
-              <tr><td>Torres, E.</td><td>16</td><td>48</td><td>12</td><td>1</td><td>0</td><td>0</td><td>5</td><td>7</td><td>11</td><td class="stat-highlight">.250</td><td class="stat-highlight">.345</td><td class="stat-highlight">.271</td></tr>
-              <tr><td>Patel, R.</td><td>18</td><td>52</td><td>13</td><td>3</td><td>1</td><td>1</td><td>10</td><td>4</td><td>13</td><td class="stat-highlight">.250</td><td class="stat-highlight">.298</td><td class="stat-highlight">.385</td></tr>
-            </tbody>
+            <thead><tr><th>Player</th><th>G</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>AVG</th><th>OBP</th><th>SLG</th><th>Actions</th></tr></thead>
+            <tbody id="batting-stats-body"></tbody>
           </table>
         </div>
 
         <div id="pitching-stats" class="card" style="display:none">
-          <div class="card-title" style="margin-bottom:.75rem">Pitching statistics - 2025 season</div>
+          <div class="card-title" style="margin-bottom:.75rem">Pitching statistics</div>
           <table class="stats-table">
-            <thead><tr><th>Player</th><th>G</th><th>GS</th><th>W</th><th>L</th><th>SV</th><th>IP</th><th>H</th><th>ER</th><th>BB</th><th>K</th><th>ERA</th><th>WHIP</th></tr></thead>
-            <tbody>
-              <tr><td>Kim, T.</td><td>10</td><td>8</td><td>5</td><td>2</td><td>0</td><td>48.1</td><td>38</td><td>12</td><td>14</td><td>52</td><td class="stat-highlight">2.24</td><td class="stat-highlight">1.08</td></tr>
-              <tr><td>Nguyen, D.</td><td>9</td><td>7</td><td>4</td><td>2</td><td>1</td><td>42.0</td><td>36</td><td>14</td><td>18</td><td>44</td><td class="stat-highlight">3.00</td><td class="stat-highlight">1.29</td></tr>
-              <tr><td>Martin, C.</td><td>8</td><td>6</td><td>3</td><td>3</td><td>0</td><td>36.2</td><td>34</td><td>16</td><td>16</td><td>33</td><td class="stat-highlight">3.93</td><td class="stat-highlight">1.37</td></tr>
-              <tr><td>Reyes, J.</td><td>12</td><td>0</td><td>1</td><td>1</td><td>4</td><td>18.0</td><td>14</td><td>5</td><td>7</td><td>22</td><td class="stat-highlight">2.50</td><td class="stat-highlight">1.17</td></tr>
-            </tbody>
+            <thead><tr><th>Player</th><th>G</th><th>GS</th><th>W</th><th>L</th><th>SV</th><th>IP</th><th>H</th><th>ER</th><th>BB</th><th>K</th><th>ERA</th><th>WHIP</th><th>Actions</th></tr></thead>
+            <tbody id="pitching-stats-body"></tbody>
           </table>
         </div>
 
         <div id="fielding-stats" class="card" style="display:none">
-          <div class="card-title" style="margin-bottom:.75rem">Fielding statistics - 2025 season</div>
+          <div class="card-title" style="margin-bottom:.75rem">Fielding statistics</div>
           <table class="stats-table">
-            <thead><tr><th>Player</th><th>Pos</th><th>G</th><th>PO</th><th>A</th><th>E</th><th>DP</th><th>FLD%</th></tr></thead>
-            <tbody>
-              <tr><td>Morales, J.</td><td>SS</td><td>18</td><td>28</td><td>56</td><td>2</td><td>14</td><td class="stat-highlight">.977</td></tr>
-              <tr><td>Chen, M.</td><td>2B</td><td>18</td><td>32</td><td>48</td><td>1</td><td>16</td><td class="stat-highlight">.988</td></tr>
-              <tr><td>Garcia, A.</td><td>1B</td><td>17</td><td>142</td><td>12</td><td>2</td><td>18</td><td class="stat-highlight">.987</td></tr>
-              <tr><td>Williams, B.</td><td>C</td><td>18</td><td>124</td><td>14</td><td>3</td><td>2</td><td class="stat-highlight">.979</td></tr>
-              <tr><td>Torres, E.</td><td>CF</td><td>16</td><td>38</td><td>1</td><td>0</td><td>0</td><td class="stat-highlight">1.000</td></tr>
-            </tbody>
+            <thead><tr><th>Player</th><th>Pos</th><th>G</th><th>PO</th><th>A</th><th>E</th><th>DP</th><th>FLD%</th><th>Actions</th></tr></thead>
+            <tbody id="fielding-stats-body"></tbody>
           </table>
         </div>
       </div>
@@ -1358,88 +1339,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
           <div class="tab" onclick="fieldTab(this,'done-tasks')">Completed</div>
         </div>
 
-        <div id="field-tasks">
-          <div class="field-task">
-            <div class="task-check done" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Mound clay pack & level</div>
-              <div class="task-meta">Assigned: Coaching staff | Every game day</div>
-            </div>
-            <span class="task-priority pri-low">Done</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check done" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Infield drag & chalk lines</div>
-              <div class="task-meta">Assigned: JV players rotation | Pre-game</div>
-            </div>
-            <span class="task-priority pri-low">Done</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check done" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Bullpen rubber inspection & nail down</div>
-              <div class="task-meta">Assigned: Coaching staff | Weekly</div>
-            </div>
-            <span class="task-priority pri-low">Done</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Outfield mow - 3" cut</div>
-              <div class="task-meta">Assigned: Grounds crew | Due: April 9</div>
-            </div>
-            <span class="task-priority pri-med">Pending</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Foul lines repaint - both sides</div>
-              <div class="task-meta">Assigned: Unassigned | Due: April 8</div>
-            </div>
-            <span class="task-priority pri-high">Needed</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Warning track re-grade & level</div>
-              <div class="task-meta">Assigned: Unassigned | Due: April 12</div>
-            </div>
-            <span class="task-priority pri-high">Needed</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Home plate area clay fill</div>
-              <div class="task-meta">Assigned: Coaching staff | Due: April 10</div>
-            </div>
-            <span class="task-priority pri-med">Pending</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check done" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Dugout equipment inventory check</div>
-              <div class="task-meta">Assigned: Team captains | Monthly</div>
-            </div>
-            <span class="task-priority pri-low">Done</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Scoreboard light check</div>
-              <div class="task-meta">Assigned: Unassigned | Pre-game</div>
-            </div>
-            <span class="task-priority pri-med">Pending</span>
-          </div>
-          <div class="field-task">
-            <div class="task-check done" onclick="toggleTask(this)"></div>
-            <div class="task-info">
-              <div class="task-name">Batting cage net inspection</div>
-              <div class="task-meta">Assigned: Coaching staff | Weekly</div>
-            </div>
-            <span class="task-priority pri-low">Done</span>
-          </div>
-        </div>
+        <div id="field-tasks"></div>
       </div>
 
       <!-- CLINICS -->
@@ -1448,67 +1348,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
           <div style="font-size:12px;color:var(--text-muted)">Terra Linda Baseball - clinic schedule & registration management</div>
           <button class="btn btn-red" onclick="openModal('addClinic')">+ Add Clinic</button>
         </div>
-        <div class="grid-3">
-          <div class="clinic-card">
-            <div class="clinic-top">
-              <div class="clinic-name">Pitching Mechanics</div>
-              <div class="clinic-date">April 12, 2025 | 9:00 AM - 1:00 PM</div>
-            </div>
-            <div class="clinic-body">
-              <div class="clinic-detail"><span class="clinic-key">Ages</span><span class="clinic-val">12-18</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Location</span><span class="clinic-val">Main field / bullpen</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Cost</span><span class="clinic-val">$65 per player</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Instructor</span><span class="clinic-val">Coach + TL Varsity P</span></div>
-              <div style="margin-top:10px">
-                <div class="spots-bar"><div class="spots-fill" style="width:80%"></div></div>
-                <div class="spots-text">16 of 20 spots filled - 4 remaining</div>
-              </div>
-            </div>
-            <div class="clinic-footer">
-              <button class="btn btn-red" style="width:100%">Register a Player</button>
-            </div>
-          </div>
-
-          <div class="clinic-card">
-            <div class="clinic-top">
-              <div class="clinic-name">Catching Skills</div>
-              <div class="clinic-date">May 3, 2025 | 10:00 AM - 2:00 PM</div>
-            </div>
-            <div class="clinic-body">
-              <div class="clinic-detail"><span class="clinic-key">Ages</span><span class="clinic-val">10-18</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Location</span><span class="clinic-val">Home plate area</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Cost</span><span class="clinic-val">$65 per player</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Instructor</span><span class="clinic-val">Coach + TL Varsity C</span></div>
-              <div style="margin-top:10px">
-                <div class="spots-bar"><div class="spots-fill" style="width:40%"></div></div>
-                <div class="spots-text">8 of 20 spots filled - 12 remaining</div>
-              </div>
-            </div>
-            <div class="clinic-footer">
-              <button class="btn btn-red" style="width:100%">Register a Player</button>
-            </div>
-          </div>
-
-          <div class="clinic-card">
-            <div class="clinic-top">
-              <div class="clinic-name">Little League Hitting</div>
-              <div class="clinic-date">April 19, 2025 | 9:00 AM - 12:00 PM</div>
-            </div>
-            <div class="clinic-body">
-              <div class="clinic-detail"><span class="clinic-key">Ages</span><span class="clinic-val">8-12 (Little League)</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Location</span><span class="clinic-val">Batting cage & field</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Cost</span><span class="clinic-val">$45 per player</span></div>
-              <div class="clinic-detail"><span class="clinic-key">Instructor</span><span class="clinic-val">TL Varsity players</span></div>
-              <div style="margin-top:10px">
-                <div class="spots-bar"><div class="spots-fill" style="width:20%"></div></div>
-                <div class="spots-text">4 of 20 spots filled - 16 remaining</div>
-              </div>
-            </div>
-            <div class="clinic-footer">
-              <button class="btn btn-red" style="width:100%">Register a Player</button>
-            </div>
-          </div>
-        </div>
+        <div class="grid-3" id="clinics-grid"></div>
       </div>
 
       <!-- SUMMER CAMP -->
@@ -2058,69 +1898,13 @@ body.sidebar-open .sidebar-backdrop { display: block; }
           <!-- Active fundraisers -->
           <div class="card">
             <div class="card-title">Active fundraisers</div>
-
-            <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:var(--white)">Pasta Dinner Night</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">April 18 | TL Cafeteria | Tickets $15/person</div>
-                </div>
-                <span style="font-size:11px;font-weight:600;color:var(--gold)">$1,240 raised</span>
-              </div>
-              <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
-                <div style="width:62%;height:100%;background:var(--gold);border-radius:4px"></div>
-              </div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Goal: $2,000 | 62% complete</div>
-            </div>
-
-            <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:var(--white)">Car Wash - Northgate Drive</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">April 27 | 9am-2pm | $15 per car</div>
-                </div>
-                <span style="font-size:11px;font-weight:600;color:var(--gold)">$380 raised</span>
-              </div>
-              <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
-                <div style="width:38%;height:100%;background:var(--gold);border-radius:4px"></div>
-              </div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Goal: $1,000 | 38% complete</div>
-            </div>
-
-            <div style="padding:10px 0">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-                <div>
-                  <div style="font-size:13px;font-weight:500;color:var(--white)">Booster Club Pledge Drive</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Ongoing | Parent donations</div>
-                </div>
-                <span style="font-size:11px;font-weight:600;color:var(--gold)">$3,200 raised</span>
-              </div>
-              <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
-                <div style="width:64%;height:100%;background:var(--gold);border-radius:4px"></div>
-              </div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Goal: $5,000 | 64% complete</div>
-            </div>
+            <div id="active-fundraisers"></div>
           </div>
 
           <!-- Upcoming fundraisers -->
           <div class="card">
             <div class="card-title">Upcoming fundraisers</div>
-            <div class="event-item">
-              <div class="event-name">Golf Tournament - Charity Round</div>
-              <div class="event-meta"><span>May 17 | Marin Country Club</span><span class="event-spots">$125/golfer</span></div>
-            </div>
-            <div class="event-item">
-              <div class="event-name">Silent Auction Night</div>
-              <div class="event-meta"><span>June 6 | TL Gym</span><span class="event-spots">Goal: $3,000</span></div>
-            </div>
-            <div class="event-item">
-              <div class="event-name">Spirit Wear Online Sale</div>
-              <div class="event-meta"><span>May 1 launch | Online store</span><span class="event-spots">Ongoing</span></div>
-            </div>
-            <div class="event-item">
-              <div class="event-name">Raffle - Giants game tickets</div>
-              <div class="event-meta"><span>Drawing: May 10 | $5/ticket</span><span class="event-spots">Goal: $500</span></div>
-            </div>
+            <div id="upcoming-fundraisers"></div>
           </div>
         </div>
 
@@ -3128,6 +2912,10 @@ function activateSection(name) {
   }
   if (name === 'users') renderUsersTable();
   if (name === 'lineup' && typeof renderLineupCard === 'function') renderLineupCard();
+  if (name === 'field'      && typeof loadTasks        === 'function') loadTasks();
+  if (name === 'clinics'    && typeof loadClinics      === 'function') loadClinics();
+  if (name === 'fundraising'&& typeof loadFundraisers === 'function') loadFundraisers();
+  if (name === 'stats'      && typeof loadStats        === 'function') loadStats();
 }
 
 // ── Override showSection to respect role ────────────────────
@@ -3153,6 +2941,10 @@ window.showSection = function(name, navEl) {
   }
   if (name === 'users') renderUsersTable();
   if (name === 'lineup' && typeof renderLineupCard === 'function') renderLineupCard();
+  if (name === 'field'      && typeof loadTasks        === 'function') loadTasks();
+  if (name === 'clinics'    && typeof loadClinics      === 'function') loadClinics();
+  if (name === 'fundraising'&& typeof loadFundraisers === 'function') loadFundraisers();
+  if (name === 'stats'      && typeof loadStats        === 'function') loadStats();
 }
 
 // ── Sidebar toggle (mobile) ──────────────────────────────────
@@ -3783,13 +3575,21 @@ document.addEventListener('DOMContentLoaded', function() {
   renderRecentRoster();
 });
 
-function addFundraiser() {
+async function addFundraiser() {
   const name = document.getElementById('fr-name').value.trim();
   const goal = document.getElementById('fr-goal').value;
   const date = document.getElementById('fr-date').value;
-  const loc = document.getElementById('fr-loc').value.trim();
+  const loc  = document.getElementById('fr-loc').value.trim();
   if (!name || !goal) { alert('Please enter a name and goal amount.'); return; }
-  alert('Fundraiser "' + name + '" added with goal of $' + parseInt(goal).toLocaleString() + '!');
+  try {
+    const saved = await apiPost('fundraisers', {
+      name, goal: parseFloat(goal) || 0, raised: 0,
+      event_date: date || null, location: loc || null, status: 'Active',
+    });
+    if (saved.error) { alert('Error saving: ' + saved.error); return; }
+    if (typeof FUNDRAISERS !== 'undefined' && saved && saved.id) FUNDRAISERS.push(saved);
+    if (typeof renderFundraisers === 'function') renderFundraisers();
+  } catch (err) { alert('Network error: ' + err.message); return; }
   closeModal('addFundraiser');
   document.getElementById('fr-name').value = '';
   document.getElementById('fr-goal').value = '';
@@ -4218,11 +4018,225 @@ async function bootstrapLiveData() {
       renderScheduleTable(jvGames, 'jv-sched-body');
     }
     if (typeof renderLineupCard === 'function') renderLineupCard();
+    // Preload the "idea" sections in the background so they're ready when
+    // the coach clicks over to them.
+    if (typeof loadTasks      === 'function') loadTasks();
+    if (typeof loadClinics    === 'function') loadClinics();
+    if (typeof loadFundraisers === 'function') loadFundraisers();
+    if (typeof loadStats      === 'function') loadStats();
   } catch (err) {
     console.warn('bootstrapLiveData failed:', err);
   }
 }
 if (!window.__TL_DATA__) bootstrapLiveData();
+
+// ═══════════════════════════════════════════════════════════════
+//  DYNAMIC RENDERS (tasks, clinics, fundraisers, stats)
+//  Every row loaded from Supabase, every row persistently deletable.
+// ═══════════════════════════════════════════════════════════════
+let TASKS = [], CLINICS = [], FUNDRAISERS = [], BATTING = [], PITCHING = [], FIELDING = [];
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtClinicDate(d, start, end) {
+  if (!d) return '';
+  const date = new Date(d + 'T00:00:00');
+  const day = date.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  const timePart = (start || end) ? ' | ' + (start || '') + (start && end ? ' - ' : '') + (end || '') : '';
+  return day + timePart;
+}
+
+// ── TASKS ──────────────────────────────────────────────────────
+async function loadTasks() {
+  try {
+    const r = await fetch('/api/field-tasks');
+    TASKS = r.ok ? await r.json() : [];
+  } catch { TASKS = []; }
+  renderTasks();
+}
+function renderTasks() {
+  const c = document.getElementById('field-tasks');
+  if (!c) return;
+  if (!TASKS.length) { c.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:1rem">No tasks yet. Click "+ Add Task" to add one.</div>'; return; }
+  c.innerHTML = TASKS.map(t => {
+    const pri = (t.priority || 'med').toLowerCase();
+    const label = t.done ? 'Done' : (pri === 'high' ? 'Needed' : 'Pending');
+    const priClass = t.done ? 'pri-low' : (pri === 'high' ? 'pri-high' : pri === 'low' ? 'pri-low' : 'pri-med');
+    const meta = 'Assigned: ' + (t.assigned_to || 'Unassigned') + (t.due_date ? ' | Due: ' + t.due_date : '');
+    return '<div class="field-task" data-id="' + esc(t.id) + '">' +
+      '<div class="task-check ' + (t.done ? 'done' : '') + '" onclick="toggleTaskDb(this,\'' + esc(t.id) + '\')"></div>' +
+      '<div class="task-info">' +
+        '<div class="task-name">' + esc(t.task_name) + '</div>' +
+        '<div class="task-meta">' + esc(meta) + '</div>' +
+      '</div>' +
+      '<span class="task-priority ' + priClass + '">' + label + '</span>' +
+      '<button class="btn" style="margin-left:8px;font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteTask(\'' + esc(t.id) + '\')">Delete</button>' +
+    '</div>';
+  }).join('');
+}
+async function deleteTask(id) {
+  const t = TASKS.find(x => String(x.id) === String(id));
+  if (!t) return;
+  if (!confirm('Delete task "' + t.task_name + '"?')) return;
+  try {
+    const res = await apiDelete('field-tasks', id);
+    if (res && res.error) alert('Supabase error: ' + res.error);
+  } catch (err) { alert('Network error: ' + err.message); }
+  TASKS = TASKS.filter(x => String(x.id) !== String(id));
+  renderTasks();
+}
+
+// ── CLINICS ────────────────────────────────────────────────────
+async function loadClinics() {
+  try {
+    const r = await fetch('/api/clinics');
+    CLINICS = r.ok ? await r.json() : [];
+  } catch { CLINICS = []; }
+  renderClinics();
+}
+function renderClinics() {
+  const c = document.getElementById('clinics-grid');
+  if (!c) return;
+  if (!CLINICS.length) { c.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:1rem;grid-column:1/-1">No clinics scheduled. Click "+ Add Clinic" to add one.</div>'; return; }
+  c.innerHTML = CLINICS.map(cl => {
+    const pct = cl.max_spots ? Math.min(100, Math.round((cl.spots_filled||0) / cl.max_spots * 100)) : 0;
+    const remaining = (cl.max_spots || 0) - (cl.spots_filled || 0);
+    return '<div class="clinic-card" data-id="' + esc(cl.id) + '">' +
+      '<div class="clinic-top">' +
+        '<div class="clinic-name">' + esc(cl.name) + '</div>' +
+        '<div class="clinic-date">' + esc(fmtClinicDate(cl.clinic_date, cl.time_start, cl.time_end)) + '</div>' +
+      '</div>' +
+      '<div class="clinic-body">' +
+        '<div class="clinic-detail"><span class="clinic-key">Ages</span><span class="clinic-val">' + esc(cl.ages || '-') + '</span></div>' +
+        '<div class="clinic-detail"><span class="clinic-key">Location</span><span class="clinic-val">' + esc(cl.location || '-') + '</span></div>' +
+        '<div class="clinic-detail"><span class="clinic-key">Cost</span><span class="clinic-val">' + (cl.cost != null ? '$' + cl.cost : '-') + '</span></div>' +
+        '<div class="clinic-detail"><span class="clinic-key">Instructor</span><span class="clinic-val">' + esc(cl.instructor || '-') + '</span></div>' +
+        '<div style="margin-top:10px">' +
+          '<div class="spots-bar"><div class="spots-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="spots-text">' + (cl.spots_filled||0) + ' of ' + (cl.max_spots||0) + ' spots filled' + (remaining > 0 ? ' - ' + remaining + ' remaining' : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="clinic-footer">' +
+        '<button class="btn" style="flex:1;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteClinic(\'' + esc(cl.id) + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+async function deleteClinic(id) {
+  const cl = CLINICS.find(x => String(x.id) === String(id));
+  if (!cl) return;
+  if (!confirm('Delete clinic "' + cl.name + '"?')) return;
+  try {
+    const res = await apiDelete('clinics', id);
+    if (res && res.error) alert('Supabase error: ' + res.error);
+  } catch (err) { alert('Network error: ' + err.message); }
+  CLINICS = CLINICS.filter(x => String(x.id) !== String(id));
+  renderClinics();
+}
+
+// ── FUNDRAISERS ────────────────────────────────────────────────
+async function loadFundraisers() {
+  try {
+    const r = await fetch('/api/fundraisers');
+    FUNDRAISERS = r.ok ? await r.json() : [];
+  } catch { FUNDRAISERS = []; }
+  renderFundraisers();
+}
+function renderFundraisers() {
+  const active   = FUNDRAISERS.filter(f => (f.status || '').toLowerCase() === 'active');
+  const upcoming = FUNDRAISERS.filter(f => (f.status || '').toLowerCase() !== 'active');
+
+  const activeEl = document.getElementById('active-fundraisers');
+  if (activeEl) {
+    if (!active.length) activeEl.innerHTML = '<div style="font-size:11px;color:var(--text-muted);padding:10px 0">No active fundraisers.</div>';
+    else activeEl.innerHTML = active.map(f => {
+      const pct = f.goal ? Math.min(100, Math.round((f.raised||0) / f.goal * 100)) : 0;
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border);position:relative" data-id="' + esc(f.id) + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px">' +
+          '<div style="flex:1">' +
+            '<div style="font-size:13px;font-weight:500;color:var(--white)">' + esc(f.name) + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + esc(f.event_date || '') + (f.location ? ' | ' + esc(f.location) : '') + '</div>' +
+          '</div>' +
+          '<span style="font-size:11px;font-weight:600;color:var(--gold)">$' + (f.raised||0).toLocaleString() + ' raised</span>' +
+          '<button class="btn" style="font-size:10px;padding:2px 6px;color:#E74C3C;border-color:rgba(231,76,60,0.3);line-height:1" onclick="deleteFundraiser(\'' + esc(f.id) + '\')">&times;</button>' +
+        '</div>' +
+        '<div style="height:4px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">' +
+          '<div style="width:' + pct + '%;height:100%;background:var(--gold);border-radius:4px"></div>' +
+        '</div>' +
+        '<div style="font-size:10px;color:var(--text-muted);margin-top:4px">Goal: $' + (f.goal||0).toLocaleString() + ' | ' + pct + '% complete</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const upcEl = document.getElementById('upcoming-fundraisers');
+  if (upcEl) {
+    if (!upcoming.length) upcEl.innerHTML = '<div style="font-size:11px;color:var(--text-muted);padding:10px 0">No upcoming fundraisers.</div>';
+    else upcEl.innerHTML = upcoming.map(f =>
+      '<div class="event-item" data-id="' + esc(f.id) + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+          '<div class="event-name" style="flex:1">' + esc(f.name) + '</div>' +
+          '<button class="btn" style="font-size:10px;padding:2px 6px;color:#E74C3C;border-color:rgba(231,76,60,0.3);line-height:1" onclick="deleteFundraiser(\'' + esc(f.id) + '\')">&times;</button>' +
+        '</div>' +
+        '<div class="event-meta"><span>' + esc(f.event_date || 'TBD') + (f.location ? ' | ' + esc(f.location) : '') + '</span><span class="event-spots">Goal: $' + (f.goal||0).toLocaleString() + '</span></div>' +
+      '</div>'
+    ).join('');
+  }
+}
+async function deleteFundraiser(id) {
+  const f = FUNDRAISERS.find(x => String(x.id) === String(id));
+  if (!f) return;
+  if (!confirm('Delete fundraiser "' + f.name + '"?')) return;
+  try {
+    const res = await apiDelete('fundraisers', id);
+    if (res && res.error) alert('Supabase error: ' + res.error);
+  } catch (err) { alert('Network error: ' + err.message); }
+  FUNDRAISERS = FUNDRAISERS.filter(x => String(x.id) !== String(id));
+  renderFundraisers();
+}
+
+// ── STATS ──────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const [b, p, f] = await Promise.all([
+      fetch('/api/stats?type=batting').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/stats?type=pitching').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/stats?type=fielding').then(r => r.ok ? r.json() : []).catch(() => []),
+    ]);
+    BATTING  = Array.isArray(b) ? b : [];
+    PITCHING = Array.isArray(p) ? p : [];
+    FIELDING = Array.isArray(f) ? f : [];
+  } catch { /* ignore */ }
+  renderStats();
+}
+function statCell(v, hl) { return '<td' + (hl ? ' class="stat-highlight"' : '') + '>' + (v == null ? '-' : v) + '</td>'; }
+function statDelBtn(type, id) {
+  return '<td><button class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteStat(\'' + type + '\',\'' + esc(id) + '\')">Delete</button></td>';
+}
+function renderStats() {
+  const b = document.getElementById('batting-stats-body');
+  const p = document.getElementById('pitching-stats-body');
+  const f = document.getElementById('fielding-stats-body');
+  if (b) b.innerHTML = BATTING.length
+    ? BATTING.map(r => '<tr>' + statCell(r.player_name) + statCell(r.g) + statCell(r.ab) + statCell(r.h) + statCell(r.doubles) + statCell(r.triples) + statCell(r.hr) + statCell(r.rbi) + statCell(r.bb) + statCell(r.so) + statCell(r.avg, true) + statCell(r.obp, true) + statCell(r.slg, true) + statDelBtn('batting', r.id) + '</tr>').join('')
+    : '<tr><td colspan="14" style="color:var(--text-muted);text-align:center;padding:1rem">No batting stats yet.</td></tr>';
+  if (p) p.innerHTML = PITCHING.length
+    ? PITCHING.map(r => '<tr>' + statCell(r.player_name) + statCell(r.g) + statCell(r.gs) + statCell(r.w) + statCell(r.l) + statCell(r.sv) + statCell(r.ip) + statCell(r.hits) + statCell(r.er) + statCell(r.bb) + statCell(r.k) + statCell(r.era, true) + statCell(r.whip, true) + statDelBtn('pitching', r.id) + '</tr>').join('')
+    : '<tr><td colspan="14" style="color:var(--text-muted);text-align:center;padding:1rem">No pitching stats yet.</td></tr>';
+  if (f) f.innerHTML = FIELDING.length
+    ? FIELDING.map(r => '<tr>' + statCell(r.player_name) + statCell(r.pos) + statCell(r.g) + statCell(r.po) + statCell(r.assists) + statCell(r.errors) + statCell(r.dp) + statCell(r.fld_pct, true) + statDelBtn('fielding', r.id) + '</tr>').join('')
+    : '<tr><td colspan="9" style="color:var(--text-muted);text-align:center;padding:1rem">No fielding stats yet.</td></tr>';
+}
+async function deleteStat(type, id) {
+  if (!confirm('Delete this stat row?')) return;
+  try {
+    const r = await fetch('/api/stats?type=' + type + '&id=' + id, { method:'DELETE' });
+    const res = await r.json();
+    if (res && res.error) alert('Supabase error: ' + res.error);
+  } catch (err) { alert('Network error: ' + err.message); }
+  if (type === 'batting')  BATTING  = BATTING.filter(x => String(x.id) !== String(id));
+  if (type === 'pitching') PITCHING = PITCHING.filter(x => String(x.id) !== String(id));
+  if (type === 'fielding') FIELDING = FIELDING.filter(x => String(x.id) !== String(id));
+  renderStats();
+}
 
 async function apiPost(ep, body) {
   try {
@@ -4326,12 +4340,8 @@ addTask = async function() {
   if (!name){ alert('Please enter a task name.'); return; }
   const saved=await apiPost('field-tasks',{ task_name:name, priority:pri, assigned_to:assign, due_date:due||null, done:false });
   if (saved.error){ alert('Error saving: '+saved.error); return; }
-  const container=document.getElementById('field-tasks');
-  const priMap={ high:['pri-high','Needed'], med:['pri-med','Pending'], low:['pri-low','Routine'] };
-  const [cls,label]=priMap[pri];
-  const div=document.createElement('div'); div.className='field-task'; div.dataset.id=saved.id;
-  div.innerHTML='<div class="task-check" onclick="toggleTaskDb(this,\''+saved.id+'\')"></div><div class="task-info"><div class="task-name">'+name+'</div><div class="task-meta">Assigned: '+assign+(due?' | Due: '+due:'')+'</div></div><span class="task-priority '+cls+'">'+label+'</span>';
-  container.appendChild(div);
+  if (typeof TASKS !== 'undefined' && saved && saved.id) TASKS.push(saved);
+  if (typeof renderTasks === 'function') renderTasks();
   closeModal('addTask');
   ['task-name','task-assign','task-due'].forEach(id=>document.getElementById(id).value='');
 };
