@@ -700,6 +700,16 @@ textarea.form-input { resize: vertical; min-height: 90px; }
 
     <div class="content">
 
+      <!-- Supabase health banner — shown only when saves won't persist -->
+      <div id="health-banner"
+           style="display:none;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#ffcdc7;line-height:1.55">
+        <div style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#ff9c92;font-size:10px;margin-bottom:4px">
+          Data is not being saved
+        </div>
+        <div id="health-banner-message">Checking connection...</div>
+        <div id="health-banner-hint" style="margin-top:6px;color:#e0a8a1;font-size:11px"></div>
+      </div>
+
 
       <!-- MANAGE USERS (coach only) -->
       <div class="section" id="section-users">
@@ -2941,6 +2951,39 @@ function applyRoleAccess(user) {
     loadParentDashboard(user);
     activateSection('parent-home');
   }
+
+  // Check Supabase connection and surface the result if something's broken.
+  if (role === 'coach' && typeof checkHealth === 'function') checkHealth();
+}
+
+// ── Supabase connection health check ────────────────────────
+async function checkHealth() {
+  const banner = document.getElementById('health-banner');
+  if (!banner) return;
+  try {
+    const r = await fetch('/api/health', { cache: 'no-store' });
+    const data = await r.json();
+    if (data.ok) {
+      banner.style.display = 'none';
+      console.log('Supabase health:', data);
+      return;
+    }
+    const msgs = {
+      env: 'Supabase environment variables are missing: ' + (data.missing || []).join(', ') + '. The app can\'t talk to the database until these are set in Vercel.',
+      client: 'The Supabase client could not initialize. Env vars exist but look malformed.',
+      read:  'Cannot read from Supabase: ' + (data.error || 'unknown error'),
+      write: 'Cannot write to Supabase: ' + (data.error || 'unknown error'),
+    };
+    document.getElementById('health-banner-message').textContent = msgs[data.stage] || 'Supabase connection is not working.';
+    document.getElementById('health-banner-hint').textContent = data.hint || '';
+    banner.style.display = 'block';
+    console.warn('Supabase health failed:', data);
+  } catch (err) {
+    document.getElementById('health-banner-message').textContent = 'Could not reach the server (no response from /api/health).';
+    document.getElementById('health-banner-hint').textContent = 'The site may be redeploying. If this persists, check Vercel → Deployments for errors.';
+    banner.style.display = 'block';
+    console.warn('Health check network error:', err);
+  }
 }
 
 function activateSection(name) {
@@ -4336,6 +4379,9 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   renderRoster();
   if (typeof renderLineupCard === 'function') renderLineupCard();
+  // Always run the Supabase health check on load so the coach sees instantly
+  // if the DB connection is broken — not just after sign-in.
+  if (typeof checkHealth === 'function') checkHealth();
 });
 
 </script>
