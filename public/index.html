@@ -3102,6 +3102,11 @@ function renderUsersTable() {
       ? '<a href="tel:' + u.phone.replace(/[^\d+]/g,'') + '" style="color:#7AADFF;font-size:11px;text-decoration:none">' + u.phone + '</a>'
       : '<span style="color:var(--text-muted);font-size:11px">-</span>';
     const displayTitle = (typeof titleLabel === 'function') ? titleLabel(u.title || u.role) : (u.title || u.role);
+    const isSeed = i === 0;
+    const removeAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)"' +
+      (isSeed
+        ? ' disabled title="The default coach account cannot be removed"'
+        : ' onclick="deleteUser(\'' + (u.id || '') + '\', ' + i + ')"');
     return '<tr>' +
       '<td style="font-weight:500">' + u.name + '</td>' +
       '<td style="font-family:\'DM Mono\',monospace;color:var(--text-muted)">' + u.username + '</td>' +
@@ -3110,7 +3115,7 @@ function renderUsersTable() {
       '<td>' + phoneCell + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (u.playerLink || (u.role==='player'?'<span style=color:#E74C3C>Not linked</span>':'-')) + '</td>' +
       '<td><span style="color:#2ECC71;font-size:11px">Active</span></td>' +
-      '<td><button class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteUser(' + i + ')"' + (i===0?'disabled':'') + '>Remove</button></td>' +
+      '<td><button ' + removeAttrs + '>Remove</button></td>' +
       '</tr>';
   }).join('');
 
@@ -3185,10 +3190,29 @@ function addUser() {
   alert('Account created!\n\nName: ' + newUser.name + '\nTitle: ' + titleLabel(title) + '\nUsername: ' + newUser.username + '\nPassword: ' + newUser.password + '\n\nShare these credentials.');
 }
 
-function deleteUser(idx) {
-  if (idx === 0) return;
-  if (!confirm('Remove ' + USERS[idx].name + '\'s account? They will no longer be able to log in.')) return;
-  USERS.splice(idx, 1);
+async function deleteUser(id, idx) {
+  // Resolve user by id first, fall back to idx for legacy callers
+  let realIdx = (typeof idx === 'number') ? idx : -1;
+  if (id) {
+    const found = USERS.findIndex(u => String(u.id) === String(id));
+    if (found !== -1) realIdx = found;
+  }
+  if (realIdx < 0 || !USERS[realIdx]) { console.warn('deleteUser: user not found', id, idx); return; }
+  if (realIdx === 0) return; // protect seed coach
+  const target = USERS[realIdx];
+  if (!confirm('Remove ' + target.name + "'s account? They will no longer be able to log in.")) return;
+
+  // Persist the delete to Supabase if we have an id that looks like a server id
+  if (target.id && typeof apiDelete === 'function') {
+    try {
+      const res = await apiDelete('users', target.id);
+      if (res && res.error) console.warn('deleteUser API error:', res.error);
+    } catch (err) {
+      console.warn('deleteUser network error:', err);
+    }
+  }
+
+  USERS.splice(realIdx, 1);
   saveUsers();
   renderUsersTable();
 }
