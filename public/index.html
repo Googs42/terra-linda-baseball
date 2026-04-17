@@ -778,41 +778,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
         <div class="grid-2" style="margin-bottom:1.25rem">
           <div class="card">
             <div class="card-title">Recent roster</div>
-            <div class="player-row">
-              <div class="avatar" style="background:rgba(0,61,165,0.2);color:#7AADFF">JM</div>
-              <div class="player-num">#4</div>
-              <div class="player-name">Jake Morales</div>
-              <div class="pos-tag">SS</div>
-              <span class="team-tag varsity-tag">V</span>
-            </div>
-            <div class="player-row">
-              <div class="avatar" style="background:rgba(212,175,55,0.15);color:var(--gold)">TK</div>
-              <div class="player-num">#12</div>
-              <div class="player-name">Tyler Kim</div>
-              <div class="pos-tag">P/OF</div>
-              <span class="team-tag varsity-tag">V</span>
-            </div>
-            <div class="player-row">
-              <div class="avatar" style="background:rgba(78,205,196,0.15);color:#4ECDC4">RL</div>
-              <div class="player-num">#7</div>
-              <div class="player-name">Ryan Lopez</div>
-              <div class="pos-tag">C</div>
-              <span class="team-tag jv-tag">JV</span>
-            </div>
-            <div class="player-row">
-              <div class="avatar" style="background:rgba(0,61,165,0.2);color:#7AADFF">DS</div>
-              <div class="player-num">#23</div>
-              <div class="player-name">Derek Sanchez</div>
-              <div class="pos-tag">1B</div>
-              <span class="team-tag jv-tag">JV</span>
-            </div>
-            <div class="player-row">
-              <div class="avatar" style="background:rgba(212,175,55,0.15);color:var(--gold)">MC</div>
-              <div class="player-num">#18</div>
-              <div class="player-name">Marcus Chen</div>
-              <div class="pos-tag">2B</div>
-              <span class="team-tag varsity-tag">V</span>
-            </div>
+            <div id="recent-roster-list"></div>
             <div style="text-align:center;padding-top:10px">
               <button class="btn" onclick="showSection('roster',document.querySelector('[onclick*=roster]'))">View full roster &rarr;</button>
             </div>
@@ -2453,6 +2419,26 @@ function filterRoster(val) {
   renderRoster();
 }
 
+function renderRecentRoster() {
+  const el = document.getElementById('recent-roster-list');
+  if (!el) return;
+  const colors = ['rgba(0,61,165,0.2);color:#7AADFF', 'rgba(212,175,55,0.15);color:var(--gold)', 'rgba(78,205,196,0.15);color:#4ECDC4'];
+  const recent = rosterData.slice(0, 5);
+  el.innerHTML = recent.map((p, i) => {
+    const initials = p.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const tag = p.team === 'Varsity' ? 'varsity-tag">V' : 'jv-tag">JV';
+    const num = p.num ? '#' + p.num : '';
+    const pos = p.pos ? `<div class="pos-tag">${p.pos}</div>` : '';
+    return `<div class="player-row">
+      <div class="avatar" style="background:${colors[i % 3]}">${initials}</div>
+      <div class="player-num">${num}</div>
+      <div class="player-name">${p.name}</div>
+      ${pos}
+      <span class="team-tag ${tag}</span>
+    </div>`;
+  }).join('');
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  PORTAL & AUTH SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -3155,6 +3141,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderScheduleTable(jvGames, 'jv-sched-body');
   // Auto-init as coach (sign-in disabled)
   applyRoleAccess(currentUser);
+  renderRecentRoster();
 });
 
 function addFundraiser() {
