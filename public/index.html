@@ -2457,6 +2457,62 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 </div>
 
 <!-- ADD TASK MODAL -->
+<!-- ADD CLINIC MODAL -->
+<div class="modal-overlay" id="modal-addClinic">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Clinic</div>
+      <button class="modal-close" onclick="closeModal('addClinic')">x</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Clinic name</label>
+      <input class="form-input" id="cl-name" placeholder="e.g. Pitching Mechanics">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="cl-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ages</label>
+        <input class="form-input" id="cl-ages" placeholder="e.g. 12-18">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Start time</label>
+        <input class="form-input" id="cl-start" placeholder="e.g. 9:00 AM">
+      </div>
+      <div class="form-group">
+        <label class="form-label">End time</label>
+        <input class="form-input" id="cl-end" placeholder="e.g. 1:00 PM">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="cl-loc" placeholder="Main field, bullpen, batting cage, etc.">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cost ($ per player)</label>
+        <input class="form-input" type="number" id="cl-cost" placeholder="65" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Max spots</label>
+        <input class="form-input" type="number" id="cl-max" placeholder="20" min="1" step="1" value="20">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Instructor(s)</label>
+      <input class="form-input" id="cl-instructor" placeholder="Coach, player helpers, etc.">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn" style="flex:1" onclick="closeModal('addClinic')">Cancel</button>
+      <button class="btn btn-red" style="flex:2" onclick="addClinic()">Add Clinic</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-addTask">
   <div class="modal">
     <div class="modal-header">
@@ -3574,6 +3630,45 @@ document.addEventListener('DOMContentLoaded', function() {
   applyRoleAccess(currentUser);
   renderRecentRoster();
 });
+
+async function addClinic() {
+  const name       = document.getElementById('cl-name').value.trim();
+  const date       = document.getElementById('cl-date').value;
+  const ages       = document.getElementById('cl-ages').value.trim();
+  const start      = document.getElementById('cl-start').value.trim();
+  const end        = document.getElementById('cl-end').value.trim();
+  const loc        = document.getElementById('cl-loc').value.trim();
+  const cost       = document.getElementById('cl-cost').value;
+  const max        = document.getElementById('cl-max').value;
+  const instructor = document.getElementById('cl-instructor').value.trim();
+
+  if (!name) { alert('Please enter a clinic name.'); return; }
+  if (!date) { alert('Please pick a clinic date.'); return; }
+
+  try {
+    const saved = await apiPost('clinics', {
+      name,
+      clinic_date: date,
+      time_start: start || null,
+      time_end: end || null,
+      ages: ages || null,
+      location: loc || null,
+      cost: cost ? parseFloat(cost) : null,
+      max_spots: max ? parseInt(max, 10) : 20,
+      spots_filled: 0,
+      instructor: instructor || null,
+    });
+    if (saved && saved.error) { alert('Error saving: ' + saved.error); return; }
+    if (typeof CLINICS !== 'undefined' && saved && saved.id) CLINICS.push(saved);
+    if (typeof renderClinics === 'function') renderClinics();
+  } catch (err) { alert('Network error: ' + err.message); return; }
+
+  closeModal('addClinic');
+  ['cl-name','cl-date','cl-ages','cl-start','cl-end','cl-loc','cl-cost','cl-instructor'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const maxEl = document.getElementById('cl-max'); if (maxEl) maxEl.value = '20';
+}
 
 async function addFundraiser() {
   const name = document.getElementById('fr-name').value.trim();
