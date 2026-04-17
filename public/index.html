@@ -2446,13 +2446,39 @@ textarea.form-input { resize: vertical; min-height: 90px; }
       </div>
       <div class="form-group">
         <label class="form-label">Position</label>
-        <select class="form-input form-select" id="p-pos">
-          <option value="">Select</option>
-          <option>P</option><option>C</option><option>1B</option>
-          <option>2B</option><option>SS</option><option>3B</option>
-          <option>LF</option><option>CF</option><option>RF</option>
-          <option>DH</option><option>UTIL</option>
-        </select>
+        <input class="form-input" id="p-pos" list="pos-suggestions"
+               placeholder="e.g. CF/P, 2B, 1B/3B"
+               autocomplete="off">
+        <datalist id="pos-suggestions">
+          <option value="P"></option>
+          <option value="C"></option>
+          <option value="1B"></option>
+          <option value="2B"></option>
+          <option value="SS"></option>
+          <option value="3B"></option>
+          <option value="LF"></option>
+          <option value="CF"></option>
+          <option value="RF"></option>
+          <option value="DH"></option>
+          <option value="UTIL"></option>
+          <option value="P/1B"></option>
+          <option value="P/OF"></option>
+          <option value="CF/P"></option>
+          <option value="C/1B"></option>
+          <option value="C/3B"></option>
+          <option value="SS/2B"></option>
+          <option value="SS/3B"></option>
+          <option value="1B/3B"></option>
+          <option value="2B/SS"></option>
+          <option value="2B/OF"></option>
+          <option value="LF/RF"></option>
+          <option value="LF/CF"></option>
+          <option value="CF/RF"></option>
+          <option value="OF/IF"></option>
+        </datalist>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">
+          Type any combo &mdash; e.g. <code style="color:var(--gold)">CF/P</code> or <code style="color:var(--gold)">1B/3B</code>. Suggestions are optional.
+        </div>
       </div>
     </div>
     <div class="form-row">
