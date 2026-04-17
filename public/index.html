@@ -2433,14 +2433,17 @@ function renderRoster() {
   filtered.sort((a,b) => a.num - b.num);
   tbody.innerHTML = filtered.map(p => {
     const tagClass = p.team === 'Varsity' ? 'varsity-tag' : 'jv-tag';
+    const statusColor = p.status === 'Pending' ? '#F39C12' : 'var(--success)';
+    const numDisplay = p.num ? '#' + p.num : '<span style="color:#F39C12">—</span>';
+    const posDisplay = p.pos ? `<span class="pos-tag">${p.pos}</span>` : '<span style="color:#F39C12;font-size:11px">TBD</span>';
     return `<tr>
-      <td style="font-family:'DM Mono',monospace;color:var(--text-muted)">#${p.num}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text-muted)">${numDisplay}</td>
       <td style="font-weight:500">${p.name}</td>
-      <td><span class="pos-tag">${p.pos}</span></td>
-      <td style="color:var(--text-muted)">${p.year}</td>
+      <td>${posDisplay}</td>
+      <td style="color:var(--text-muted)">${p.year || ''}</td>
       <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">${p.bt}</td>
       <td><span class="team-tag ${tagClass}">${p.team}</span></td>
-      <td style="color:var(--success);font-size:12px">${p.status}</td>
+      <td style="color:${statusColor};font-size:12px">${p.status}</td>
     </tr>`;
   }).join('');
 }
@@ -2928,8 +2931,9 @@ function addPlayer() {
   const year = document.getElementById('p-year').value;
   const bat = document.getElementById('p-bat').value;
   const thr = document.getElementById('p-throw').value;
-  if (!first || !last || !pos || !num) { alert('Please fill in name, number, and position.'); return; }
-  rosterData.push({ num, name: first + ' ' + last, pos, year, bt: bat+'/'+thr, team, status:'Active' });
+  if (!first || !last) { alert('Please enter at least a first and last name.'); return; }
+  const status = (!num || !pos) ? 'Pending' : 'Active';
+  rosterData.push({ num: num || 0, name: first + ' ' + last, pos: pos || '', year: year || '', bt: bat+'/'+thr, team, status });
   closeModal('addPlayer');
   showSection('roster', document.querySelector('[onclick*=roster]'));
   document.getElementById('p-first').value = '';
