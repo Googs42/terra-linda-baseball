@@ -4033,13 +4033,35 @@ window.addUser = async function() {
   if(!username){alert('Please enter a username.');return;}
   if(!password){alert('Please enter a password.');return;}
   if(USERS.find(u=>u.username.toLowerCase()===username)){alert('Username already taken.');return;}
-  const saved=await apiPost('users',{ name:first+' '+last, username, password, role, title, player_link:playerLink||null, email:email||null, phone:phone||null, notes:notes||null });
-  if(saved.error){alert('Error: '+saved.error);return;}
-  USERS.push({id:saved.id,name:first+' '+last,username,password,role,title,email,phone,notes,playerLink:playerLink||null});
+
+  // Try to persist to Supabase. If the API is unreachable or errors,
+  // save locally so the coach is never blocked from creating accounts.
+  let savedId = Date.now();
+  let syncNote = '';
+  try {
+    const saved = await apiPost('users', {
+      name: first+' '+last, username, password, role, title,
+      player_link: playerLink||null,
+      email: email||null, phone: phone||null, notes: notes||null
+    });
+    if (saved && saved.error) {
+      console.warn('addUser API error:', saved.error);
+      syncNote = '\n\n(Saved locally only — server said: ' + saved.error + ')';
+    } else if (saved && saved.id) {
+      savedId = saved.id;
+    } else {
+      syncNote = '\n\n(Saved locally only — server returned no id)';
+    }
+  } catch (err) {
+    console.warn('addUser network error:', err);
+    syncNote = '\n\n(Saved locally only — could not reach server)';
+  }
+
+  USERS.push({id:savedId,name:first+' '+last,username,password,role,title,email,phone,notes,playerLink:playerLink||null});
   saveUsers(); renderUsersTable(); closeModal('addUser');
   ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('u-role').value='head_coach'; document.getElementById('player-link-group').style.display='none';
-  alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.');
+  alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.' + syncNote);
 };
 
 // ── Override addContrib ───────────────────────────────────────

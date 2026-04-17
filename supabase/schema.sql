@@ -12,8 +12,18 @@ create table if not exists users (
   password    text not null,
   role        text not null check (role in ('coach','player','parent')),
   player_link text,                  -- links to players.name
+  title       text,                  -- display title: 'Head Coach', 'Assistant Coach', 'Man of Many Costumes', etc.
+  email       text,
+  phone       text,
+  notes       text,
   created_at  timestamptz default now()
 );
+
+-- For existing databases that were created before title/email/phone/notes existed:
+alter table users add column if not exists title text;
+alter table users add column if not exists email text;
+alter table users add column if not exists phone text;
+alter table users add column if not exists notes text;
 
 -- Seed the default coach account
 insert into users (name, username, password, role)
