@@ -465,11 +465,6 @@ function deleteUser(idx) {
   renderUsersTable();
 }
 
-// ── titles mapping update ──
-
-renderRoster();
-}
-
 function rosterTab(el, filter) {
   document.querySelectorAll('#section-roster .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
