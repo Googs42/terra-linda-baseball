@@ -2715,30 +2715,60 @@ function editPlayer(idx) {
   openModal('addPlayer');
 }
 
-function savePlayerEdit() {
+async function savePlayerEdit() {
   if (editingPlayerIdx === null) return;
   const first = document.getElementById('p-first').value.trim();
   const last = document.getElementById('p-last').value.trim();
   if (!first || !last) { alert('Name required.'); return; }
-  const num = parseInt(document.getElementById('p-num').value) || 0;
-  const pos = document.getElementById('p-pos').value;
+
   const p = rosterData[editingPlayerIdx];
-  p.name = first + ' ' + last;
+  const num   = parseInt(document.getElementById('p-num').value) || 0;
+  const pos   = document.getElementById('p-pos').value || '';
+  const year  = document.getElementById('p-year').value || '';
+  const team  = document.getElementById('p-team').value;
+  const bats  = document.getElementById('p-bat').value;
+  const throws_ = document.getElementById('p-throw').value;
+  const status = document.getElementById('p-status').value || 'Active';
+  const name = first + ' ' + last;
+
+  // Persist the edit to Supabase BEFORE mutating local state so failure is visible.
+  let syncWarning = '';
+  if (p.id && typeof apiPatch === 'function') {
+    try {
+      const res = await apiPatch('roster', p.id, {
+        num, name, pos, year, team, bats, throws: throws_, status,
+      });
+      if (res && res.error) {
+        syncWarning = '\n\n(Supabase reported: ' + res.error + ' — saved locally only)';
+        console.warn('savePlayerEdit API error:', res.error);
+      }
+    } catch (err) {
+      syncWarning = '\n\n(Network error: ' + err.message + ' — saved locally only)';
+      console.warn('savePlayerEdit network error:', err);
+    }
+  } else {
+    syncWarning = '\n\n(Player had no server id — saved locally only)';
+  }
+
+  // Update local state
+  p.name = name;
   p.num = num;
-  p.pos = pos || '';
-  p.year = document.getElementById('p-year').value || '';
-  p.team = document.getElementById('p-team').value;
-  p.bt = document.getElementById('p-bat').value + '/' + document.getElementById('p-throw').value;
-  p.status = document.getElementById('p-status').value || 'Active';
+  p.pos = pos;
+  p.year = year;
+  p.team = team;
+  p.bt = bats + '/' + throws_;
+  p.status = status;
+
   closeModal('addPlayer');
-  // Restore button + title to Add mode
   const btn = document.querySelector('#modal-addPlayer .btn-red');
   if (btn) { btn.textContent = 'Add Player'; btn.onclick = addPlayer; }
   const titleEl = document.getElementById('addPlayer-title');
   if (titleEl) titleEl.textContent = 'Add New Player';
   editingPlayerIdx = null;
   renderRoster();
-  renderRecentRoster();
+  if (typeof renderRecentRoster === 'function') renderRecentRoster();
+
+  if (syncWarning) alert('Player updated' + syncWarning);
 }
 
 function filterRoster(val) {

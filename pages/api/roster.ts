@@ -35,6 +35,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json(data)
   }
 
+  if (req.method === 'PATCH') {
+    const db = supabaseAdmin()
+    const { id } = req.query
+    if (!id) return res.status(400).json({ error: 'Missing id' })
+    // Pass through only known columns to avoid "column does not exist" errors
+    const allowed = ['num','name','pos','year','bats','throws','team','status']
+    const updates: Record<string, any> = {}
+    for (const k of allowed) {
+      if (k in req.body) updates[k] = req.body[k]
+    }
+    const { data, error } = await db
+      .from('roster')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json(data)
+  }
+
   if (req.method === 'DELETE') {
     const db = supabaseAdmin()
     const { id } = req.query
