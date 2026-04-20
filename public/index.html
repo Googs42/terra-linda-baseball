@@ -4303,16 +4303,39 @@ if (typeof window !== 'undefined' && window.__TL_DATA__) applyTLData(window.__TL
 // and re-render the dashboard + roster + schedule views.
 async function bootstrapLiveData() {
   try {
-    const [rosterRes, varsityRes, jvRes] = await Promise.all([
+    const [rosterRes, varsityRes, jvRes, usersRes] = await Promise.all([
       fetch('/api/roster').then(r => r.ok ? r.json() : []),
       fetch('/api/schedule?team=Varsity').then(r => r.ok ? r.json() : []).catch(() => []),
       fetch('/api/schedule?team=JV').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/api/users').then(r => r.ok ? r.json() : []).catch(() => []),
     ]);
     applyTLData({
       roster: Array.isArray(rosterRes) ? rosterRes : [],
       varsitySchedule: Array.isArray(varsityRes) ? varsityRes : [],
       jvSchedule: Array.isArray(jvRes) ? jvRes : [],
     });
+
+    // Hydrate USERS from Supabase so a fresh browser/device sees every account,
+    // not just whatever was in localStorage. The server stores snake_case
+    // player_link; the UI uses playerLink.
+    if (Array.isArray(usersRes) && usersRes.length && typeof USERS !== 'undefined') {
+      USERS.length = 0;
+      usersRes.forEach(u => USERS.push({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        password: u.password,
+        role: u.role,
+        title: u.title || u.role,
+        email: u.email || '',
+        phone: u.phone || '',
+        notes: u.notes || '',
+        playerLink: u.player_link || null,
+      }));
+      if (typeof saveUsers === 'function') saveUsers();
+      if (typeof renderUsersTable === 'function') renderUsersTable();
+    }
+
     if (typeof renderRoster === 'function') renderRoster();
     if (typeof renderRecentRoster === 'function') renderRecentRoster();
     if (typeof renderScheduleTable === 'function') {
