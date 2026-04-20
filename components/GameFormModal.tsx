@@ -17,6 +17,7 @@ interface Props {
     score: string;
     notes: string;
     team: Team;
+    is_league: boolean;
   }) => Promise<void>;
 }
 
@@ -30,6 +31,7 @@ const emptyForm = {
   score: '',
   notes: '',
   team: 'Varsity' as Team,
+  is_league: true,
 };
 
 export default function GameFormModal({ open, editing, defaultTeam, onClose, onSubmit }: Props) {
@@ -49,6 +51,7 @@ export default function GameFormModal({ open, editing, defaultTeam, onClose, onS
         score: editing.score || '',
         notes: editing.notes || '',
         team: editing.team || 'Varsity',
+        is_league: editing.is_league == null ? true : !!editing.is_league,
       });
     } else {
       setForm({ ...emptyForm, team: defaultTeam || 'Varsity' });
@@ -77,6 +80,7 @@ export default function GameFormModal({ open, editing, defaultTeam, onClose, onS
         score: form.score.trim(),
         notes: form.notes.trim(),
         team: form.team,
+        is_league: form.is_league,
       });
     } finally { setSaving(false); }
   }
@@ -96,6 +100,14 @@ export default function GameFormModal({ open, editing, defaultTeam, onClose, onS
               <option value="JV">JV</option>
             </select>
           </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">League game?</label>
+          <select className="form-input form-select" value={form.is_league ? 'yes' : 'no'} onChange={e => set('is_league', e.target.value === 'yes')}>
+            <option value="yes">League</option>
+            <option value="no">Non-League</option>
+          </select>
         </div>
 
         <div className="form-group">

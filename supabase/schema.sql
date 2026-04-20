@@ -58,6 +58,7 @@ create table if not exists schedule (
   score      text,
   notes      text,
   team       text not null check (team in ('Varsity','JV')),
+  is_league  boolean not null default true,
   created_at timestamptz default now()
 );
 

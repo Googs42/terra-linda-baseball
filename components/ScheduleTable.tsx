@@ -40,6 +40,7 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
             <th>Time</th>
             <th>Result</th>
             <th>Score</th>
+            <th>League</th>
             <th>Notes</th>
             <th>Actions</th>
           </tr>
@@ -77,6 +78,16 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
                 <td style={{ fontFamily: "'DM Mono',monospace", fontSize: 12 }}>{fmtDisplayTime(g.game_time)}</td>
                 <td><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: resultBg, color: resultColor }}>{resultBadge}</span></td>
                 <td style={{ fontFamily: "'DM Mono',monospace", color: isUpcoming ? 'var(--text-muted)' : 'var(--gold)' }}>{g.score || '—'}</td>
+                <td>
+                  {(() => {
+                    const isLeague = g.is_league == null
+                      ? (g.notes || '').toLowerCase().includes('league')
+                      : !!g.is_league;
+                    const bg = isLeague ? 'rgba(255,199,44,0.15)' : 'rgba(138,175,221,0.12)';
+                    const color = isLeague ? 'var(--gold)' : 'var(--text-muted)';
+                    return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: bg, color }}>{isLeague ? 'League' : 'Non-League'}</span>;
+                  })()}
+                </td>
                 <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{g.notes || ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(g)}>Edit</button>

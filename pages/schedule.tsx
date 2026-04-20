@@ -70,11 +70,19 @@ export default function SchedulePage() {
 
   // Stats
   const stats = useMemo(() => {
+    // is_league is the source of truth. If the column isn't set yet (older rows
+    // from before the migration), fall back to the legacy notes-contains-"league"
+    // heuristic so counts don't collapse to zero during rollout.
+    const isLeagueRow = (r: GameRow) =>
+      r.is_league == null
+        ? (r.notes || '').toLowerCase().includes('league')
+        : !!r.is_league;
+
     const mk = (t: Team) => {
       const rows = filteredByYear.filter(g => g.team === t && g.result);
       const w = rows.filter(r => r.result === 'W').length;
       const l = rows.filter(r => r.result === 'L').length;
-      const league = rows.filter(r => (r.notes || '').toLowerCase().includes('league'));
+      const league = rows.filter(isLeagueRow);
       const lw = league.filter(r => r.result === 'W').length;
       const ll = league.filter(r => r.result === 'L').length;
       return { w, l, lw, ll };
@@ -187,9 +195,12 @@ export default function SchedulePage() {
   }
 
   function exportCsv() {
-    let csv = 'Team,Date,Day,Opponent,H/A,Location,Time,Result,Score,Notes\n';
+    let csv = 'Team,Date,Day,Opponent,H/A,Location,Time,Result,Score,League,Notes\n';
     const rows = [...filteredByYear].sort((a, b) => (a.game_date || '').localeCompare(b.game_date || ''));
     rows.forEach(g => {
+      const leagueText = g.is_league == null
+        ? ((g.notes || '').toLowerCase().includes('league') ? 'League' : '')
+        : (g.is_league ? 'League' : 'Non-League');
       csv += [
         g.team,
         '"' + fmtDisplayDate(g.game_date) + '"',
@@ -200,6 +211,7 @@ export default function SchedulePage() {
         fmtDisplayTime(g.game_time),
         g.result || '',
         g.score || '',
+        leagueText,
         '"' + (g.notes || '').replace(/"/g, '""') + '"',
       ].join(',') + '\n';
     });
@@ -250,9 +262,10 @@ export default function SchedulePage() {
       result: col(['result']),
       score:  col(['score']),
       notes:  col(['notes', 'note']),
+      league: col(['league', 'game_type', 'type', 'is_league']),
     };
     if (idx.date === -1 || idx.opp === -1) {
-      alert('File needs at least Date and Opponent columns. Expected: Team, Date, Opponent, H/A, Location, Time, Result, Score, Notes.');
+      alert('File needs at least Date and Opponent columns. Expected: Team, Date, Opponent, H/A, Location, Time, Result, Score, League, Notes.');
       return;
     }
 
@@ -278,10 +291,17 @@ export default function SchedulePage() {
       // values inside the file. WYSIWYG beats mysterious file-column overrides.
       const team: Team = tab;
 
+      // League column: accept Yes/No/true/false/League/Non-League.
+      // Blank or missing -> default to league (most games are league games).
+      const leagueRaw = get('league').toLowerCase();
+      const is_league = leagueRaw === ''
+        ? true
+        : !(leagueRaw.includes('non') || leagueRaw === 'no' || leagueRaw === 'n' || leagueRaw === 'false' || leagueRaw === '0');
+
       try {
         const res = await apiPost('schedule', {
           game_date: date, opponent: opp, home_away: ha,
-          location: loc, game_time: time, result, score, notes, team,
+          location: loc, game_time: time, result, score, notes, team, is_league,
         });
         if ((res as any).error) { fail++; errors.push('Row ' + (i + 1) + ': ' + (res as any).error); }
         else ok++;

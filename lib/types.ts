@@ -46,5 +46,6 @@ export interface GameRow {
   score: string;
   notes: string;
   team: Team;
+  is_league?: boolean | null;
   created_at?: string;
 }
