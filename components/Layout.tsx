@@ -12,7 +12,7 @@ const NAV: NavEntry[] = [
   { label: 'Schedule',          href: '/#schedule',    section: 'schedule',    icon: '■', group: 'TEAM' },
   { label: 'Lineup Card',       href: '/#lineup',      section: 'lineup',      icon: '■', group: 'TEAM' },
   { label: 'Position Skills',   href: '/#skills',      section: 'skills',      icon: '■', group: 'TRAINING' },
-  { label: 'Workout Plans',     href: '/#workouts',    section: 'workouts',    icon: '■', group: 'TRAINING' },
+  { label: 'Workout Plans',     href: '/workouts',     section: 'workouts',    icon: '■', group: 'TRAINING' },
   { label: 'Field Maintenance', href: '/#field',       section: 'field',       icon: '■', group: 'FACILITY' },
   { label: 'Clinics',           href: '/#clinics',     section: 'clinics',     icon: '■', group: 'ACADEMY' },
   { label: 'Summer Camp',       href: '/#camp',        section: 'camp',        icon: '■', group: 'ACADEMY' },
