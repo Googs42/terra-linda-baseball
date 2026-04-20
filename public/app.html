@@ -1630,7 +1630,9 @@ body.print-size-half { }
           <div style="font-size:12px;color:var(--text-muted)">2025 season schedule - Varsity & JV</div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-red" onclick="openModal('addGame')">+ Add Game</button>
+            <button class="btn" onclick="document.getElementById('schedule-import-file').click()">Import CSV</button>
             <button class="btn" onclick="exportSchedule()">Export CSV</button>
+            <input type="file" id="schedule-import-file" accept=".csv,text/csv" style="display:none" onchange="importSchedule(event)">
           </div>
         </div>
 

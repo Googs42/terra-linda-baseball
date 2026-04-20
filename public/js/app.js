@@ -771,6 +771,139 @@ document.addEventListener('DOMContentLoaded', function() {
   applyRoleAccess(currentUser);
 });
 
+// Parse one CSV line into array of fields (handles quoted fields + embedded commas).
+function _csvSplitLine(line) {
+  const out = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { out.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+
+// Normalize a date string to YYYY-MM-DD. Accepts ISO, M/D/YYYY, M/D/YY, "Mar 6", "March 6, 2026".
+function _parseImportDate(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (m) {
+    let y = parseInt(m[3]); if (y < 100) y += 2000;
+    return y + '-' + String(m[1]).padStart(2,'0') + '-' + String(m[2]).padStart(2,'0');
+  }
+  const monthIdx = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11,
+    january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11 };
+  m = s.match(/^([A-Za-z]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?$/);
+  if (m) {
+    const mi = monthIdx[m[1].toLowerCase()];
+    if (mi == null) return null;
+    const y = m[3] ? parseInt(m[3]) : new Date().getFullYear();
+    return y + '-' + String(mi+1).padStart(2,'0') + '-' + String(m[2]).padStart(2,'0');
+  }
+  const d = new Date(s);
+  if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return null;
+}
+
+// Normalize a time string to HH:MM (24h). Accepts "3:30 PM", "15:30", "7pm".
+function _parseImportTime(s) {
+  if (!s) return null;
+  s = s.trim().toUpperCase();
+  if (s === 'TBD' || s === '') return null;
+  let m = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
+  if (m) {
+    let h = parseInt(m[1]); const min = m[2]; const ap = m[3];
+    if (ap === 'PM' && h < 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    return String(h).padStart(2,'0') + ':' + min;
+  }
+  m = s.match(/^(\d{1,2})\s*(AM|PM)$/);
+  if (m) {
+    let h = parseInt(m[1]); const ap = m[2];
+    if (ap === 'PM' && h < 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    return String(h).padStart(2,'0') + ':00';
+  }
+  return null;
+}
+
+async function importSchedule(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  evt.target.value = ''; // allow re-import of same file
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (!lines.length) { alert('CSV is empty.'); return; }
+
+  // Header → column index
+  const header = _csvSplitLine(lines[0]).map(h => h.toLowerCase());
+  const col = (names) => { for (const n of names) { const i = header.indexOf(n); if (i !== -1) return i; } return -1; };
+  const idx = {
+    team:   col(['team']),
+    date:   col(['date','game_date']),
+    opp:    col(['opponent','opp']),
+    ha:     col(['h/a','home_away','home/away','ha']),
+    loc:    col(['location','loc']),
+    time:   col(['time','game_time']),
+    result: col(['result']),
+    score:  col(['score']),
+    notes:  col(['notes','note'])
+  };
+  if (idx.date === -1 || idx.opp === -1) {
+    alert('CSV needs at least a Date and Opponent column. Expected headers: Team, Date, Opponent, H/A, Location, Time, Result, Score, Notes.');
+    return;
+  }
+
+  let ok = 0, fail = 0; const errors = [];
+  for (let i = 1; i < lines.length; i++) {
+    const row = _csvSplitLine(lines[i]);
+    const get = (k) => idx[k] === -1 ? '' : (row[idx[k]] || '').trim();
+    const date = _parseImportDate(get('date'));
+    const opp  = get('opp');
+    if (!date || !opp) { fail++; errors.push('Row '+(i+1)+': missing date or opponent'); continue; }
+    const haRaw = get('ha').toLowerCase();
+    const ha = (haRaw === 'home' || haRaw === 'h') ? 'Home' : (haRaw === 'away' || haRaw === 'a' ? 'Away' : (haRaw ? (haRaw[0].toUpperCase()+haRaw.slice(1)) : 'Home'));
+    const loc = get('loc');
+    const time = _parseImportTime(get('time'));
+    const result = get('result') || '';
+    const score = get('score');
+    const notes = get('notes');
+    const teamRaw = get('team').toLowerCase();
+    const team = (teamRaw === 'jv' || teamRaw === 'j.v.') ? 'JV' : 'Varsity';
+
+    try {
+      const saved = await apiPost('schedule', {
+        game_date: date, opponent: opp, home_away: ha,
+        location: loc, game_time: time, result, score, notes, team
+      });
+      if (saved.error) throw new Error(saved.error);
+      const game = { id: saved.id, date, opp, ha, loc, time, result, score, notes };
+      if (team === 'Varsity') varsityGames.push(game); else jvGames.push(game);
+      ok++;
+    } catch (e) {
+      fail++; errors.push('Row '+(i+1)+': '+(e.message||e));
+    }
+  }
+
+  varsityGames.sort((a,b) => a.date.localeCompare(b.date));
+  jvGames.sort((a,b) => a.date.localeCompare(b.date));
+  renderScheduleTable(varsityGames, 'varsity-sched-body');
+  renderScheduleTable(jvGames, 'jv-sched-body');
+
+  let msg = 'Imported '+ok+' game'+(ok===1?'':'s')+'.';
+  if (fail) msg += '\n\nSkipped '+fail+':\n'+errors.slice(0,10).join('\n')+(errors.length>10?'\n…':'');
+  alert(msg);
+}
+
 function addFundraiser() {
   const name = document.getElementById('fr-name').value.trim();
   const goal = document.getElementById('fr-goal').value;
