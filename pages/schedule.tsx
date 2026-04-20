@@ -218,7 +218,12 @@ export default function SchedulePage() {
       const score = get('score');
       const notes = get('notes');
       const teamRaw = get('team').toLowerCase();
-      const team: Team = (teamRaw === 'jv' || teamRaw === 'j.v.') ? 'JV' : 'Varsity';
+      // If the file has a team column value, respect it.
+      // Otherwise, fall back to whichever tab the user is currently viewing,
+      // so importing a JV-only file from the JV tab lands on JV.
+      const team: Team = teamRaw
+        ? ((teamRaw === 'jv' || teamRaw === 'j.v.') ? 'JV' : 'Varsity')
+        : tab;
 
       try {
         const res = await apiPost('schedule', {
@@ -299,6 +304,7 @@ export default function SchedulePage() {
       <GameFormModal
         open={modalOpen}
         editing={editing}
+        defaultTeam={tab}
         onClose={() => { setModalOpen(false); setEditing(null); }}
         onSubmit={handleSubmit}
       />

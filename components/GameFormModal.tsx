@@ -5,6 +5,7 @@ import { GameRow, Team } from '@/lib/types';
 interface Props {
   open: boolean;
   editing: GameRow | null;
+  defaultTeam?: Team;
   onClose: () => void;
   onSubmit: (values: {
     game_date: string;
@@ -31,7 +32,7 @@ const emptyForm = {
   team: 'Varsity' as Team,
 };
 
-export default function GameFormModal({ open, editing, onClose, onSubmit }: Props) {
+export default function GameFormModal({ open, editing, defaultTeam, onClose, onSubmit }: Props) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -50,9 +51,9 @@ export default function GameFormModal({ open, editing, onClose, onSubmit }: Prop
         team: editing.team || 'Varsity',
       });
     } else {
-      setForm(emptyForm);
+      setForm({ ...emptyForm, team: defaultTeam || 'Varsity' });
     }
-  }, [open, editing]);
+  }, [open, editing, defaultTeam]);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
