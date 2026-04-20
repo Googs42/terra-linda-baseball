@@ -5,9 +5,13 @@ interface Props {
   games: GameRow[];
   onEdit: (g: GameRow) => void;
   onDelete: (g: GameRow) => void;
+  manageMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
-export default function ScheduleTable({ games, onEdit, onDelete }: Props) {
+export default function ScheduleTable({ games, onEdit, onDelete, manageMode, selectedIds, onToggleSelect, onToggleSelectAll }: Props) {
   if (!games.length) {
     return (
       <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
@@ -16,11 +20,18 @@ export default function ScheduleTable({ games, onEdit, onDelete }: Props) {
     );
   }
 
+  const allSelected = !!manageMode && !!selectedIds && games.length > 0 && games.every(g => selectedIds.has(g.id));
+
   return (
     <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
       <table className="stats-table">
         <thead>
           <tr>
+            {manageMode && (
+              <th style={{ width: 36 }}>
+                <input type="checkbox" checked={allSelected} onChange={() => onToggleSelectAll && onToggleSelectAll()} />
+              </th>
+            )}
             <th>Date</th>
             <th>Day</th>
             <th>Opponent</th>
@@ -50,8 +61,14 @@ export default function ScheduleTable({ games, onEdit, onDelete }: Props) {
               : 'rgba(255,199,44,0.15)';
             const haColor = g.home_away === 'Home' ? 'rgba(255,199,44,0.15)' : 'rgba(78,205,196,0.15)';
             const haText  = g.home_away === 'Home' ? 'var(--gold)' : '#4ECDC4';
+            const isSelected = !!selectedIds && selectedIds.has(g.id);
             return (
-              <tr key={g.id}>
+              <tr key={g.id} style={isSelected ? { background: 'rgba(255,199,44,0.08)' } : undefined}>
+                {manageMode && (
+                  <td>
+                    <input type="checkbox" checked={isSelected} onChange={() => onToggleSelect && onToggleSelect(g.id)} />
+                  </td>
+                )}
                 <td style={{ fontFamily: "'DM Mono',monospace" }}>{fmtDisplayDate(g.game_date)}</td>
                 <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{fmtDisplayDay(g.game_date)}</td>
                 <td style={{ fontWeight: 500 }}>{g.opponent}</td>

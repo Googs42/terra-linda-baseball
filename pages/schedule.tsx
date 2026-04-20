@@ -8,15 +8,21 @@ import { GameRow, Team } from '@/lib/types';
 import { csvSplitLine, fmtDisplayDate, fmtDisplayDay, fmtDisplayTime, parseLooseDate, parseLooseTime } from '@/lib/csv';
 
 type TabKey = 'Varsity' | 'JV';
+type YearView = 'current' | 'archive';
 
 export default function SchedulePage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>('Varsity');
   const [year, setYear] = useState<number | 'all'>(new Date().getFullYear());
+  const [yearView, setYearView] = useState<YearView>('current');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<GameRow | null>(null);
+  const [manageMode, setManageMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const currentSeasonYear = new Date().getFullYear();
 
   useEffect(() => { reload(); }, []);
 
@@ -120,18 +126,61 @@ export default function SchedulePage() {
     setGames(prev => prev.filter(x => x.id !== g.id));
   }
 
-  async function clearYear() {
-    if (year === 'all') { alert('Pick a specific year first.'); return; }
-    const targets = games.filter(g => g.game_date && g.game_date.startsWith(year + '-'));
-    if (!targets.length) { alert('No games to delete in ' + year + '.'); return; }
-    if (!confirm('Delete ALL ' + targets.length + ' games in ' + year + '? This cannot be undone.')) return;
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(prev => {
+      const allVisibleSelected = visible.length > 0 && visible.every(g => prev.has(g.id));
+      const next = new Set(prev);
+      if (allVisibleSelected) visible.forEach(g => next.delete(g.id));
+      else visible.forEach(g => next.add(g.id));
+      return next;
+    });
+  }
+
+  function exitManage() {
+    setManageMode(false);
+    setSelectedIds(new Set());
+  }
+
+  async function bulkDelete() {
+    if (!selectedIds.size) return;
+    if (!confirm('Delete ' + selectedIds.size + ' selected game' + (selectedIds.size === 1 ? '' : 's') + '? This cannot be undone.')) return;
     let ok = 0, fail = 0;
-    for (const g of targets) {
-      const res = await apiDelete('schedule', g.id);
+    for (const id of Array.from(selectedIds)) {
+      const res = await apiDelete('schedule', id);
       if ((res as any).error) fail++; else ok++;
     }
     await reload();
+    exitManage();
     alert('Deleted ' + ok + (fail ? ' — ' + fail + ' failed' : '') + '.');
+  }
+
+  async function bulkMoveTeam() {
+    if (!selectedIds.size) return;
+    const otherTeam: Team = tab === 'Varsity' ? 'JV' : 'Varsity';
+    if (!confirm('Move ' + selectedIds.size + ' game' + (selectedIds.size === 1 ? '' : 's') + ' to ' + otherTeam + '?')) return;
+    let ok = 0, fail = 0;
+    for (const id of Array.from(selectedIds)) {
+      const res = await apiPatch('schedule', id, { team: otherTeam });
+      if ((res as any).error) fail++; else ok++;
+    }
+    await reload();
+    exitManage();
+    alert('Moved ' + ok + (fail ? ' — ' + fail + ' failed' : '') + '.');
+  }
+
+  function startNewSeason() {
+    const target = Math.max(currentSeasonYear, ...availableYears) + 1;
+    if (!confirm('Start ' + target + ' season? You will be switched to the ' + target + ' view so you can add or import games.')) return;
+    setYearView('current');
+    setYear(target);
   }
 
   function exportCsv() {
@@ -244,26 +293,72 @@ export default function SchedulePage() {
     alert(msg);
   }
 
-  const seasonLabel = year === 'all'
-    ? 'All seasons'
+  // Current Season = the newest year that has data (or current calendar year if none).
+  // If the user explicitly picked a year via "+ New Season" or the archive dropdown, prefer that.
+  const newestYearWithData = availableYears.find(y => games.some(g => g.game_date && g.game_date.startsWith(y + '-')));
+  const currentYear = yearView === 'current' && typeof year === 'number'
+    ? year
+    : (newestYearWithData ?? currentSeasonYear);
+  const archiveYears = availableYears.filter(y => y !== currentYear);
+
+  function selectCurrentTab() {
+    setYearView('current');
+    setYear(newestYearWithData ?? currentSeasonYear);
+  }
+
+  function selectArchiveTab() {
+    const firstArchive = availableYears.filter(y => y !== (newestYearWithData ?? currentSeasonYear))[0];
+    if (firstArchive == null) { alert('No past seasons archived yet.'); return; }
+    setYearView('archive');
+    setYear(firstArchive);
+  }
+
+  const seasonLabel = yearView === 'archive'
+    ? 'Archive — ' + year + ' season'
     : year + ' season schedule — Varsity & JV';
 
   return (
     <Layout title="Schedule" activeSection="schedule">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{seasonLabel}</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <select className="form-input form-select" value={String(year)} onChange={e => setYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10))} style={{ width: 'auto', padding: '6px 10px', fontSize: 12 }}>
-            {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-            <option value="all">All years</option>
-          </select>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: 10, flexWrap: 'wrap' }}>
+        <div className="tabs" style={{ margin: 0 }}>
+          <div className={'tab' + (yearView === 'current' ? ' active' : '')} onClick={selectCurrentTab}>
+            Current Season ({currentYear})
+          </div>
+          <div className={'tab' + (yearView === 'archive' ? ' active' : '')} onClick={selectArchiveTab}>
+            Archive{archiveYears.length ? ' (' + archiveYears.length + ')' : ''}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {yearView === 'archive' && archiveYears.length > 0 && (
+            <select className="form-input form-select" value={String(year)} onChange={e => setYear(parseInt(e.target.value, 10))} style={{ width: 'auto', padding: '6px 10px', fontSize: 12 }}>
+              {archiveYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          )}
+          <button className="btn" onClick={startNewSeason} title="Start a new season for next year">+ New Season</button>
           <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>
           <button className="btn" onClick={() => fileRef.current?.click()}>Import CSV / Excel</button>
           <button className="btn" onClick={exportCsv}>Export CSV</button>
-          <button className="btn" onClick={clearYear} title="Delete every game in the selected year">Clear year</button>
+          <button className={'btn' + (manageMode ? ' btn-red' : '')} onClick={() => manageMode ? exitManage() : setManageMode(true)}>
+            {manageMode ? 'Done' : 'Manage'}
+          </button>
           <input ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display: 'none' }} onChange={importCsv} />
         </div>
       </div>
+
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: '1rem' }}>{seasonLabel}</div>
+
+      {manageMode && (
+        <div className="card" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem', padding: '10px 14px' }}>
+          <strong style={{ fontSize: 13 }}>{selectedIds.size} selected</strong>
+          <button className="btn btn-danger" onClick={bulkDelete} disabled={!selectedIds.size}>Delete selected</button>
+          <button className="btn" onClick={bulkMoveTeam} disabled={!selectedIds.size}>
+            Move to {tab === 'Varsity' ? 'JV' : 'Varsity'}
+          </button>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            Tip: check the box in the header to select every {tab} game shown.
+          </span>
+        </div>
+      )}
 
       <div className="stats-row" style={{ marginBottom: '1.25rem' }}>
         <div className="stat-card">
@@ -299,7 +394,15 @@ export default function SchedulePage() {
 
       {loading
         ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading schedule…</div>
-        : <ScheduleTable games={visible} onEdit={openEdit} onDelete={handleDelete} />}
+        : <ScheduleTable
+            games={visible}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            manageMode={manageMode}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+          />}
 
       <GameFormModal
         open={modalOpen}
