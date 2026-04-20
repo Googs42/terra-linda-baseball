@@ -1068,6 +1068,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
         <div class="roster-controls">
           <input class="search-box" placeholder="Search player name, position..." oninput="filterRoster(this.value)">
           <button class="btn btn-red" onclick="openAddPlayerModal()">+ Add Player</button>
+          <button class="btn" onclick="restoreSeedRoster()">Restore seed roster</button>
           <button class="btn" onclick="exportRoster()">Export CSV</button>
         </div>
 
@@ -2588,6 +2589,65 @@ const rosterData = [
   {num:0,name:'Roy Gilbert',pos:'',year:'',bt:'R/R',team:'JV',status:'Active'},
   {num:0,name:'Sebastian King',pos:'',year:'',bt:'R/R',team:'JV',status:'Active'},
 ];
+
+// Frozen copy of the initial seed names — used by the "Restore seed roster"
+// button so we can re-insert any missing players after a Supabase wipe.
+const SEED_ROSTER = [
+  {name:'Alek Wehn',team:'Varsity'},{name:'Alex Rambo',team:'Varsity'},
+  {name:'Augie Hamman',team:'Varsity'},{name:'Brady Berringer',team:'Varsity'},
+  {name:'Charlie Meneau',team:'Varsity'},{name:'Chase Corsiglia',team:'Varsity'},
+  {name:'Emmett Ekstrand',team:'Varsity'},{name:'Felix Doxon',team:'Varsity'},
+  {name:'James Zeno',team:'Varsity'},{name:'Kais Withers',team:'Varsity'},
+  {name:'Kelley Fouts',team:'Varsity'},{name:'Levi Dotson',team:'Varsity'},
+  {name:'Logan Harrell',team:'Varsity'},{name:'Luca Sclafani',team:'Varsity'},
+  {name:'Silas Larsen',team:'Varsity'},
+  {name:'Brady Berringer',team:'JV'},{name:'David Malik',team:'JV'},
+  {name:'Fonzi Gaspari',team:'JV'},{name:'Gavin Harper',team:'JV'},
+  {name:'Hank Melton',team:'JV'},{name:'Joseph Hagen',team:'JV'},
+  {name:'Kai Crowe',team:'JV'},{name:'Kai Marroquin',team:'JV'},
+  {name:'Kal Rogers',team:'JV'},{name:'Leo Croak',team:'JV'},
+  {name:'Mark DeMartini',team:'JV'},{name:'Mateo Benassini',team:'JV'},
+  {name:'Nico Garritano',team:'JV'},{name:'Roy Gilbert',team:'JV'},
+  {name:'Sebastian King',team:'JV'},
+];
+
+async function restoreSeedRoster() {
+  if (!confirm('Insert any missing seed-roster players into Supabase? Existing players (by name + team) are left alone.')) return;
+  // Pull the current server state so we skip anything that's already saved.
+  let existing = [];
+  try { existing = await fetch('/api/roster').then(r => r.ok ? r.json() : []); } catch {}
+  const have = new Set((existing || []).map(p => (p.name + '|' + p.team).toLowerCase()));
+  const toInsert = SEED_ROSTER.filter(p => !have.has((p.name + '|' + p.team).toLowerCase()));
+  if (!toInsert.length) { alert('All seed players already exist in Supabase. Nothing to insert.'); return; }
+
+  let ok = 0, fail = 0;
+  for (const p of toInsert) {
+    try {
+      const res = await apiPost('roster', {
+        num: 0, name: p.name, pos: 'TBD', year: 'TBD',
+        bats: 'R', throws: 'R', team: p.team, status: 'Active',
+      });
+      if (res && res.error) fail++; else ok++;
+    } catch { fail++; }
+  }
+
+  // Re-fetch and re-render so ids, counts, and tabs are consistent.
+  try {
+    const fresh = await fetch('/api/roster').then(r => r.json());
+    if (Array.isArray(fresh)) {
+      rosterData.length = 0;
+      fresh.forEach(p => rosterData.push({
+        num: p.num, name: p.name, pos: p.pos, year: p.year,
+        bt: (p.bats || 'R') + '/' + (p.throws || 'R'),
+        team: p.team, status: p.status || 'Active', id: p.id,
+      }));
+    }
+  } catch {}
+  renderRoster();
+  if (typeof renderRecentRoster === 'function') renderRecentRoster();
+  if (typeof updateDashboardCounts === 'function') updateDashboardCounts();
+  alert('Inserted ' + ok + ' player' + (ok === 1 ? '' : 's') + (fail ? ' (failed ' + fail + ').' : '.'));
+}
 
 let currentRosterFilter = 'varsity';
 let searchTerm = '';
