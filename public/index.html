@@ -3031,7 +3031,6 @@ async function checkHealth() {
     const data = await r.json();
     if (data.ok) {
       banner.style.display = 'none';
-      console.log('Supabase health:', data);
       return;
     }
     const msgs = {
@@ -3307,44 +3306,7 @@ function togglePlayerLink() {
   }
 }
 
-function addUser() {
-  const first = document.getElementById('u-first').value.trim();
-  const last = document.getElementById('u-last').value.trim();
-  const title = document.getElementById('u-role').value;
-  const role = titleToRole(title);
-  const username = document.getElementById('u-username').value.trim().toLowerCase();
-  const password = document.getElementById('u-password').value.trim();
-  const email = (document.getElementById('u-email')||{}).value?.trim() || '';
-  const phone = (document.getElementById('u-phone')||{}).value?.trim() || '';
-  const notes = (document.getElementById('u-notes')||{}).value?.trim() || '';
-  const playerLink = role==='player' ? document.getElementById('u-player').value : null;
-
-  if (!first || !last) { alert('Please enter first and last name.'); return; }
-  if (!username) { alert('Please enter a username.'); return; }
-  if (!password) { alert('Please enter a password.'); return; }
-  if (USERS.find(u => u.username.toLowerCase() === username)) { alert('That username is already taken. Choose a different one.'); return; }
-
-  const newUser = {
-    id: Date.now(),
-    name: first + ' ' + last,
-    username, password, role, title,
-    email, phone, notes,
-    playerLink: playerLink || null
-  };
-  USERS.push(newUser);
-  saveUsers();
-  renderUsersTable();
-  closeModal('addUser');
-  ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('u-role').value='head_coach';
-  document.getElementById('player-link-group').style.display='none';
-
-  alert('Account created!\n\nName: ' + newUser.name + '\nTitle: ' + titleLabel(title) + '\nUsername: ' + newUser.username + '\nPassword: ' + newUser.password + '\n\nShare these credentials.');
-}
-
 async function deleteUser(id, idx) {
-  console.log('deleteUser called with', { id, idx, USERS });
-
   // Resolve user by id first, fall back to idx for legacy callers
   let realIdx = (typeof idx === 'number') ? idx : -1;
   if (id) {
@@ -3470,53 +3432,6 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
     if (e.target === this) this.classList.remove('open');
   });
 });
-
-function addPlayer() {
-  const first = document.getElementById('p-first').value.trim();
-  const last = document.getElementById('p-last').value.trim();
-  const num = parseInt(document.getElementById('p-num').value);
-  const pos1 = (document.getElementById('p-pos').value || '').trim();
-  const pos2 = (document.getElementById('p-pos2') ? document.getElementById('p-pos2').value : '').trim();
-  const pos = pos2 ? (pos1 ? pos1 + '/' + pos2 : pos2) : pos1;
-  const team = document.getElementById('p-team').value;
-  const year = document.getElementById('p-year').value;
-  const bat = document.getElementById('p-bat').value;
-  const thr = document.getElementById('p-throw').value;
-  if (!first || !last) { alert('Please enter at least a first and last name.'); return; }
-  const status = document.getElementById('p-status').value || 'Active';
-  rosterData.push({ num: num || 0, name: first + ' ' + last, pos: pos || '', year: year || '', bt: bat+'/'+thr, team, status });
-  closeModal('addPlayer');
-  showSection('roster', document.querySelector('[onclick*=roster]'));
-  renderRecentRoster();
-  document.getElementById('p-first').value = '';
-  document.getElementById('p-last').value = '';
-  document.getElementById('p-num').value = '';
-}
-
-function addTask() {
-  const name = document.getElementById('task-name').value.trim();
-  const pri = document.getElementById('task-pri').value;
-  const due = document.getElementById('task-due').value;
-  const assign = document.getElementById('task-assign').value.trim() || 'Unassigned';
-  if (!name) { alert('Please enter a task name.'); return; }
-  const container = document.getElementById('field-tasks');
-  const priMap = { high:['pri-high','Needed'], med:['pri-med','Pending'], low:['pri-low','Done'] };
-  const [cls, label] = priMap[pri];
-  const div = document.createElement('div');
-  div.className = 'field-task';
-  div.innerHTML = `
-    <div class="task-check" onclick="toggleTask(this)"></div>
-    <div class="task-info">
-      <div class="task-name">${name}</div>
-      <div class="task-meta">Assigned: ${assign}${due ? ' | Due: ' + due : ''}</div>
-    </div>
-    <span class="task-priority ${cls}">${label}</span>`;
-  container.appendChild(div);
-  closeModal('addTask');
-  document.getElementById('task-name').value = '';
-  document.getElementById('task-assign').value = '';
-  document.getElementById('task-due').value = '';
-}
 
 function exportRoster(teamFilter) {
   const rows = teamFilter ? rosterData.filter(p => p.team === teamFilter) : rosterData;
@@ -3695,31 +3610,6 @@ function scheduleTab(el, id) {
   document.getElementById('jv-sched').style.display = id === 'jv-sched' ? 'block' : 'none';
 }
 
-function addGame() {
-  const date = document.getElementById('g-date').value;
-  const opp = document.getElementById('g-opp').value.trim();
-  const ha = document.getElementById('g-ha').value;
-  const loc = document.getElementById('g-loc').value.trim();
-  const time = document.getElementById('g-time').value;
-  const result = document.getElementById('g-result').value;
-  const score = document.getElementById('g-score').value.trim();
-  const notes = document.getElementById('g-notes').value.trim();
-  const team = document.getElementById('g-team').value;
-  if (!date || !opp) { alert('Please enter a date and opponent.'); return; }
-  const game = {date, opp, ha, loc, time, result, score, notes};
-  if (team === 'varsity') {
-    varsityGames.push(game);
-    varsityGames.sort((a,b) => a.date.localeCompare(b.date));
-    renderScheduleTable(varsityGames, 'varsity-sched-body');
-  } else {
-    jvGames.push(game);
-    jvGames.sort((a,b) => a.date.localeCompare(b.date));
-    renderScheduleTable(jvGames, 'jv-sched-body');
-  }
-  closeModal('addGame');
-  ['g-date','g-opp','g-loc','g-time','g-score','g-notes'].forEach(id => document.getElementById(id).value = '');
-}
-
 function exportSchedule() {
   let csv = 'Team,Date,Day,Opponent,H/A,Location,Time,Result,Score,Notes\n';
   varsityGames.forEach(g => {
@@ -3802,25 +3692,6 @@ async function addFundraiser() {
   document.getElementById('fr-goal').value = '';
   document.getElementById('fr-loc').value = '';
 }
-
-function addContrib() {
-  const name = document.getElementById('cb-name').value.trim();
-  const amount = document.getElementById('cb-amount').value;
-  const fr = document.getElementById('cb-fr').value;
-  const notes = document.getElementById('cb-notes').value.trim();
-  if (!name || !amount) { alert('Please enter contributor name and amount.'); return; }
-  const tbody = document.getElementById('contributions-body');
-  const today = new Date();
-  const dateStr = (today.getMonth()+1) + '/' + today.getDate();
-  const row = document.createElement('tr');
-  row.innerHTML = '<td>' + name + '</td><td class="stat-highlight">$' + parseInt(amount).toLocaleString() + '</td><td>' + fr + '</td><td style="color:var(--text-muted)">' + dateStr + '</td><td style="color:var(--text-muted)">' + (notes || '-') + '</td>';
-  tbody.insertBefore(row, tbody.firstChild);
-  closeModal('addContrib');
-  document.getElementById('cb-name').value = '';
-  document.getElementById('cb-amount').value = '';
-  document.getElementById('cb-notes').value = '';
-}
-
 
 function exportMaxPrepsRoster(team) {
   // MaxPreps required columns: last_name, first_name, jersey, class_year, position
@@ -3946,140 +3817,6 @@ async function apiDelete(endpoint, id) {
   const r = await fetch('/api/' + endpoint + '?id=' + id, { method: 'DELETE' });
   return r.json();
 }
-
-// ── Override addPlayer to persist to Supabase ─────────────────
-const _localAddPlayer = (typeof addPlayer !== 'undefined') ? addPlayer : null;
-addPlayer = async function() {
-  const first = document.getElementById('p-first').value.trim();
-  const last  = document.getElementById('p-last').value.trim();
-  const num   = parseInt(document.getElementById('p-num').value) || 0;
-  const pos1  = (document.getElementById('p-pos').value || '').trim();
-  const pos2Raw = document.getElementById('p-pos2');
-  const pos2  = (pos2Raw ? pos2Raw.value : '').trim();
-  const pos   = pos2 ? (pos1 ? pos1 + '/' + pos2 : pos2) : pos1;
-  const team  = document.getElementById('p-team').value;
-  const year  = document.getElementById('p-year').value || '';
-  const bat   = document.getElementById('p-bat').value;
-  const thr   = document.getElementById('p-throw').value;
-  const statusEl = document.getElementById('p-status');
-  const status  = (statusEl && statusEl.value) || 'Active';
-  if (!first || !last) { alert('Please enter at least a first and last name.'); return; }
-  const result = await apiPost('roster', {
-    num, name: first + ' ' + last, pos, year,
-    bats: bat, throws: thr, team, status
-  });
-  if (result.error) { alert('Error saving player: ' + result.error); return; }
-  rosterData.push({ num, name: first+' '+last, pos, year, bt: bat+'/'+thr, team, status, id: result.id });
-  closeModal('addPlayer');
-  showSection('roster', document.querySelector('[onclick*=roster]'));
-  ['p-first','p-last','p-num'].forEach(id => document.getElementById(id).value = '');
-};
-
-// ── Override addGame to persist to Supabase ──────────────────
-const _localAddGame = (typeof addGame !== 'undefined') ? addGame : null;
-addGame = async function() {
-  const date   = document.getElementById('g-date').value;
-  const opp    = document.getElementById('g-opp').value.trim();
-  const ha     = document.getElementById('g-ha').value;
-  const loc    = document.getElementById('g-loc').value.trim();
-  const time   = document.getElementById('g-time').value;
-  const result = document.getElementById('g-result').value;
-  const score  = document.getElementById('g-score').value.trim();
-  const notes  = document.getElementById('g-notes').value.trim();
-  const team   = document.getElementById('g-team').value === 'varsity' ? 'Varsity' : 'JV';
-  if (!date || !opp) { alert('Please enter a date and opponent.'); return; }
-  const saved = await apiPost('schedule', {
-    game_date: date, opponent: opp, home_away: ha,
-    location: loc, game_time: time || null,
-    result, score, notes, team
-  });
-  if (saved.error) { alert('Error saving game: ' + saved.error); return; }
-  const game = { id: saved.id, date, opp, ha, loc, time, result, score, notes };
-  if (team === 'Varsity') {
-    varsityGames.push(game);
-    varsityGames.sort((a,b) => a.date.localeCompare(b.date));
-    renderScheduleTable(varsityGames, 'varsity-sched-body');
-  } else {
-    jvGames.push(game);
-    jvGames.sort((a,b) => a.date.localeCompare(b.date));
-    renderScheduleTable(jvGames, 'jv-sched-body');
-  }
-  closeModal('addGame');
-  ['g-date','g-opp','g-loc','g-time','g-score','g-notes'].forEach(id => document.getElementById(id).value='');
-};
-
-// ── Override addTask to persist to Supabase ──────────────────
-const _localAddTask = (typeof addTask !== 'undefined') ? addTask : null;
-addTask = async function() {
-  const name   = document.getElementById('task-name').value.trim();
-  const pri    = document.getElementById('task-pri').value;
-  const due    = document.getElementById('task-due').value;
-  const assign = document.getElementById('task-assign').value.trim() || 'Unassigned';
-  if (!name) { alert('Please enter a task name.'); return; }
-  const saved = await apiPost('field-tasks', {
-    task_name: name, priority: pri,
-    assigned_to: assign, due_date: due || null, done: false
-  });
-  if (saved.error) { alert('Error saving task: ' + saved.error); return; }
-  const container = document.getElementById('field-tasks');
-  const priMap = { high:['pri-high','Needed'], med:['pri-med','Pending'], low:['pri-low','Done'] };
-  const [cls, label] = priMap[pri];
-  const div = document.createElement('div');
-  div.className = 'field-task';
-  div.dataset.id = saved.id;
-  div.innerHTML = '<div class="task-check" onclick="toggleTaskDb(this,\''+saved.id+'\')"></div>' +
-    '<div class="task-info"><div class="task-name">'+name+'</div>' +
-    '<div class="task-meta">Assigned: '+assign+(due?' | Due: '+due:'')+'</div></div>' +
-    '<span class="task-priority '+cls+'">'+label+'</span>';
-  container.appendChild(div);
-  closeModal('addTask');
-  ['task-name','task-assign','task-due'].forEach(id => document.getElementById(id).value='');
-};
-
-// Toggle task done state + persist
-async function toggleTaskDb(el, id) {
-  el.classList.toggle('done');
-  const done = el.classList.contains('done');
-  const pri  = el.parentElement.querySelector('.task-priority');
-  if (done) { pri.className='task-priority pri-low'; pri.textContent='Done'; }
-  else      { pri.className='task-priority pri-med'; pri.textContent='Pending'; }
-  if (id) await apiPatch('field-tasks', id, { done });
-}
-
-// ── Override addUser to persist to Supabase ──────────────────
-const _localAddUser = (typeof addUser !== 'undefined') ? addUser : null;
-window.addUser = async function() {
-  const first      = document.getElementById('u-first').value.trim();
-  const last       = document.getElementById('u-last').value.trim();
-  const title      = document.getElementById('u-role').value;
-  const role       = titleToRole(title);
-  const username   = document.getElementById('u-username').value.trim().toLowerCase();
-  const password   = document.getElementById('u-password').value.trim();
-  const email      = (document.getElementById('u-email')||{}).value?.trim() || '';
-  const phone      = (document.getElementById('u-phone')||{}).value?.trim() || '';
-  const notes      = (document.getElementById('u-notes')||{}).value?.trim() || '';
-  const playerLink = role==='player' ? document.getElementById('u-player').value : null;
-  if (!first||!last) { alert('Please enter first and last name.'); return; }
-  if (!username)     { alert('Please enter a username.'); return; }
-  if (!password)     { alert('Please enter a password.'); return; }
-  if (USERS.find(u => u.username.toLowerCase()===username)) {
-    alert('That username is already taken.'); return;
-  }
-  const saved = await apiPost('users', {
-    name: first+' '+last, username, password, role, title,
-    player_link: playerLink||null,
-    email: email||null, phone: phone||null, notes: notes||null
-  });
-  if (saved.error) { alert('Error creating account: ' + saved.error); return; }
-  USERS.push({ id: saved.id, name: first+' '+last, username, password, role, title, email, phone, notes, playerLink: playerLink||null });
-  saveUsers();
-  renderUsersTable();
-  closeModal('addUser');
-  ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('u-role').value='head_coach';
-  document.getElementById('player-link-group').style.display='none';
-  alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.');
-};
 
 // ── Edit user: open the same modal pre-filled, switch it into "edit" mode ──
 window.__editingUserId = null;
@@ -4232,25 +3969,6 @@ window.attemptLogin = async function() {
     // Fallback to local users if API not available (dev mode)
     _localAttemptLogin && _localAttemptLogin();
   }
-};
-
-// ── Override addContrib to persist ───────────────────────────
-const _localAddContrib = (typeof addContrib !== 'undefined') ? addContrib : null;
-addContrib = async function() {
-  const name   = document.getElementById('cb-name').value.trim();
-  const amount = document.getElementById('cb-amount').value;
-  const fr     = document.getElementById('cb-fr').value;
-  const notes  = document.getElementById('cb-notes').value.trim();
-  if (!name||!amount) { alert('Please enter contributor name and amount.'); return; }
-  const saved  = await apiPost('contributions', { contributor: name, amount: parseFloat(amount), fundraiser: fr, notes });
-  const tbody  = document.getElementById('contributions-body');
-  const today  = new Date();
-  const dateStr= (today.getMonth()+1)+'/'+today.getDate();
-  const row    = document.createElement('tr');
-  row.innerHTML= '<td>'+name+'</td><td class="stat-highlight">$'+parseInt(amount).toLocaleString()+'</td><td>'+fr+'</td><td style="color:var(--text-muted)">'+dateStr+'</td><td style="color:var(--text-muted)">'+(notes||'-')+'</td>';
-  tbody.insertBefore(row, tbody.firstChild);
-  closeModal('addContrib');
-  ['cb-name','cb-amount','cb-notes'].forEach(id => document.getElementById(id).value='');
 };
 
 // ── Override camp & contact form submissions ──────────────────
