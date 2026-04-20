@@ -36,7 +36,8 @@
     ],
     "additionalDirectories": [
       "C:\\Users\\seano\\Desktop\\tlbaseball",
-      "\\tmp"
+      "\\tmp",
+      "c:\\Users\\seano\\Desktop\\tlbaseball"
     ]
   }
 }
