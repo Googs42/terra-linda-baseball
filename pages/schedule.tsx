@@ -120,6 +120,20 @@ export default function SchedulePage() {
     setGames(prev => prev.filter(x => x.id !== g.id));
   }
 
+  async function clearYear() {
+    if (year === 'all') { alert('Pick a specific year first.'); return; }
+    const targets = games.filter(g => g.game_date && g.game_date.startsWith(year + '-'));
+    if (!targets.length) { alert('No games to delete in ' + year + '.'); return; }
+    if (!confirm('Delete ALL ' + targets.length + ' games in ' + year + '? This cannot be undone.')) return;
+    let ok = 0, fail = 0;
+    for (const g of targets) {
+      const res = await apiDelete('schedule', g.id);
+      if ((res as any).error) fail++; else ok++;
+    }
+    await reload();
+    alert('Deleted ' + ok + (fail ? ' — ' + fail + ' failed' : '') + '.');
+  }
+
   function exportCsv() {
     let csv = 'Team,Date,Day,Opponent,H/A,Location,Time,Result,Score,Notes\n';
     const rows = [...filteredByYear].sort((a, b) => (a.game_date || '').localeCompare(b.game_date || ''));
@@ -155,10 +169,12 @@ export default function SchedulePage() {
     let lines: string[] = [];
     if (isExcel) {
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
+      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];
       if (!ws) { alert('Excel file has no sheets.'); return; }
-      const csvText = XLSX.utils.sheet_to_csv(ws);
+      // dateNF forces date cells to render as YYYY-MM-DD regardless of the
+      // workbook's display format, so parseLooseDate never has to guess the year.
+      const csvText = XLSX.utils.sheet_to_csv(ws, { dateNF: 'yyyy-mm-dd' });
       lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
     } else {
       const text = await file.text();
@@ -239,6 +255,7 @@ export default function SchedulePage() {
           <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>
           <button className="btn" onClick={() => fileRef.current?.click()}>Import CSV / Excel</button>
           <button className="btn" onClick={exportCsv}>Export CSV</button>
+          <button className="btn" onClick={clearYear} title="Delete every game in the selected year">Clear year</button>
           <input ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display: 'none' }} onChange={importCsv} />
         </div>
       </div>
