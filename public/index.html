@@ -434,6 +434,11 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 }
 .lineup-card.size-letter { width: 8.5in; min-height: 11in; }
 .lineup-card.size-half   { width: 4in;   min-height: 8in; padding: 0.35in; font-size: 10px; }
+/* Stretch rows so the letter-size card fills the whole page */
+.lineup-card.size-letter .lineup-table:first-of-type tbody tr td { height: 58px; }
+.lineup-card.size-letter .lineup-table:first-of-type thead th    { height: 34px; }
+.lineup-card.size-letter .lineup-table:nth-of-type(2) tbody tr td { height: 38px; }
+.lineup-card.size-letter .meta-table td { height: 32px; }
 .lineup-card-header {
   display: flex; align-items: center; gap: 16px;
   border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 14px;
