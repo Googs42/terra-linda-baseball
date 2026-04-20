@@ -386,19 +386,24 @@ textarea.form-input { resize: vertical; min-height: 90px; }
   position: relative;
 }
 .lineup-card.size-letter { width: 8.5in; min-height: 11in; }
-.lineup-card.size-half   { width: 4in;   min-height: 8in; padding: 0.35in; font-size: 10px; }
+.lineup-card.size-half   { width: 5in;   min-height: 8in; padding: 0.35in; font-size: 11px; }
+/* Stretch rows so the 5x8 card fills its page instead of leaving white space */
+.lineup-card.size-half .lineup-table:first-of-type tbody tr td { height: 38px; }
+.lineup-card.size-half .lineup-table:first-of-type thead th    { height: 26px; }
+.lineup-card.size-half .lineup-table:nth-of-type(2) tbody tr td { height: 28px; }
+.lineup-card.size-half .meta-table td { height: 26px; }
 
 .lineup-card-header {
   display: flex; align-items: center; gap: 16px;
   border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 14px;
 }
 .lineup-card-header img { width: 52px; height: auto; }
-.lineup-card.size-half .lineup-card-header img { width: 34px; }
+.lineup-card.size-half .lineup-card-header img { width: 42px; }
 .lineup-card-title {
   font-family: 'Times New Roman', serif; font-weight: 700;
   font-size: 26px; letter-spacing: 1px; flex: 1; text-align: center;
 }
-.lineup-card.size-half .lineup-card-title { font-size: 16px; }
+.lineup-card.size-half .lineup-card-title { font-size: 20px; }
 
 .lineup-table {
   width: 100%; border-collapse: collapse;
@@ -412,7 +417,7 @@ textarea.form-input { resize: vertical; min-height: 90px; }
   letter-spacing: 0.05em; font-size: 11px;
 }
 .lineup-card.size-half .lineup-table th,
-.lineup-card.size-half .lineup-table td { font-size: 10px; padding: 3px 4px; height: 22px; }
+.lineup-card.size-half .lineup-table td { font-size: 12px; padding: 4px 6px; }
 
 .lineup-table .col-order { width: 9%; }
 .lineup-table .col-num   { width: 9%; }
@@ -443,8 +448,8 @@ textarea.form-input { resize: vertical; min-height: 90px; }
   height: 28px;
 }
 .meta-table .meta-label { font-weight: 700; text-transform: uppercase; width: 18%; background: #eee; font-size: 10px; letter-spacing: 0.05em; }
-.lineup-card.size-half .meta-table td { font-size: 10px; padding: 3px 6px; }
-.lineup-card.size-half .meta-table .meta-label { font-size: 9px; }
+.lineup-card.size-half .meta-table td { font-size: 11px; padding: 4px 8px; }
+.lineup-card.size-half .meta-table .meta-label { font-size: 10px; }
 
 .meta-input, .slot-input, .pos-input {
   border: none; outline: none; background: transparent;
@@ -466,12 +471,16 @@ textarea.form-input { resize: vertical; min-height: 90px; }
   #lineup-print-area .lineup-card { box-shadow: none; margin: 0 auto; }
   .lineup-slot .slot-remove { display: none !important; }
 }
+/* Named pages let the print size switch based on which toggle is active.
+   Without this, a 5x8 card would print on a letter sheet with a huge margin. */
+@page letter-page { size: 8.5in 11in; margin: 0.4in; }
+@page half-page   { size: 5in 8in;    margin: 0.2in; }
+body.print-size-letter { page: letter-page; }
+body.print-size-half   { page: half-page; }
 @page { margin: 0.4in; }
-body.print-size-letter { }
-body.print-size-half { }
 @media print {
   body.print-size-letter #lineup-print-area .lineup-card { width: 8.5in; min-height: 10.5in; }
-  body.print-size-half   #lineup-print-area .lineup-card { width: 4in;   min-height: 7.5in; }
+  body.print-size-half   #lineup-print-area .lineup-card { width: 5in;   min-height: 7.5in; }
 }
 
 /* ═══════════════════════════════════════
@@ -1726,7 +1735,7 @@ body.print-size-half { }
           </select>
           <div class="lineup-size-toggle">
             <button class="active" data-size="letter" onclick="setLineupSize('letter')">8.5&times;11"</button>
-            <button data-size="half" onclick="setLineupSize('half')">4&times;8"</button>
+            <button data-size="half" onclick="setLineupSize('half')">5&times;8"</button>
           </div>
           <button class="btn" onclick="clearLineup()">Clear</button>
           <button class="btn btn-red" onclick="printLineup()">Print / Save PDF</button>
