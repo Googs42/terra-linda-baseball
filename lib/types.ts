@@ -31,3 +31,20 @@ export interface PlayerFormValues {
 
 export const POSITIONS = ['P', 'C', '1B', '2B', 'SS', '3B', 'LF', 'CF', 'RF', 'DH', 'UTIL'] as const;
 export const YEARS: Year[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
+
+export type HomeAway = 'Home' | 'Away';
+export type GameResult = 'W' | 'L' | 'T' | '';
+
+export interface GameRow {
+  id: string;
+  game_date: string;   // YYYY-MM-DD
+  opponent: string;
+  home_away: HomeAway | string;
+  location: string;
+  game_time: string | null; // HH:MM:SS or null
+  result: GameResult | string;
+  score: string;
+  notes: string;
+  team: Team;
+  created_at?: string;
+}
