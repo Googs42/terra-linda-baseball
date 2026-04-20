@@ -82,13 +82,16 @@ export default function SchedulePage() {
     const varsity = mk('Varsity');
     const jv = mk('JV');
 
-    // Run differential for whichever team tab is active. Only counts games
-    // whose score is stored as "ours-theirs" (format N-N).
+    // Run differential for whichever team tab is active.
+    // Score is stored as "winner-loser" (e.g. a 5-1 loss means they scored 5, we scored 1),
+    // so we flip the two numbers when the result is an L to get our signed diff.
     const runDiff = filteredByYear
       .filter(g => g.team === tab && g.result && /^\d+-\d+$/.test(g.score || ''))
       .reduce((sum, g) => {
-        const [us, them] = g.score.split('-').map(n => parseInt(n, 10));
-        return sum + (us - them);
+        const [a, b] = g.score.split('-').map(n => parseInt(n, 10));
+        if (g.result === 'W') return sum + (a - b);
+        if (g.result === 'L') return sum + (b - a);
+        return sum; // ties contribute 0
       }, 0);
 
     // Next upcoming game for the active team tab
