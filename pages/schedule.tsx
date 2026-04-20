@@ -82,23 +82,23 @@ export default function SchedulePage() {
     const varsity = mk('Varsity');
     const jv = mk('JV');
 
-    // Run differential: only makes sense when score has format N-N
+    // Run differential for whichever team tab is active. Only counts games
+    // whose score is stored as "ours-theirs" (format N-N).
     const runDiff = filteredByYear
-      .filter(g => g.team === 'Varsity' && g.result && /^\d+-\d+$/.test(g.score || ''))
+      .filter(g => g.team === tab && g.result && /^\d+-\d+$/.test(g.score || ''))
       .reduce((sum, g) => {
         const [us, them] = g.score.split('-').map(n => parseInt(n, 10));
-        // score is stored as "ours-theirs" regardless of W/L
         return sum + (us - them);
       }, 0);
 
-    // Next upcoming game (any team)
+    // Next upcoming game for the active team tab
     const todayIso = new Date().toISOString().slice(0, 10);
     const next = filteredByYear
-      .filter(g => !g.result && g.game_date >= todayIso)
+      .filter(g => g.team === tab && !g.result && g.game_date >= todayIso)
       .sort((a, b) => (a.game_date || '').localeCompare(b.game_date || ''))[0];
 
     return { varsity, jv, runDiff, next };
-  }, [filteredByYear]);
+  }, [filteredByYear, tab]);
 
   function openAdd() { setEditing(null); setModalOpen(true); }
   function openEdit(g: GameRow) { setEditing(g); setModalOpen(true); }
@@ -377,7 +377,7 @@ export default function SchedulePage() {
         <div className="stat-card">
           <div className="stat-label">Run differential</div>
           <div className="stat-num">{(stats.runDiff > 0 ? '+' : '') + stats.runDiff}</div>
-          <div className="stat-sub">Varsity season</div>
+          <div className="stat-sub">{tab} season</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Next game</div>
