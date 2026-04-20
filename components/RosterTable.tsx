@@ -15,7 +15,13 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
     );
   }
 
-  const sorted = [...players].sort((a, b) => (a.num || 0) - (b.num || 0));
+  const yearRank: Record<string, number> = { Senior: 0, Junior: 1, Sophomore: 2, Freshman: 3 };
+  const rankOf = (y: string | undefined) => (y && y in yearRank) ? yearRank[y] : 99;
+  const sorted = [...players].sort((a, b) => {
+    const r = rankOf(a.year) - rankOf(b.year);
+    if (r !== 0) return r;
+    return (a.num || 0) - (b.num || 0);
+  });
 
   return (
     <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
