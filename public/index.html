@@ -703,9 +703,6 @@ body.print-size-half   { page: half-page; }
         <span class="nav-icon">&#9632;</span> Roster
         <span class="nav-badge">30</span>
       </div>
-      <div class="nav-item" onclick="showSection('stats', this)">
-        <span class="nav-icon">&#9632;</span> Game Stats
-      </div>
       <div class="nav-item" onclick="window.location.href='/schedule'">
         <span class="nav-icon">&#9632;</span> Schedule
       </div>
@@ -744,11 +741,21 @@ body.print-size-half   { page: half-page; }
         <span class="nav-icon">&#9632;</span> Fundraising
         <span class="nav-badge">3</span>
       </div>
+      <div class="nav-item" onclick="showSection('contact', this)">
+        <span class="nav-icon">&#9632;</span> Contact / Outreach
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Links</div>
+      <div class="nav-item" onclick="showSection('stats', this)">
+        <span class="nav-icon">&#9632;</span> Game Stats
+      </div>
       <div class="nav-item" onclick="showSection('maxpreps', this)">
         <span class="nav-icon">&#9632;</span> MaxPreps Hub
       </div>
-      <div class="nav-item" onclick="showSection('contact', this)">
-        <span class="nav-icon">&#9632;</span> Contact / Outreach
+      <div class="nav-item" onclick="window.open('https://gc.com/','_blank')">
+        <span class="nav-icon">&#9632;</span> GameChanger &#8599;
       </div>
     </div>
   </div>
@@ -1107,10 +1114,26 @@ body.print-size-half   { page: half-page; }
 
       <!-- STATS -->
       <div class="section" id="section-stats">
-        <div class="tabs">
-          <div class="tab active" onclick="statsTab(this,'batting')">Batting</div>
-          <div class="tab" onclick="statsTab(this,'pitching')">Pitching</div>
-          <div class="tab" onclick="statsTab(this,'fielding')">Fielding</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:1rem">
+          <div class="tabs" style="margin:0">
+            <div class="tab active" onclick="statsTab(this,'batting')">Batting</div>
+            <div class="tab" onclick="statsTab(this,'pitching')">Pitching</div>
+            <div class="tab" onclick="statsTab(this,'fielding')">Fielding</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <a href="https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/varsity/stats/" target="_blank" style="text-decoration:none">
+              <button class="btn" style="font-size:11px;padding:6px 10px" title="Official Varsity stats page on MaxPreps">Varsity on MaxPreps &#8599;</button>
+            </a>
+            <a href="https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/jv/stats/" target="_blank" style="text-decoration:none">
+              <button class="btn" style="font-size:11px;padding:6px 10px" title="Official JV stats page on MaxPreps">JV on MaxPreps &#8599;</button>
+            </a>
+            <select id="stats-import-team" class="form-input form-select" style="width:auto;padding:6px 10px;font-size:12px" title="Which team these stats belong to">
+              <option value="Varsity">Varsity</option>
+              <option value="JV">JV</option>
+            </select>
+            <button class="btn btn-red" id="stats-import-btn" onclick="document.getElementById('stats-file-input').click()" title="Import a stats CSV exported from GameChanger">Import Stats CSV</button>
+            <input type="file" id="stats-file-input" accept=".csv,text/csv" style="display:none" onchange="importStatsCsv(event)">
+          </div>
         </div>
 
         <div id="batting-stats" class="card">
@@ -3372,6 +3395,7 @@ renderRoster();
 // showSection handled by portal system
 
 
+let currentStatsTab = 'batting';
 function statsTab(el, name) {
   document.querySelectorAll('#section-stats .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -3379,6 +3403,9 @@ function statsTab(el, name) {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById(name + '-stats').style.display = 'block';
+  currentStatsTab = name;
+  const btn = document.getElementById('stats-import-btn');
+  if (btn) btn.textContent = 'Import ' + name.charAt(0).toUpperCase() + name.slice(1) + ' CSV';
 }
 
 function workoutTab(el, name) {
@@ -4620,6 +4647,139 @@ async function deleteStat(type, id) {
   if (type === 'pitching') PITCHING = PITCHING.filter(x => String(x.id) !== String(id));
   if (type === 'fielding') FIELDING = FIELDING.filter(x => String(x.id) !== String(id));
   renderStats();
+}
+
+// ── Stats CSV import (GameChanger export format) ─────────────
+function splitCsvLine(line) {
+  const out = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { out.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+
+// Column name lookups for each stat type. GameChanger uses short codes that
+// sometimes differ from MaxPreps and our DB, so accept a few aliases per field.
+const STATS_FIELD_MAP = {
+  batting: {
+    player_name: ['player', 'name', 'player_name', 'first last', 'last, first'],
+    g:       ['g', 'gp'],
+    ab:      ['ab', 'at bats', 'at_bats'],
+    h:       ['h', 'hits'],
+    doubles: ['2b', 'doubles', 'double'],
+    triples: ['3b', 'triples', 'triple'],
+    hr:      ['hr', 'home runs', 'homeruns'],
+    rbi:     ['rbi', 'rbis'],
+    bb:      ['bb', 'walks'],
+    so:      ['so', 'k', 'strikeouts'],
+    avg:     ['avg', 'ba', 'average'],
+    obp:     ['obp', 'on base pct'],
+    slg:     ['slg', 'slugging'],
+  },
+  pitching: {
+    player_name: ['player', 'name', 'player_name'],
+    g:  ['g', 'gp', 'app'],
+    gs: ['gs', 'starts'],
+    w:  ['w', 'wins'],
+    l:  ['l', 'losses'],
+    sv: ['sv', 'saves'],
+    ip: ['ip', 'innings', 'innings pitched'],
+    hits: ['h', 'hits'],
+    er: ['er', 'earned runs'],
+    bb: ['bb', 'walks'],
+    k:  ['k', 'so', 'strikeouts'],
+    era: ['era'],
+    whip: ['whip'],
+  },
+  fielding: {
+    player_name: ['player', 'name', 'player_name'],
+    pos: ['pos', 'position'],
+    g:   ['g', 'gp'],
+    po:  ['po', 'putouts'],
+    assists: ['a', 'assists'],
+    errors:  ['e', 'errors'],
+    dp:  ['dp', 'double plays', 'doubleplays'],
+    fld_pct: ['fld%', 'fld_pct', 'fielding%', 'fielding pct', 'fld'],
+  },
+};
+
+function toNumber(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (!s || s === '-' || s.toLowerCase() === 'n/a') return null;
+  // Strip leading dot for BA/OBP/SLG like ".312" -> 0.312
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+async function importStatsCsv(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  const input = evt.target;
+  try {
+    const type = currentStatsTab; // batting | pitching | fielding
+    const team = (document.getElementById('stats-import-team') || {}).value || 'Varsity';
+    if (!confirm('Import "' + file.name + '" as ' + team + ' ' + type + ' stats?\n\nRows will be ADDED to Supabase (duplicates may create extra rows).')) {
+      return;
+    }
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (!lines.length) { alert('File is empty.'); return; }
+
+    const header = splitCsvLine(lines[0]).map(h => h.toLowerCase().replace(/"/g,'').trim());
+    const fieldMap = STATS_FIELD_MAP[type];
+    const colFor = (names) => { for (const n of names) { const i = header.indexOf(n); if (i !== -1) return i; } return -1; };
+    const idx = {};
+    for (const key of Object.keys(fieldMap)) idx[key] = colFor(fieldMap[key]);
+
+    if (idx.player_name === -1) {
+      alert('Could not find a Player/Name column. First row headers were: ' + header.join(', '));
+      return;
+    }
+
+    let ok = 0, fail = 0;
+    const errors = [];
+    for (let i = 1; i < lines.length; i++) {
+      const row = splitCsvLine(lines[i]);
+      const get = (key) => idx[key] === -1 ? '' : (row[idx[key]] || '').trim();
+      const player = get('player_name');
+      if (!player) { fail++; errors.push('Row ' + (i+1) + ': missing player name'); continue; }
+
+      const body = { player_name: player, team };
+      for (const key of Object.keys(fieldMap)) {
+        if (key === 'player_name') continue;
+        const raw = get(key);
+        if (raw === '') continue;
+        // pos is a string; everything else is numeric
+        body[key] = (key === 'pos') ? raw : toNumber(raw);
+      }
+
+      try {
+        const res = await apiPost('stats?type=' + type, body);
+        if (res && res.error) { fail++; errors.push('Row ' + (i+1) + ': ' + res.error); }
+        else ok++;
+      } catch (e) {
+        fail++; errors.push('Row ' + (i+1) + ': ' + (e.message || e));
+      }
+    }
+
+    await loadStats();
+    let msg = 'Imported ' + ok + ' row' + (ok === 1 ? '' : 's') + '.';
+    if (fail) msg += '\n\nSkipped ' + fail + ':\n' + errors.slice(0,10).join('\n') + (errors.length > 10 ? '\n…' : '');
+    alert(msg);
+  } finally {
+    input.value = '';
+  }
 }
 
 async function apiPost(ep, body) {
