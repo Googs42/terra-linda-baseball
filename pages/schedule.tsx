@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import * as XLSX from 'xlsx';
 import Layout from '@/components/Layout';
 import ScheduleTable from '@/components/ScheduleTable';
 import GameFormModal from '@/components/GameFormModal';
@@ -146,10 +147,24 @@ export default function SchedulePage() {
   async function importCsv(evt: React.ChangeEvent<HTMLInputElement>) {
     const file = evt.target.files && evt.target.files[0];
     if (!file) return;
-    const text = await file.text();
     if (fileRef.current) fileRef.current.value = '';
-    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
-    if (!lines.length) { alert('CSV is empty.'); return; }
+
+    const name = file.name.toLowerCase();
+    const isExcel = name.endsWith('.xlsx') || name.endsWith('.xls');
+
+    let lines: string[] = [];
+    if (isExcel) {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      if (!ws) { alert('Excel file has no sheets.'); return; }
+      const csvText = XLSX.utils.sheet_to_csv(ws);
+      lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
+    } else {
+      const text = await file.text();
+      lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    }
+    if (!lines.length) { alert('File is empty.'); return; }
 
     const header = csvSplitLine(lines[0]).map(h => h.toLowerCase());
     const col = (names: string[]) => { for (const n of names) { const i = header.indexOf(n); if (i !== -1) return i; } return -1; };
@@ -165,7 +180,7 @@ export default function SchedulePage() {
       notes:  col(['notes', 'note']),
     };
     if (idx.date === -1 || idx.opp === -1) {
-      alert('CSV needs at least Date and Opponent columns. Expected: Team, Date, Opponent, H/A, Location, Time, Result, Score, Notes.');
+      alert('File needs at least Date and Opponent columns. Expected: Team, Date, Opponent, H/A, Location, Time, Result, Score, Notes.');
       return;
     }
 
@@ -222,9 +237,9 @@ export default function SchedulePage() {
             <option value="all">All years</option>
           </select>
           <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>
-          <button className="btn" onClick={() => fileRef.current?.click()}>Import CSV</button>
+          <button className="btn" onClick={() => fileRef.current?.click()}>Import CSV / Excel</button>
           <button className="btn" onClick={exportCsv}>Export CSV</button>
-          <input ref={fileRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={importCsv} />
+          <input ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display: 'none' }} onChange={importCsv} />
         </div>
       </div>
 

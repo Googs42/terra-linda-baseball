@@ -33,7 +33,8 @@
       "Bash(awk 'NR>=174{ *)",
       "Bash(awk '{ *)",
       "Bash(awk '/<script>/,/<\\\\/script>/' public/index.html)",
-      "WebFetch(domain:terra-linda-baseball.vercel.app)"
+      "WebFetch(domain:terra-linda-baseball.vercel.app)",
+      "Bash(npx tsc *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\seano\\Desktop\\tlbaseball",
