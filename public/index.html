@@ -2310,38 +2310,38 @@ body.sidebar-open .sidebar-backdrop { display: block; }
       </div>
       <div class="form-group">
         <label class="form-label">Position</label>
-        <input class="form-input" id="p-pos" list="pos-suggestions"
-               placeholder="e.g. CF/P, 2B, 1B/3B"
-               autocomplete="off">
-        <datalist id="pos-suggestions">
-          <option value="P"></option>
-          <option value="C"></option>
-          <option value="1B"></option>
-          <option value="2B"></option>
-          <option value="SS"></option>
-          <option value="3B"></option>
-          <option value="LF"></option>
-          <option value="CF"></option>
-          <option value="RF"></option>
-          <option value="DH"></option>
-          <option value="UTIL"></option>
-          <option value="P/1B"></option>
-          <option value="P/OF"></option>
-          <option value="CF/P"></option>
-          <option value="C/1B"></option>
-          <option value="C/3B"></option>
-          <option value="SS/2B"></option>
-          <option value="SS/3B"></option>
-          <option value="1B/3B"></option>
-          <option value="2B/SS"></option>
-          <option value="2B/OF"></option>
-          <option value="LF/RF"></option>
-          <option value="LF/CF"></option>
-          <option value="CF/RF"></option>
-          <option value="OF/IF"></option>
-        </datalist>
+        <div style="display:flex;gap:6px">
+          <select class="form-input form-select" id="p-pos" style="flex:1">
+            <option value="">—</option>
+            <option value="P">P</option>
+            <option value="C">C</option>
+            <option value="1B">1B</option>
+            <option value="2B">2B</option>
+            <option value="SS">SS</option>
+            <option value="3B">3B</option>
+            <option value="LF">LF</option>
+            <option value="CF">CF</option>
+            <option value="RF">RF</option>
+            <option value="DH">DH</option>
+            <option value="UTIL">UTIL</option>
+          </select>
+          <select class="form-input form-select" id="p-pos2" style="flex:1">
+            <option value="">— none —</option>
+            <option value="P">P</option>
+            <option value="C">C</option>
+            <option value="1B">1B</option>
+            <option value="2B">2B</option>
+            <option value="SS">SS</option>
+            <option value="3B">3B</option>
+            <option value="LF">LF</option>
+            <option value="CF">CF</option>
+            <option value="RF">RF</option>
+            <option value="DH">DH</option>
+            <option value="UTIL">UTIL</option>
+          </select>
+        </div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:4px">
-          Type any combo &mdash; e.g. <code style="color:var(--gold)">CF/P</code> or <code style="color:var(--gold)">1B/3B</code>. Suggestions are optional.
+          Pick a primary position. Add a second only if needed.
         </div>
       </div>
     </div>
@@ -2701,7 +2701,10 @@ function editPlayer(idx) {
   document.getElementById('p-first').value = parts[0] || '';
   document.getElementById('p-last').value = parts.slice(1).join(' ') || '';
   document.getElementById('p-num').value = p.num || '';
-  document.getElementById('p-pos').value = p.pos || '';
+  const posParts = (p.pos || '').split('/');
+  document.getElementById('p-pos').value = posParts[0] || '';
+  const p2El = document.getElementById('p-pos2');
+  if (p2El) p2El.value = posParts[1] || '';
   document.getElementById('p-team').value = p.team || 'Varsity';
   document.getElementById('p-year').value = p.year || 'Freshman';
   const bt = (p.bt || 'R/R').split('/');
@@ -2724,7 +2727,9 @@ async function savePlayerEdit() {
 
   const p = rosterData[editingPlayerIdx];
   const num   = parseInt(document.getElementById('p-num').value) || 0;
-  const pos   = document.getElementById('p-pos').value || '';
+  const pos1  = (document.getElementById('p-pos').value || '').trim();
+  const pos2  = (document.getElementById('p-pos2') ? document.getElementById('p-pos2').value : '').trim();
+  const pos   = pos2 ? (pos1 ? pos1 + '/' + pos2 : pos2) : pos1;
   const year  = document.getElementById('p-year').value || '';
   const team  = document.getElementById('p-team').value;
   const bats  = document.getElementById('p-bat').value;
@@ -2733,9 +2738,11 @@ async function savePlayerEdit() {
   const name = first + ' ' + last;
 
   // Persist the edit to Supabase BEFORE mutating local state so failure is visible.
+  // If the row has no server id (came from seed data), insert it instead of patching
+  // so the edit actually survives a refresh.
   let syncWarning = '';
-  if (p.id && typeof apiPatch === 'function') {
-    try {
+  try {
+    if (p.id && typeof apiPatch === 'function') {
       const res = await apiPatch('roster', p.id, {
         num, name, pos, year, team, bats, throws: throws_, status,
       });
@@ -2743,12 +2750,20 @@ async function savePlayerEdit() {
         syncWarning = '\n\n(Supabase reported: ' + res.error + ' — saved locally only)';
         console.warn('savePlayerEdit API error:', res.error);
       }
-    } catch (err) {
-      syncWarning = '\n\n(Network error: ' + err.message + ' — saved locally only)';
-      console.warn('savePlayerEdit network error:', err);
+    } else if (typeof apiPost === 'function') {
+      const res = await apiPost('roster', {
+        num, name, pos, year, team, bats, throws: throws_, status,
+      });
+      if (res && res.error) {
+        syncWarning = '\n\n(Supabase reported: ' + res.error + ' — saved locally only)';
+        console.warn('savePlayerEdit insert error:', res.error);
+      } else if (res && res.id) {
+        p.id = res.id;
+      }
     }
-  } else {
-    syncWarning = '\n\n(Player had no server id — saved locally only)';
+  } catch (err) {
+    syncWarning = '\n\n(Network error: ' + err.message + ' — saved locally only)';
+    console.warn('savePlayerEdit network error:', err);
   }
 
   // Update local state
@@ -3388,6 +3403,7 @@ function openAddPlayerModal() {
   if (btn) { btn.textContent = 'Add Player'; btn.onclick = addPlayer; }
   ['p-first','p-last','p-num'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const posEl = document.getElementById('p-pos'); if (posEl) posEl.value = '';
+  const pos2El = document.getElementById('p-pos2'); if (pos2El) pos2El.value = '';
   const statusEl = document.getElementById('p-status'); if (statusEl) statusEl.value = 'Active';
   openModal('addPlayer');
 }
@@ -3402,7 +3418,9 @@ function addPlayer() {
   const first = document.getElementById('p-first').value.trim();
   const last = document.getElementById('p-last').value.trim();
   const num = parseInt(document.getElementById('p-num').value);
-  const pos = document.getElementById('p-pos').value;
+  const pos1 = (document.getElementById('p-pos').value || '').trim();
+  const pos2 = (document.getElementById('p-pos2') ? document.getElementById('p-pos2').value : '').trim();
+  const pos = pos2 ? (pos1 ? pos1 + '/' + pos2 : pos2) : pos1;
   const team = document.getElementById('p-team').value;
   const year = document.getElementById('p-year').value;
   const bat = document.getElementById('p-bat').value;
@@ -3872,7 +3890,10 @@ addPlayer = async function() {
   const first = document.getElementById('p-first').value.trim();
   const last  = document.getElementById('p-last').value.trim();
   const num   = parseInt(document.getElementById('p-num').value) || 0;
-  const pos   = document.getElementById('p-pos').value || '';
+  const pos1  = (document.getElementById('p-pos').value || '').trim();
+  const pos2Raw = document.getElementById('p-pos2');
+  const pos2  = (pos2Raw ? pos2Raw.value : '').trim();
+  const pos   = pos2 ? (pos1 ? pos1 + '/' + pos2 : pos2) : pos1;
   const team  = document.getElementById('p-team').value;
   const year  = document.getElementById('p-year').value || '';
   const bat   = document.getElementById('p-bat').value;
@@ -4463,7 +4484,11 @@ attemptLogin = async function() {
 // ── Override addPlayer ────────────────────────────────────────
 addPlayer = async function() {
   const first=document.getElementById('p-first').value.trim(), last=document.getElementById('p-last').value.trim();
-  const num=parseInt(document.getElementById('p-num').value)||0, pos=document.getElementById('p-pos').value||'';
+  const num=parseInt(document.getElementById('p-num').value)||0;
+  const pos1=(document.getElementById('p-pos').value||'').trim();
+  const pos2El=document.getElementById('p-pos2');
+  const pos2=(pos2El?pos2El.value:'').trim();
+  const pos=pos2?(pos1?pos1+'/'+pos2:pos2):pos1;
   const team=document.getElementById('p-team').value, year=document.getElementById('p-year').value||'';
   const bat=document.getElementById('p-bat').value, thr=document.getElementById('p-throw').value;
   const statusEl=document.getElementById('p-status'); const status=(statusEl&&statusEl.value)||'Active';
