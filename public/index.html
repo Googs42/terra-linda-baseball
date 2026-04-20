@@ -788,7 +788,7 @@ body.sidebar-open .sidebar-backdrop { display: block; }
       <div class="section" id="section-users">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
           <div style="font-size:12px;color:var(--text-muted)">Create and manage login accounts for coaches, players, and parents.</div>
-          <button class="btn btn-red" onclick="openModal('addUser')">+ Add User</button>
+          <button class="btn btn-red" onclick="openAddUserModal()">+ Add User</button>
         </div>
 
         <div class="stats-row" style="margin-bottom:1.25rem">
@@ -2397,8 +2397,8 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 <div class="modal-overlay" id="modal-addUser">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Add User Account</div>
-      <button class="modal-close" onclick="closeModal('addUser')">x</button>
+      <div class="modal-title" id="user-modal-title">Add User Account</div>
+      <button class="modal-close" onclick="closeUserModal()">x</button>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -2455,8 +2455,8 @@ body.sidebar-open .sidebar-backdrop { display: block; }
       <textarea class="form-input" id="u-notes" rows="2" placeholder="Parent of #12, emergency contact, etc."></textarea>
     </div>
     <div style="display:flex;gap:10px;margin-top:4px">
-      <button class="btn" style="flex:1" onclick="closeModal('addUser')">Cancel</button>
-      <button class="btn btn-red" style="flex:2" onclick="addUser()">Create Account</button>
+      <button class="btn" style="flex:1" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-red" style="flex:2" id="user-modal-submit" onclick="submitUserForm()">Create Account</button>
     </div>
   </div>
 </div>
@@ -3209,6 +3209,8 @@ function renderUsersTable() {
       ? '<a href="tel:' + u.phone.replace(/[^\d+]/g,'') + '" style="color:#7AADFF;font-size:11px;text-decoration:none">' + u.phone + '</a>'
       : '<span style="color:var(--text-muted);font-size:11px">-</span>';
     const displayTitle = (typeof titleLabel === 'function') ? titleLabel(u.title || u.role) : (u.title || u.role);
+    const editAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;margin-right:4px"' +
+      ' onclick="editUser(\'' + (u.id || '') + '\', ' + i + ')"';
     const removeAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)"' +
       ' onclick="deleteUser(\'' + (u.id || '') + '\', ' + i + ')"';
     return '<tr>' +
@@ -3219,7 +3221,7 @@ function renderUsersTable() {
       '<td>' + phoneCell + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (u.playerLink || (u.role==='player'?'<span style=color:#E74C3C>Not linked</span>':'-')) + '</td>' +
       '<td><span style="color:#2ECC71;font-size:11px">Active</span></td>' +
-      '<td><button ' + removeAttrs + '>Remove</button></td>' +
+      '<td style="white-space:nowrap"><button ' + editAttrs + '>Edit</button><button ' + removeAttrs + '>Remove</button></td>' +
       '</tr>';
   }).join('');
 
@@ -4022,6 +4024,125 @@ window.addUser = async function() {
   document.getElementById('player-link-group').style.display='none';
   alert('Account created!\n\nName: '+first+' '+last+'\nTitle: '+titleLabel(title)+'\nUsername: '+username+'\nPassword: '+password+'\n\nShare these credentials.');
 };
+
+// ── Edit user: open the same modal pre-filled, switch it into "edit" mode ──
+window.__editingUserId = null;
+
+window.openAddUserModal = function() {
+  window.__editingUserId = null;
+  ['u-first','u-last','u-username','u-password','u-email','u-phone','u-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const roleEl = document.getElementById('u-role'); if (roleEl) roleEl.value = 'head_coach';
+  const grp = document.getElementById('player-link-group'); if (grp) grp.style.display = 'none';
+  const titleEl = document.getElementById('user-modal-title');
+  const submitEl = document.getElementById('user-modal-submit');
+  const pwEl = document.getElementById('u-password');
+  if (titleEl) titleEl.textContent = 'Add User Account';
+  if (submitEl) submitEl.textContent = 'Create Account';
+  if (pwEl) pwEl.placeholder = 'Temporary password';
+  openModal('addUser');
+};
+
+function closeUserModal() {
+  window.__editingUserId = null;
+  const titleEl = document.getElementById('user-modal-title');
+  const submitEl = document.getElementById('user-modal-submit');
+  const pwEl = document.getElementById('u-password');
+  if (titleEl) titleEl.textContent = 'Add User Account';
+  if (submitEl) submitEl.textContent = 'Create Account';
+  if (pwEl) pwEl.placeholder = 'Temporary password';
+  closeModal('addUser');
+}
+
+window.editUser = function(id, idx) {
+  let target = null;
+  if (id) target = USERS.find(u => String(u.id) === String(id)) || null;
+  if (!target && typeof idx === 'number') target = USERS[idx] || null;
+  if (!target) { alert('Could not find that user. Try reloading the page.'); return; }
+
+  // Split the stored "First Last" back into two fields as best we can.
+  const parts = (target.name || '').trim().split(/\s+/);
+  const first = parts.shift() || '';
+  const last = parts.join(' ');
+
+  document.getElementById('u-first').value = first;
+  document.getElementById('u-last').value = last;
+  document.getElementById('u-username').value = target.username || '';
+  document.getElementById('u-password').value = '';
+  const pwEl = document.getElementById('u-password');
+  if (pwEl) pwEl.placeholder = 'Leave blank to keep current password';
+  const emailEl = document.getElementById('u-email'); if (emailEl) emailEl.value = target.email || '';
+  const phoneEl = document.getElementById('u-phone'); if (phoneEl) phoneEl.value = target.phone || '';
+  const notesEl = document.getElementById('u-notes'); if (notesEl) notesEl.value = target.notes || '';
+  const roleEl = document.getElementById('u-role');
+  if (roleEl) roleEl.value = target.title || target.role || 'head_coach';
+  togglePlayerLink();
+  if (target.role === 'player') {
+    const playerEl = document.getElementById('u-player');
+    if (playerEl) playerEl.value = target.playerLink || '';
+  }
+
+  window.__editingUserId = target.id || null;
+  const titleEl = document.getElementById('user-modal-title');
+  const submitEl = document.getElementById('user-modal-submit');
+  if (titleEl) titleEl.textContent = 'Edit User Account';
+  if (submitEl) submitEl.textContent = 'Save Changes';
+  openModal('addUser');
+};
+
+window.submitUserForm = async function() {
+  if (window.__editingUserId) return saveUserEdits();
+  return window.addUser();
+};
+
+async function saveUserEdits() {
+  const editingId = window.__editingUserId;
+  const idx = USERS.findIndex(u => String(u.id) === String(editingId));
+  if (idx < 0) { alert('That user is no longer in the list — reload and try again.'); return; }
+
+  const first = document.getElementById('u-first').value.trim();
+  const last  = document.getElementById('u-last').value.trim();
+  const title = document.getElementById('u-role').value;
+  const role  = titleToRole(title);
+  const username = document.getElementById('u-username').value.trim().toLowerCase();
+  const password = document.getElementById('u-password').value.trim();
+  const email = (document.getElementById('u-email')||{}).value?.trim() || '';
+  const phone = (document.getElementById('u-phone')||{}).value?.trim() || '';
+  const notes = (document.getElementById('u-notes')||{}).value?.trim() || '';
+  const playerLink = role==='player' ? document.getElementById('u-player').value : null;
+
+  if (!first || !last) { alert('Please enter first and last name.'); return; }
+  if (!username)       { alert('Please enter a username.'); return; }
+  const dupe = USERS.find((u, i) => i !== idx && u.username.toLowerCase() === username);
+  if (dupe) { alert('That username is already taken by ' + dupe.name + '.'); return; }
+
+  const body = {
+    name: first + ' ' + last,
+    username, role, title,
+    player_link: playerLink || null,
+    email: email || null,
+    phone: phone || null,
+    notes: notes || null,
+  };
+  if (password) body.password = password;
+
+  const res = await apiPatch('users', editingId, body);
+  if (res && res.error) { alert('Error saving changes: ' + res.error); return; }
+
+  USERS[idx] = {
+    ...USERS[idx],
+    name: first + ' ' + last,
+    username, role, title,
+    email, phone, notes,
+    playerLink: playerLink || null,
+    ...(password ? { password } : {}),
+  };
+  saveUsers();
+  renderUsersTable();
+  closeUserModal();
+  alert('Saved changes to ' + first + ' ' + last + '.');
+}
 
 // ── Override login to use API ─────────────────────────────────
 const _localAttemptLogin = (typeof attemptLogin !== 'undefined') ? attemptLogin : null;

@@ -48,6 +48,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json(data)
   }
 
+  if (req.method === 'PATCH') {
+    const { id } = req.query
+    if (!id) return res.status(400).json({ error: 'Missing id' })
+
+    const { name, username, password, role, player_link, title, email, phone, notes } = req.body
+    const core: Record<string, any> = {}
+    if (name != null) core.name = name
+    if (username != null) core.username = String(username).toLowerCase()
+    if (password != null && password !== '') core.password = password
+    if (role != null) core.role = role
+    if (player_link !== undefined) core.player_link = player_link || null
+
+    const extras: Record<string, any> = {}
+    if (title !== undefined) extras.title = title
+    if (email !== undefined) extras.email = email
+    if (phone !== undefined) extras.phone = phone
+    if (notes !== undefined) extras.notes = notes
+
+    let { data, error } = await db
+      .from('users')
+      .update({ ...core, ...extras })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error && /column .* does not exist/i.test(error.message)) {
+      const retry = await db.from('users').update(core).eq('id', id).select().single()
+      data = retry.data
+      error = retry.error
+    }
+
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json(data)
+  }
+
   if (req.method === 'DELETE') {
     const { id } = req.query
     const { error } = await db.from('users').delete().eq('id', id)
