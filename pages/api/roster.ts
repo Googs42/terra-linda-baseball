@@ -40,17 +40,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { id } = req.query
     if (!id) return res.status(400).json({ error: 'Missing id' })
     // Pass through only known columns to avoid "column does not exist" errors
-    const allowed = ['num','name','pos','year','bats','throws','team','status']
+    const allowed = ['num','name','pos','year','bats','throws','team','status','offseason_goals']
     const updates: Record<string, any> = {}
     for (const k of allowed) {
       if (k in req.body) updates[k] = req.body[k]
     }
-    const { data, error } = await db
+    let { data, error } = await db
       .from('roster')
       .update(updates)
       .eq('id', id)
       .select()
       .single()
+
+    // Fallback for DBs that haven't run the offseason_goals migration yet.
+    if (error && /column .* does not exist/i.test(error.message) && 'offseason_goals' in updates) {
+      const { offseason_goals: _drop, ...rest } = updates
+      const retry = await db.from('roster').update(rest).eq('id', id).select().single()
+      data = retry.data
+      error = retry.error
+    }
+
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json(data)
   }

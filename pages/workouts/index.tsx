@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { apiGet } from '@/lib/apiClient';
+import Modal from '@/components/Modal';
+import { apiGet, apiPatch } from '@/lib/apiClient';
 import { PlayerRow } from '@/lib/types';
 import { WorkoutExercise, WorkoutLog, WorkoutPlan, daysAgoISO, dayOfWeekOf, todayISO } from '@/lib/workoutTypes';
 
@@ -20,6 +21,9 @@ export default function WorkoutsIndexPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>('Varsity');
   const [copiedFor, setCopiedFor] = useState<string | null>(null);
+  const [goalsPlayer, setGoalsPlayer] = useState<PlayerRow | null>(null);
+  const [goalsDraft, setGoalsDraft] = useState('');
+  const [goalsSaving, setGoalsSaving] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -85,6 +89,34 @@ export default function WorkoutsIndexPage() {
       setCopiedFor(playerId);
       setTimeout(() => setCopiedFor(cur => cur === playerId ? null : cur), 1500);
     });
+  }
+
+  function openGoals(player: PlayerRow) {
+    setGoalsPlayer(player);
+    setGoalsDraft(player.offseason_goals || '');
+  }
+
+  function closeGoals() {
+    setGoalsPlayer(null);
+    setGoalsDraft('');
+    setGoalsSaving(false);
+  }
+
+  async function saveGoals() {
+    if (!goalsPlayer) return;
+    setGoalsSaving(true);
+    const res = await apiPatch('roster', goalsPlayer.id, { offseason_goals: goalsDraft });
+    if ((res as any).error) {
+      alert('Save failed: ' + (res as any).error);
+      setGoalsSaving(false);
+      return;
+    }
+    // Update the row in state so the button immediately reflects the new goals
+    setRows(prev => prev.map(r => r.player.id === goalsPlayer.id
+      ? { ...r, player: { ...r.player, offseason_goals: goalsDraft } }
+      : r
+    ));
+    closeGoals();
   }
 
   return (
@@ -159,6 +191,14 @@ export default function WorkoutsIndexPage() {
                         <Link href={'/workouts/' + r.player.id} className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4, textDecoration: 'none', display: 'inline-block' }}>
                           {r.plan ? 'Edit plan' : 'Create plan'}
                         </Link>
+                        <button
+                          className="btn"
+                          style={{ fontSize: 10, padding: '3px 8px', marginRight: 4, color: r.player.offseason_goals ? 'var(--gold)' : undefined, borderColor: r.player.offseason_goals ? 'rgba(255,199,44,0.35)' : undefined }}
+                          onClick={() => openGoals(r.player)}
+                          title={r.player.offseason_goals || 'Add offseason goals'}
+                        >
+                          {r.player.offseason_goals ? 'Offseason goals ✓' : 'Offseason goals'}
+                        </button>
                         <button className="btn" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => copyPlayerLink(r.player.id)}>
                           {copiedFor === r.player.id ? 'Copied!' : 'Copy player link'}
                         </button>
@@ -173,6 +213,25 @@ export default function WorkoutsIndexPage() {
             </table>
           </div>
         )}
+
+      <Modal open={!!goalsPlayer} title={goalsPlayer ? 'Offseason goals — ' + goalsPlayer.name : 'Offseason goals'} onClose={closeGoals}>
+        <div className="form-group">
+          <label className="form-label">Goals for the offseason</label>
+          <textarea
+            className="form-input"
+            rows={7}
+            placeholder={'e.g.\n- Add 10 lbs of muscle\n- Hit 85 mph fastball\n- Clean up swing from the left side'}
+            value={goalsDraft}
+            onChange={e => setGoalsDraft(e.target.value)}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+          <button type="button" className="btn" style={{ flex: 1 }} onClick={closeGoals} disabled={goalsSaving}>Cancel</button>
+          <button type="button" className="btn btn-red" style={{ flex: 2 }} onClick={saveGoals} disabled={goalsSaving}>
+            {goalsSaving ? 'Saving…' : 'Save goals'}
+          </button>
+        </div>
+      </Modal>
     </Layout>
   );
 }

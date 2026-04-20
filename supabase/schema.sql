@@ -34,16 +34,17 @@ on conflict (username) do nothing;
 
 -- ── ROSTER ────────────────────────────────────────────────────
 create table if not exists roster (
-  id         uuid primary key default gen_random_uuid(),
-  num        integer not null,
-  name       text not null,
-  pos        text not null,
-  year       text not null,
-  bats       text not null default 'R',
-  throws     text not null default 'R',
-  team       text not null check (team in ('Varsity','JV')),
-  status     text not null default 'Active',
-  created_at timestamptz default now()
+  id               uuid primary key default gen_random_uuid(),
+  num              integer not null,
+  name             text not null,
+  pos              text not null,
+  year             text not null,
+  bats             text not null default 'R',
+  throws           text not null default 'R',
+  team             text not null check (team in ('Varsity','JV')),
+  status           text not null default 'Active',
+  offseason_goals  text,
+  created_at       timestamptz default now()
 );
 
 -- ── SCHEDULE ──────────────────────────────────────────────────

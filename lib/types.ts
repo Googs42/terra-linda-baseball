@@ -13,6 +13,7 @@ export interface PlayerRow {
   throws: Hand | string;
   team: Team;
   status: Status | string;
+  offseason_goals?: string | null;
   created_at?: string;
 }
 
