@@ -212,6 +212,10 @@ export default function SchedulePage() {
     if (!file) return;
     if (fileRef.current) fileRef.current.value = '';
 
+    if (!confirm('Import "' + file.name + '" into the ' + tab + ' schedule?\n\nAll rows will be added as ' + tab + ' games. Click Cancel and switch tabs first if that is wrong.')) {
+      return;
+    }
+
     const name = file.name.toLowerCase();
     const isExcel = name.endsWith('.xlsx') || name.endsWith('.xls');
 
@@ -266,13 +270,10 @@ export default function SchedulePage() {
       const result = get('result') || '';
       const score = get('score');
       const notes = get('notes');
-      const teamRaw = get('team').toLowerCase();
-      // If the file has a team column value, respect it.
-      // Otherwise, fall back to whichever tab the user is currently viewing,
-      // so importing a JV-only file from the JV tab lands on JV.
-      const team: Team = teamRaw
-        ? ((teamRaw === 'jv' || teamRaw === 'j.v.') ? 'JV' : 'Varsity')
-        : tab;
+      // Active tab ALWAYS wins on import. If the user is on the JV tab,
+      // every imported row lands on JV, regardless of any "Team" column
+      // values inside the file. WYSIWYG beats mysterious file-column overrides.
+      const team: Team = tab;
 
       try {
         const res = await apiPost('schedule', {
@@ -336,7 +337,9 @@ export default function SchedulePage() {
           )}
           <button className="btn" onClick={startNewSeason} title="Start a new season for next year">+ New Season</button>
           <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>
-          <button className="btn" onClick={() => fileRef.current?.click()}>Import CSV / Excel</button>
+          <button className="btn" onClick={() => fileRef.current?.click()} title={'Import will add games to the ' + tab + ' schedule'}>
+            Import {tab} CSV / Excel
+          </button>
           <button className="btn" onClick={exportCsv}>Export CSV</button>
           <button className={'btn' + (manageMode ? ' btn-red' : '')} onClick={() => manageMode ? exitManage() : setManageMode(true)}>
             {manageMode ? 'Done' : 'Manage'}
