@@ -1532,7 +1532,7 @@ body.print-size-half   { page: half-page; }
       <div class="section" id="section-field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
           <div style="font-size:12px;color:var(--text-muted)">Track field tasks, assign to players or staff, and mark complete.</div>
-          <button class="btn btn-red" onclick="openModal('addTask')">+ Add Task</button>
+          <button class="btn btn-red" onclick="openAddTaskModal()">+ Add Task</button>
         </div>
 
         <div class="tabs">
@@ -2730,8 +2730,8 @@ body.print-size-half   { page: half-page; }
 <div class="modal-overlay" id="modal-addTask">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Add Field Task</div>
-      <button class="modal-close" onclick="closeModal('addTask')">x</button>
+      <div class="modal-title" id="task-modal-title">Add Field Task</div>
+      <button class="modal-close" onclick="closeTaskModal()">x</button>
     </div>
     <div class="form-group">
       <label class="form-label">Task name</label>
@@ -2756,8 +2756,8 @@ body.print-size-half   { page: half-page; }
       <input class="form-input" id="task-assign" placeholder="Coach, player name, or crew">
     </div>
     <div style="display:flex;gap:10px;margin-top:4px">
-      <button class="btn" style="flex:1" onclick="closeModal('addTask')">Cancel</button>
-      <button class="btn btn-red" style="flex:2" onclick="addTask()">Add Task</button>
+      <button class="btn" style="flex:1" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn btn-red" style="flex:2" id="task-modal-submit" onclick="submitTaskForm()">Add Task</button>
     </div>
   </div>
 </div>
@@ -4651,10 +4651,68 @@ function renderTasks() {
         '<div class="task-meta">' + esc(meta) + '</div>' +
       '</div>' +
       '<span class="task-priority ' + priClass + '">' + label + '</span>' +
-      '<button class="btn" style="margin-left:8px;font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteTask(\'' + esc(t.id) + '\')">Delete</button>' +
+      '<button class="btn" style="margin-left:8px;font-size:10px;padding:3px 8px" onclick="editTask(\'' + esc(t.id) + '\')">Edit</button>' +
+      '<button class="btn" style="margin-left:4px;font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="deleteTask(\'' + esc(t.id) + '\')">Delete</button>' +
     '</div>';
   }).join('');
 }
+
+// ── Edit/Add task modal helpers ─────────────────────────────
+window.__editingTaskId = null;
+
+window.openAddTaskModal = function() {
+  window.__editingTaskId = null;
+  ['task-name','task-assign','task-due'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const pri = document.getElementById('task-pri'); if (pri) pri.value = 'med';
+  const title = document.getElementById('task-modal-title'); if (title) title.textContent = 'Add Field Task';
+  const submit = document.getElementById('task-modal-submit'); if (submit) submit.textContent = 'Add Task';
+  openModal('addTask');
+};
+
+window.closeTaskModal = function() {
+  window.__editingTaskId = null;
+  const title = document.getElementById('task-modal-title'); if (title) title.textContent = 'Add Field Task';
+  const submit = document.getElementById('task-modal-submit'); if (submit) submit.textContent = 'Add Task';
+  closeModal('addTask');
+};
+
+window.editTask = function(id) {
+  const t = TASKS.find(x => String(x.id) === String(id));
+  if (!t) { alert('Could not find that task.'); return; }
+  document.getElementById('task-name').value = t.task_name || '';
+  document.getElementById('task-pri').value = (t.priority || 'med').toLowerCase();
+  document.getElementById('task-due').value = t.due_date || '';
+  document.getElementById('task-assign').value = t.assigned_to || '';
+  window.__editingTaskId = t.id;
+  const title = document.getElementById('task-modal-title'); if (title) title.textContent = 'Edit Field Task';
+  const submit = document.getElementById('task-modal-submit'); if (submit) submit.textContent = 'Save Changes';
+  openModal('addTask');
+};
+
+window.submitTaskForm = async function() {
+  const name   = document.getElementById('task-name').value.trim();
+  const pri    = document.getElementById('task-pri').value;
+  const due    = document.getElementById('task-due').value;
+  const assign = document.getElementById('task-assign').value.trim() || 'Unassigned';
+  if (!name) { alert('Please enter a task name.'); return; }
+
+  if (window.__editingTaskId) {
+    const id = window.__editingTaskId;
+    const res = await apiPatch('field-tasks', id, {
+      task_name: name, priority: pri,
+      assigned_to: assign, due_date: due || null,
+    });
+    if (res && res.error) { alert('Error saving task: ' + res.error); return; }
+    const idx = TASKS.findIndex(x => String(x.id) === String(id));
+    if (idx !== -1) TASKS[idx] = { ...TASKS[idx], task_name: name, priority: pri, assigned_to: assign, due_date: due || null };
+    renderTasks();
+    closeTaskModal();
+    return;
+  }
+
+  // Otherwise delegate to the existing Add flow (defined below as window.addTask).
+  if (typeof window.addTask === 'function') return window.addTask();
+};
 async function deleteTask(id) {
   const t = TASKS.find(x => String(x.id) === String(id));
   if (!t) return;
