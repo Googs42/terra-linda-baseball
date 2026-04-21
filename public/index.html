@@ -3591,6 +3591,8 @@ function renderUsersTable() {
     const displayTitle = (typeof titleLabel === 'function') ? titleLabel(u.title || u.role) : (u.title || u.role);
     const editAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;margin-right:4px"' +
       ' onclick="editUser(\'' + (u.id || '') + '\', ' + i + ')"';
+    const showPwAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;margin-right:4px;color:#FFC72C;border-color:rgba(255,199,44,0.3)"' +
+      ' onclick="revealUserPassword(' + i + ')" title="Show password so you can share it"';
     const removeAttrs = 'class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)"' +
       ' onclick="deleteUser(\'' + (u.id || '') + '\', ' + i + ')"';
     return '<tr>' +
@@ -3601,7 +3603,7 @@ function renderUsersTable() {
       '<td>' + phoneCell + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (u.playerLink || (u.role==='player'?'<span style=color:#E74C3C>Not linked</span>':'-')) + '</td>' +
       '<td><span style="color:#2ECC71;font-size:11px">Active</span></td>' +
-      '<td style="white-space:nowrap"><button ' + editAttrs + '>Edit</button><button ' + removeAttrs + '>Remove</button></td>' +
+      '<td style="white-space:nowrap"><button ' + editAttrs + '>Edit</button><button ' + showPwAttrs + '>Show pw</button><button ' + removeAttrs + '>Remove</button></td>' +
       '</tr>';
   }).join('');
 
@@ -3677,6 +3679,36 @@ async function approveReset(id) {
   if (!r.ok || data.error) { alert('Could not approve: ' + (data.error || 'unknown error')); return; }
   alert('Password reset.\n\nShare with them: ' + pw);
   loadResetRequests();
+}
+
+// Reveals the stored credentials for a user so the coach can verify what's
+// actually in Supabase and share login info with the user. Reads fresh from
+// /api/users in case localStorage is stale.
+async function revealUserPassword(idx) {
+  const local = USERS[idx];
+  if (!local) { alert('Could not find that user.'); return; }
+  let server = null;
+  try {
+    const r = await fetch('/api/users');
+    const all = await r.json();
+    if (Array.isArray(all)) {
+      server = all.find(u => String(u.id) === String(local.id)) || null;
+    }
+  } catch (e) { /* use local as fallback */ }
+  const u = server || local;
+  const rawRole = (u.role || u.title || '').toString();
+  const expectedRole = /coach|head|assistant|costume|idea/i.test(rawRole) ? 'Coach'
+    : /player/i.test(rawRole) ? 'Player'
+    : /parent/i.test(rawRole) ? 'Parent'
+    : '(unknown)';
+  alert(
+    'Login info for ' + (u.name || '(no name)') + '\n\n' +
+    'Username: ' + (u.username || '(none)') + '\n' +
+    'Password: ' + (u.password || u.pw || '(not stored)') + '\n' +
+    'Role:     ' + expectedRole + '  (raw value in DB: "' + rawRole + '")\n' +
+    (u.email ? 'Email:    ' + u.email + '  (can also log in with this)\n' : '') +
+    '\nTell them to pick "' + expectedRole + '" on the sign-in screen.'
+  );
 }
 
 async function denyReset(id) {
