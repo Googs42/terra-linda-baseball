@@ -740,8 +740,8 @@ body.print-size-half   { page: half-page; }
       <div class="login-title">Sign In</div>
       <div id="login-badge" class="login-role-badge"></div>
       <div style="margin-bottom:1rem">
-        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8AAFDD;display:block;margin-bottom:6px">Username</label>
-        <input class="form-input" id="login-username" placeholder="Enter your username" autocomplete="username" onkeydown="if(event.key==='Enter')attemptLogin()">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8AAFDD;display:block;margin-bottom:6px">Username or email</label>
+        <input class="form-input" id="login-username" placeholder="username or email" autocomplete="username" onkeydown="if(event.key==='Enter')attemptLogin()">
       </div>
       <div style="margin-bottom:0.5rem">
         <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8AAFDD;display:block;margin-bottom:6px">Password</label>
@@ -752,7 +752,28 @@ body.print-size-half   { page: half-page; }
       <div id="signup-link-row" style="text-align:center;margin-top:14px;font-size:11px;color:#8AAFDD;display:none">
         Don&rsquo;t have an account? <a href="#" onclick="event.preventDefault();showSignup();" style="color:var(--gold);font-weight:600;text-decoration:none">Create one &rarr;</a>
       </div>
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:#8AAFDD">Forgot your password? Contact Coach.</div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:#8AAFDD">
+        <a href="#" onclick="event.preventDefault();showForgot();" style="color:#8AAFDD;text-decoration:underline">Forgot your password?</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgot-step" style="display:none;width:100%;max-width:420px;margin:0 auto">
+    <div class="login-box" style="background:rgba(0,34,112,0.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08)">
+      <button type="button" onclick="backToLoginFromForgot()" style="background:none;border:none;color:#8AAFDD;font-size:12px;cursor:pointer;margin-bottom:1rem;padding:0;display:flex;align-items:center;gap:4px">&#8592; Back to sign in</button>
+      <div class="login-title">Reset password</div>
+      <div style="font-size:11px;color:#8AAFDD;line-height:1.5;margin:10px 0 14px">Enter your username or email. The coach will get your request in Manage Users and hand you a new password directly (text, email, or in person).</div>
+      <div style="margin-bottom:0.75rem">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8AAFDD;display:block;margin-bottom:6px">Username or email</label>
+        <input class="form-input" id="forgot-input" placeholder="username or email" autocomplete="username">
+      </div>
+      <div style="margin-bottom:0.5rem">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#8AAFDD;display:block;margin-bottom:6px">Note for coach (optional)</label>
+        <textarea class="form-input" id="forgot-note" rows="2" placeholder="e.g. I&rsquo;m the parent of #12 Johnny Smith"></textarea>
+      </div>
+      <div id="forgot-err" class="login-err"></div>
+      <div id="forgot-ok" style="font-size:12px;color:#2ECC71;background:rgba(46,204,113,0.12);border-radius:6px;padding:8px 10px;margin-top:8px;display:none"></div>
+      <button class="btn btn-red" id="forgot-submit" style="width:100%;padding:10px;margin-top:12px;font-size:13px" onclick="submitForgot()">Request reset</button>
     </div>
   </div>
 
@@ -964,6 +985,14 @@ body.print-size-half   { page: half-page; }
             <div class="stat-num" id="count-total">1</div>
             <div class="stat-sub">All roles</div>
           </div>
+        </div>
+
+        <div id="reset-requests-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,199,44,0.4)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <div class="card-title" style="margin:0;color:var(--gold)">Password reset requests</div>
+            <button class="btn" style="font-size:10px;padding:3px 8px" onclick="loadResetRequests()">Refresh</button>
+          </div>
+          <div id="reset-requests-body" style="font-size:12px;color:var(--text-muted)">Loading…</div>
         </div>
 
         <div class="card">
@@ -3106,6 +3135,60 @@ function backToLoginFromSignup() {
   document.getElementById('login-step').style.display = 'block';
 }
 
+// ── Forgot password (coach-approved reset, no email service required) ──
+function showForgot() {
+  document.getElementById('login-step').style.display = 'none';
+  document.getElementById('signup-step').style.display = 'none';
+  document.getElementById('forgot-step').style.display = 'block';
+  const inp = document.getElementById('forgot-input');
+  inp.value = document.getElementById('login-username').value || '';
+  document.getElementById('forgot-note').value = '';
+  document.getElementById('forgot-err').style.display = 'none';
+  document.getElementById('forgot-ok').style.display = 'none';
+  inp.focus();
+}
+
+function backToLoginFromForgot() {
+  document.getElementById('forgot-step').style.display = 'none';
+  document.getElementById('login-step').style.display = 'block';
+}
+
+async function submitForgot() {
+  const input = document.getElementById('forgot-input').value.trim();
+  const note = document.getElementById('forgot-note').value.trim();
+  const err = document.getElementById('forgot-err');
+  const ok  = document.getElementById('forgot-ok');
+  const btn = document.getElementById('forgot-submit');
+  err.style.display = 'none';
+  ok.style.display = 'none';
+  if (!input) { err.textContent = 'Please enter your username or email.'; err.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username_or_email: input, message: note }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      err.textContent = data.error || 'Could not submit the request. Please try again.';
+      err.style.display = 'block';
+      return;
+    }
+    ok.textContent = data.message || 'Request received. The coach will get back to you soon.';
+    ok.style.display = 'block';
+  } catch (e) {
+    err.textContent = 'Network error — please check your connection and try again.';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
 async function submitSignup() {
   if (selectedRole !== 'player' && selectedRole !== 'parent') return;
   const first    = document.getElementById('signup-first').value.trim();
@@ -3166,6 +3249,7 @@ async function submitSignup() {
 function backToRoles() {
   document.getElementById('login-step').style.display = 'none';
   document.getElementById('signup-step').style.display = 'none';
+  const fs = document.getElementById('forgot-step'); if (fs) fs.style.display = 'none';
   document.getElementById('role-step').style.display = 'block';
   selectedRole = null;
 }
@@ -3378,6 +3462,7 @@ function signOut() {
   document.getElementById('user-menu').classList.remove('open');
   document.getElementById('login-step').style.display = 'none';
   document.getElementById('signup-step').style.display = 'none';
+  const fs2 = document.getElementById('forgot-step'); if (fs2) fs2.style.display = 'none';
   document.getElementById('role-step').style.display = 'block';
   document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
   // Restore all nav items visibility
@@ -3527,6 +3612,83 @@ function renderUsersTable() {
   document.getElementById('count-players').textContent = players;
   document.getElementById('count-parents').textContent = parents;
   document.getElementById('count-total').textContent = USERS.length;
+  // Refresh pending reset requests whenever the users table re-renders so the
+  // coach sees new requests every time they open Manage Users.
+  if (typeof loadResetRequests === 'function') loadResetRequests();
+}
+
+// ── Password reset requests (coach side) ─────────────────────
+async function loadResetRequests() {
+  const card = document.getElementById('reset-requests-card');
+  const body = document.getElementById('reset-requests-body');
+  if (!card || !body) return;
+  try {
+    const r = await fetch('/api/password-resets');
+    const rows = await r.json();
+    const list = Array.isArray(rows) ? rows : [];
+    const pending = list.filter(x => x.status === 'pending');
+    if (!pending.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    body.innerHTML = pending.map(rq => {
+      const matched = rq.matched_user_id
+        ? (USERS.find(u => String(u.id) === String(rq.matched_user_id)) || null)
+        : null;
+      const who = matched
+        ? matched.name + ' (' + matched.username + ' &middot; ' + matched.role + ')'
+        : '<span style="color:#E74C3C">No matching account found</span>';
+      const when = rq.created_at ? new Date(rq.created_at).toLocaleString() : '';
+      const note = rq.message ? '<div style="margin-top:4px;color:var(--text-muted);font-style:italic">&ldquo;' + escapeHtml(rq.message) + '&rdquo;</div>' : '';
+      return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:220px">' +
+            '<div style="color:var(--white);font-weight:500">' + escapeHtml(rq.username_or_email) + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">Account: ' + who + '</div>' +
+            '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">Submitted ' + when + '</div>' +
+            note +
+          '</div>' +
+          '<div style="display:flex;gap:6px">' +
+            (matched
+              ? '<button class="btn btn-red" style="font-size:11px;padding:5px 10px" onclick="approveReset(\'' + rq.id + '\')">Approve &amp; set new password</button>'
+              : '') +
+            '<button class="btn" style="font-size:11px;padding:5px 10px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="denyReset(\'' + rq.id + '\')">Deny</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (err) {
+    body.innerHTML = '<span style="color:#E74C3C">Could not load reset requests: ' + escapeHtml(err.message || String(err)) + '</span>';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function approveReset(id) {
+  const pw = prompt('Enter the new password to set for this user (at least 6 characters).\n\nAfter you click OK, share this password with them.');
+  if (!pw) return;
+  if (pw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+  const r = await fetch('/api/password-resets?id=' + encodeURIComponent(id), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'approve', new_password: pw }),
+  });
+  const data = await r.json();
+  if (!r.ok || data.error) { alert('Could not approve: ' + (data.error || 'unknown error')); return; }
+  alert('Password reset.\n\nShare with them: ' + pw);
+  loadResetRequests();
+}
+
+async function denyReset(id) {
+  if (!confirm('Deny this reset request? The user will have to submit a new one.')) return;
+  const r = await fetch('/api/password-resets?id=' + encodeURIComponent(id), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'deny' }),
+  });
+  const data = await r.json();
+  if (!r.ok || data.error) { alert('Could not deny: ' + (data.error || 'unknown error')); return; }
+  loadResetRequests();
 }
 
 // Map the selectable title (head_coach, costumes, etc.) to a DB-valid role value.
