@@ -14,6 +14,11 @@ export interface PlayerRow {
   team: Team;
   status: Status | string;
   offseason_goals?: string | null;
+  season_goals?: string | null;
+  coach_notes?: string | null;
+  height?: string | null;
+  weight?: string | null;
+  photo_url?: string | null;
   created_at?: string;
 }
 

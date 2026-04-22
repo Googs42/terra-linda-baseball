@@ -40,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { id } = req.query
     if (!id) return res.status(400).json({ error: 'Missing id' })
     // Pass through only known columns to avoid "column does not exist" errors
-    const allowed = ['num','name','pos','year','bats','throws','team','status','offseason_goals']
+    const allowed = ['num','name','pos','year','bats','throws','team','status',
+      'offseason_goals','season_goals','coach_notes','height','weight','photo_url']
     const updates: Record<string, any> = {}
     for (const k of allowed) {
       if (k in req.body) updates[k] = req.body[k]
@@ -52,10 +53,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select()
       .single()
 
-    // Fallback for DBs that haven't run the offseason_goals migration yet.
-    if (error && /column .* does not exist/i.test(error.message) && 'offseason_goals' in updates) {
-      const { offseason_goals: _drop, ...rest } = updates
-      const retry = await db.from('roster').update(rest).eq('id', id).select().single()
+    // If the DB hasn't run the profile migration yet, retry without the
+    // optional profile columns so core edits (name/team/position) still work.
+    if (error && /column .* does not exist/i.test(error.message)) {
+      const minimal = ['num','name','pos','year','bats','throws','team','status']
+      const stripped: Record<string, any> = {}
+      for (const k of minimal) if (k in updates) stripped[k] = updates[k]
+      const retry = await db.from('roster').update(stripped).eq('id', id).select().single()
       data = retry.data
       error = retry.error
     }

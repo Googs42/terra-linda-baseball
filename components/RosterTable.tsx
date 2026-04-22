@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { PlayerRow } from '@/lib/types';
 
 interface Props {
@@ -49,7 +50,9 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
                 <td style={{ fontFamily: "'DM Mono',monospace", color: 'var(--text-muted)' }}>
                   {p.num ? '#' + p.num : <span style={{ color: '#F39C12' }}>—</span>}
                 </td>
-                <td style={{ fontWeight: 500 }}>{p.name}</td>
+                <td style={{ fontWeight: 500 }}>
+                  <Link href={'/players/' + p.id} style={{ color: 'var(--white)', textDecoration: 'none' }}>{p.name}</Link>
+                </td>
                 <td>
                   {p.pos && p.pos !== 'TBD'
                     ? <span className="pos-tag">{p.pos}</span>
@@ -60,6 +63,7 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
                 <td><span className={'team-tag ' + tagClass}>{p.team}</span></td>
                 <td style={{ color: statusColor, fontSize: 12 }}>{status}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
+                  <Link href={'/players/' + p.id} className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4, textDecoration: 'none', display: 'inline-block' }}>Profile</Link>
                   <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(p)}>Edit</button>
                   <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => onDelete(p)}>Delete</button>
                 </td>

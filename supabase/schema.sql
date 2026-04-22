@@ -44,6 +44,11 @@ create table if not exists roster (
   team             text not null check (team in ('Varsity','JV')),
   status           text not null default 'Active',
   offseason_goals  text,
+  season_goals     text,
+  coach_notes      text,
+  height           text,
+  weight           text,
+  photo_url        text,
   created_at       timestamptz default now()
 );
 
