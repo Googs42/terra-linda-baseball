@@ -492,6 +492,12 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   #lineup-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 0; margin: 0; }
   #lineup-print-area .lineup-card { box-shadow: none; margin: 0 auto; }
   .lineup-slot .slot-remove { display: none !important; }
+  /* Dropdowns print as plain centered text — no arrow, no form chrome. */
+  select.pos-input {
+    -webkit-appearance: none; appearance: none;
+    background: transparent; border: none; text-align: center;
+    padding-right: 0 !important;
+  }
   body.print-size-letter #lineup-print-area .lineup-card { width: 8.5in; min-height: 10.5in; }
   body.print-size-half   #lineup-print-area .lineup-card { width: 5in;   min-height: 7.5in; }
 }
@@ -5267,8 +5273,7 @@ function renderLineupCard() {
             '<button class="slot-remove" onclick="clearSlot(\'order\', ' + i + ')">&times;</button></div>'
           : '') +
       '</td>' +
-      '<td><input class="pos-input" data-slot="order" data-idx="' + i + '" value="' +
-        (slot ? (slot.pos||'') : '') + '" oninput="updateSlotPos(this)"></td>' +
+      '<td>' + renderPosPicker(slot, i) + '</td>' +
       '<td class="col-name"><input class="slot-input" id="sub-name-'+i+'" placeholder=""></td>' +
       '<td><input class="pos-input" id="sub-pos-'+i+'" placeholder=""></td>' +
       '</tr>';
@@ -5338,8 +5343,21 @@ function lineupDrop(e, bucket, idx) {
   lineupState.order = lineupState.order.map(s => sameKey(s) ? null : s);
   lineupState.subs  = lineupState.subs.map(s => sameKey(s) ? null : s);
 
-  if (bucket === 'order') lineupState.order[idx] = { num: payload.num, name: payload.name, pos: payload.pos };
-  else                    lineupState.subs[idx]  = { num: payload.num, name: payload.name };
+  if (bucket === 'order') {
+    // Multi-position players arrive as "P/OF" — default the lineup slot to
+    // just the first listed position. The coach can swap via the dropdown
+    // rendered in the Position column.
+    const rosterPos = String(payload.pos || '');
+    const firstPos = rosterPos.split('/')[0].trim();
+    lineupState.order[idx] = {
+      num: payload.num,
+      name: payload.name,
+      pos: firstPos,
+      roster_pos: rosterPos, // keep original so we can offer both options
+    };
+  } else {
+    lineupState.subs[idx] = { num: payload.num, name: payload.name };
+  }
   renderLineupCard();
 }
 
@@ -5351,6 +5369,34 @@ function clearSlot(bucket, idx) {
 function updateSlotPos(input) {
   const idx = parseInt(input.dataset.idx, 10);
   if (lineupState.order[idx]) lineupState.order[idx].pos = input.value;
+}
+
+// Render the Position cell in the batting order. Empty rows get a blank
+// text input; filled rows get a dropdown that lists the player's own
+// positions (split on /) first, then every standard diamond position, so
+// a coach can flip a P/OF from P to OF without retyping anything.
+const STANDARD_POSITIONS = ['P','C','1B','2B','3B','SS','LF','CF','RF','OF','DH','UTIL'];
+function renderPosPicker(slot, i) {
+  if (!slot) {
+    return '<input class="pos-input" data-slot="order" data-idx="' + i + '" value="" oninput="updateSlotPos(this)">';
+  }
+  const rosterPos = String(slot.roster_pos || slot.pos || '');
+  const playerOptions = rosterPos.split('/').map(s => s.trim()).filter(Boolean);
+  const seen = new Set();
+  const options = [];
+  const pushOpt = (v, label, primary) => {
+    const key = v.toUpperCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    options.push('<option value="' + v + '"' + (slot.pos === v ? ' selected' : '') + (primary ? ' style="font-weight:700"' : '') + '>' + label + '</option>');
+  };
+  // If the current pos isn't in the roster or standard list, show it first so nothing is lost
+  if (slot.pos && !playerOptions.includes(slot.pos) && !STANDARD_POSITIONS.includes(slot.pos)) {
+    pushOpt(slot.pos, slot.pos + ' (custom)', true);
+  }
+  playerOptions.forEach(p => pushOpt(p, p + (playerOptions.length > 1 ? ' ★' : ''), true));
+  STANDARD_POSITIONS.forEach(p => pushOpt(p, p, false));
+  return '<select class="pos-input" data-slot="order" data-idx="' + i + '" onchange="updateSlotPos(this)">' + options.join('') + '</select>';
 }
 function clearLineup() {
   if (!confirm('Clear the entire lineup card?')) return;
