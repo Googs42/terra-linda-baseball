@@ -39,7 +39,8 @@
       "Bash(awk 'NR==706 { print \"START:\"NR \": length=\"length\\($0\\) } NR>706 && /^<\\\\/div>$/ { print \"END:\"NR; exit }' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
       "Bash(awk 'NR>=707 && NR<=747' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
       "Read(//c/Users/seano/Desktop/tlboaseball/public/**)",
-      "Bash(awk 'NR>=735 && NR<=757' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")"
+      "Bash(awk 'NR>=735 && NR<=757' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
+      "Bash(awk 'NR>=926 && NR<=945' public/index.html)"
     ],
     "additionalDirectories": [
       "C:\\Users\\seano\\Desktop\\tlbaseball",
