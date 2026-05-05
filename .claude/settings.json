@@ -42,7 +42,13 @@
       "Bash(awk 'NR>=735 && NR<=757' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
       "Bash(awk 'NR>=926 && NR<=945' public/index.html)",
       "Bash(awk 'NR>=890 && NR<=910' public/index.html)",
-      "Bash(awk 'NR>=1564 && NR<=1610' public/index.html)"
+      "Bash(awk 'NR>=1564 && NR<=1610' public/index.html)",
+      "Bash(awk 'NR>=853 && NR<=920' public/index.html)",
+      "Bash(awk 'NR>=3050 && NR<=3070' public/index.html)",
+      "Bash(awk 'NR>=3060 && NR<=3075' public/index.html)",
+      "Bash(awk 'NR>=1004 && NR<=1014' public/index.html)",
+      "Bash(awk 'NR>=970 && NR<=975' public/index.html)",
+      "Bash(awk 'NR>=3450 && NR<=3500' public/index.html)"
     ],
     "additionalDirectories": [
       "C:\\Users\\seano\\Desktop\\tlbaseball",

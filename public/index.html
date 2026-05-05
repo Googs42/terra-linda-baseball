@@ -860,6 +860,10 @@ body.print-size-half   { page: half-page; }
       <div class="nav-item coach-only" id="nav-users" onclick="showSection('users', this)">
         <span class="nav-icon">&#9632;</span> Manage Users
       </div>
+      <div class="nav-item admin-only" id="nav-admin" onclick="showSection('admin', this)" style="display:none">
+        <span class="nav-icon">&#9632;</span> Admin
+        <span class="nav-badge" id="nav-admin-badge" style="display:none;background:#E74C3C">0</span>
+      </div>
       <div class="nav-item" onclick="window.location.href='/roster'">
         <span class="nav-icon">&#9632;</span> Roster
         <span class="nav-badge">30</span>
@@ -965,6 +969,27 @@ body.print-size-half   { page: half-page; }
       </div>
 
 
+      <!-- ADMIN (admin only — Sean + head coaches) -->
+      <div class="section" id="section-admin">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+          <div style="font-size:12px;color:var(--text-muted)">Admin tools — coach approvals and program-level controls. Visible to head coaches only.</div>
+          <button class="btn" style="font-size:11px;padding:6px 12px" onclick="renderPendingCoaches()">Refresh</button>
+        </div>
+
+        <div id="pending-coaches-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,107,107,0.4)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <div class="card-title" style="margin:0;color:#ff6b6b">Pending coach approvals</div>
+          </div>
+          <div id="pending-coaches-body" style="font-size:12px;color:var(--text-muted)">No pending coach requests.</div>
+        </div>
+
+        <div id="admin-empty-state" class="card" style="text-align:center;padding:32px">
+          <div style="font-size:36px;margin-bottom:8px">&#128737;</div>
+          <div style="font-size:14px;font-weight:600;color:white;margin-bottom:4px">All clear</div>
+          <div style="font-size:12px;color:var(--text-muted)">No pending coach requests at the moment. New requests will show up here automatically.</div>
+        </div>
+      </div>
+
       <!-- MANAGE USERS (coach only) -->
       <div class="section" id="section-users">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
@@ -1001,14 +1026,6 @@ body.print-size-half   { page: half-page; }
             <button class="btn" style="font-size:10px;padding:3px 8px" onclick="loadResetRequests()">Refresh</button>
           </div>
           <div id="reset-requests-body" style="font-size:12px;color:var(--text-muted)">Loading…</div>
-        </div>
-
-        <div id="pending-coaches-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,107,107,0.4)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
-            <div class="card-title" style="margin:0;color:#ff6b6b">Pending coach approvals</div>
-            <button class="btn" style="font-size:10px;padding:3px 8px" onclick="renderPendingCoaches()">Refresh</button>
-          </div>
-          <div id="pending-coaches-body" style="font-size:12px;color:var(--text-muted)">No pending coach requests.</div>
         </div>
 
         <div class="card">
@@ -3059,14 +3076,14 @@ function renderRecentRoster() {
 
 // Nav access rules per role
 const NAV_ACCESS = {
-  coach:  ['dashboard','users','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
+  coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   player: ['player-home','roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
   parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
 };
 
 // All nav items and their section keys (data attribute approach)
 const NAV_LABELS = {
-  dashboard:'Dashboard', users:'Manage Users', roster:'Roster',
+  dashboard:'Dashboard', users:'Manage Users', admin:'Admin', roster:'Roster',
   stats:'Game Stats', schedule:'Schedule', lineup:'Lineup Card',
   skills:'Position Skills',
   workouts:'Workout Plans', field:'Field Maintenance',
@@ -3391,6 +3408,12 @@ function applyRoleAccess(user) {
     el.style.display = role === 'coach' ? '' : 'none';
   });
 
+  // Show/hide Admin nav (admin only — Sean + head coaches)
+  const adminVisible = (typeof isApprovalAdmin === 'function') && isApprovalAdmin(user);
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = adminVisible ? '' : 'none';
+  });
+
   // Hide nav items not allowed for this role
   document.querySelectorAll('.nav-item[onclick]').forEach(navEl => {
     const onclick = navEl.getAttribute('onclick') || '';
@@ -3464,6 +3487,7 @@ function activateSection(name) {
     renderScheduleTable(jvGames, 'jv-sched-body');
   }
   if (name === 'users') renderUsersTable();
+  if (name === 'admin' && typeof renderPendingCoaches === 'function') renderPendingCoaches();
   if (name === 'lineup' && typeof renderLineupCard === 'function') renderLineupCard();
   if (name === 'field'      && typeof loadTasks        === 'function') loadTasks();
   if (name === 'clinics'    && typeof loadClinics      === 'function') loadClinics();
@@ -3492,6 +3516,7 @@ window.showSection = function(name, navEl) {
     renderScheduleTable(jvGames, 'jv-sched-body');
   }
   if (name === 'users') renderUsersTable();
+  if (name === 'admin' && typeof renderPendingCoaches === 'function') renderPendingCoaches();
   if (name === 'lineup' && typeof renderLineupCard === 'function') renderLineupCard();
   if (name === 'field'      && typeof loadTasks        === 'function') loadTasks();
   if (name === 'clinics'    && typeof loadClinics      === 'function') loadClinics();
@@ -3705,38 +3730,57 @@ function isApprovalAdmin(user) {
 function renderAdminAlertBanner() {
   const bell = document.getElementById('admin-bell');
   const countEl = document.getElementById('admin-bell-count');
-  if (!bell || !countEl) return;
-  if (!isApprovalAdmin(currentUser)) { bell.style.display = 'none'; return; }
+  const navBadge = document.getElementById('nav-admin-badge');
+  const isAdmin = isApprovalAdmin(currentUser);
   const pending = (USERS || []).filter(u => u.status === 'pending');
-  if (!pending.length) { bell.style.display = 'none'; return; }
-  countEl.textContent = pending.length;
-  bell.style.display = 'inline-flex';
-  bell.title = (pending.length === 1 ? '1 pending coach request' : pending.length + ' pending coach requests') +
-    ' — ' + pending.map(u => u.name).slice(0, 3).join(', ') + (pending.length > 3 ? ', …' : '');
+
+  if (bell && countEl) {
+    if (!isAdmin || !pending.length) {
+      bell.style.display = 'none';
+    } else {
+      countEl.textContent = pending.length;
+      bell.style.display = 'inline-flex';
+      bell.title = (pending.length === 1 ? '1 pending coach request' : pending.length + ' pending coach requests') +
+        ' — ' + pending.map(u => u.name).slice(0, 3).join(', ') + (pending.length > 3 ? ', …' : '');
+    }
+  }
+  if (navBadge) {
+    if (isAdmin && pending.length) {
+      navBadge.textContent = pending.length;
+      navBadge.style.display = '';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
 }
 
 window.openAdminBell = function() {
   if (!isApprovalAdmin(currentUser)) return;
-  const navUsers = document.getElementById('nav-users');
-  showSection('users', navUsers);
-  // Scroll the pending coaches card into view if it's there.
-  setTimeout(() => {
-    const card = document.getElementById('pending-coaches-card');
-    if (card && card.style.display !== 'none') card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
+  const navAdmin = document.getElementById('nav-admin');
+  showSection('admin', navAdmin);
 };
 
 function renderPendingCoaches() {
   renderAdminAlertBanner();
   const card = document.getElementById('pending-coaches-card');
   const body = document.getElementById('pending-coaches-body');
+  const empty = document.getElementById('admin-empty-state');
   if (!card || !body) return;
 
   // Only admins see this card.
-  if (!isApprovalAdmin(currentUser)) { card.style.display = 'none'; return; }
+  if (!isApprovalAdmin(currentUser)) {
+    card.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+    return;
+  }
 
   const pending = (USERS || []).filter(u => u.status === 'pending');
-  if (!pending.length) { card.style.display = 'none'; return; }
+  if (!pending.length) {
+    card.style.display = 'none';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
 
   card.style.display = 'block';
   body.innerHTML = pending.map(u => {
