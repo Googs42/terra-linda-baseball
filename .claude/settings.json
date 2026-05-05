@@ -40,7 +40,9 @@
       "Bash(awk 'NR>=707 && NR<=747' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
       "Read(//c/Users/seano/Desktop/tlboaseball/public/**)",
       "Bash(awk 'NR>=735 && NR<=757' \"c:/Users/seano/Desktop/tlbaseball/public/index.html\")",
-      "Bash(awk 'NR>=926 && NR<=945' public/index.html)"
+      "Bash(awk 'NR>=926 && NR<=945' public/index.html)",
+      "Bash(awk 'NR>=890 && NR<=910' public/index.html)",
+      "Bash(awk 'NR>=1564 && NR<=1610' public/index.html)"
     ],
     "additionalDirectories": [
       "C:\\Users\\seano\\Desktop\\tlbaseball",
