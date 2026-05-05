@@ -832,7 +832,7 @@ body.print-size-half   { page: half-page; }
 
       <div id="signup-err" class="login-err"></div>
       <button class="btn btn-red" id="signup-submit" style="width:100%;padding:10px;margin-top:12px;font-size:13px" onclick="submitSignup()">Create account</button>
-      <div style="text-align:center;margin-top:14px;font-size:11px;color:#8AAFDD">Coaches are invited by the head coach &mdash; please email the program if you need coach access.</div>
+      <div id="signup-foot" style="text-align:center;margin-top:14px;font-size:11px;color:#8AAFDD">Coaches sign up the same way &mdash; their accounts are activated after a head coach approves.</div>
     </div>
   </div>
 </div>
@@ -999,6 +999,14 @@ body.print-size-half   { page: half-page; }
             <button class="btn" style="font-size:10px;padding:3px 8px" onclick="loadResetRequests()">Refresh</button>
           </div>
           <div id="reset-requests-body" style="font-size:12px;color:var(--text-muted)">Loading…</div>
+        </div>
+
+        <div id="pending-coaches-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,107,107,0.4)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <div class="card-title" style="margin:0;color:#ff6b6b">Pending coach approvals</div>
+            <button class="btn" style="font-size:10px;padding:3px 8px" onclick="renderPendingCoaches()">Refresh</button>
+          </div>
+          <div id="pending-coaches-body" style="font-size:12px;color:var(--text-muted)">No pending coach requests.</div>
         </div>
 
         <div class="card">
@@ -3088,34 +3096,45 @@ function selectRole(role, card) {
     const badge = document.getElementById('login-badge');
     badge.textContent = role.charAt(0).toUpperCase() + role.slice(1) + ' Login';
     badge.className = 'login-role-badge badge-' + role;
-    // Only players and parents can self-register; coaches are invite-only.
+    // All roles can self-register. Coach signups stay pending until a head coach approves.
     const signupRow = document.getElementById('signup-link-row');
-    if (signupRow) signupRow.style.display = (role === 'coach') ? 'none' : 'block';
+    if (signupRow) signupRow.style.display = 'block';
     document.getElementById('login-username').value = '';
     document.getElementById('login-password').value = '';
-    document.getElementById('login-err').style.display = 'none';
+    const errBox = document.getElementById('login-err');
+    errBox.style.display = 'none';
+    // Clear any green "request submitted" overrides from a prior signup
+    errBox.style.background = '';
+    errBox.style.border = '';
+    errBox.style.color = '';
     document.getElementById('login-username').focus();
   }, 150);
 }
 
-// ── Sign up flow (players + parents only) ─────────────────────
+// ── Sign up flow (players, parents, coaches) ──────────────────
 function showSignup() {
-  if (selectedRole !== 'player' && selectedRole !== 'parent') return;
+  if (selectedRole !== 'player' && selectedRole !== 'parent' && selectedRole !== 'coach') return;
   document.getElementById('login-step').style.display = 'none';
   document.getElementById('signup-step').style.display = 'block';
   const badge = document.getElementById('signup-badge');
   badge.textContent = 'New ' + selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) + ' Account';
   badge.className = 'login-role-badge badge-' + selectedRole;
   const intro = document.getElementById('signup-intro');
-  intro.textContent = selectedRole === 'player'
-    ? 'Create your player account. Link to your roster entry so workouts and stats show up under your name.'
-    : 'Create your parent account. Link to your kid so you see their schedule and workout progress.';
+  if (selectedRole === 'player') {
+    intro.textContent = 'Create your player account. Link to your roster entry so workouts and stats show up under your name.';
+  } else if (selectedRole === 'parent') {
+    intro.textContent = 'Create your parent account. Link to your kid so you see their schedule and workout progress.';
+  } else {
+    intro.textContent = 'Request a coach account. Sean O’Donnell or a head coach will review your request before you can sign in.';
+  }
 
-  // Populate the player picker from the roster
+  // Populate the player picker (player + parent only)
   const playerGroup = document.getElementById('signup-player-group');
   const playerSelect = document.getElementById('signup-player');
   const playerLabel = document.getElementById('signup-player-label');
-  if (playerGroup && playerSelect && typeof rosterData !== 'undefined' && Array.isArray(rosterData)) {
+  if (selectedRole === 'coach') {
+    if (playerGroup) playerGroup.style.display = 'none';
+  } else if (playerGroup && playerSelect && typeof rosterData !== 'undefined' && Array.isArray(rosterData)) {
     playerLabel.textContent = selectedRole === 'player' ? 'Which player are you?' : 'Which player is your kid?';
     const options = ['<option value="">&mdash; Not sure yet &mdash;</option>'].concat(
       rosterData.slice().sort((a,b) => a.name.localeCompare(b.name)).map(p => {
@@ -3128,6 +3147,18 @@ function showSignup() {
   } else if (playerGroup) {
     playerGroup.style.display = 'none';
   }
+
+  // Footer hint changes for coach
+  const footEl = document.getElementById('signup-foot');
+  if (footEl) {
+    footEl.textContent = selectedRole === 'coach'
+      ? 'Coach accounts are reviewed by Sean O’Donnell and head coaches before activation.'
+      : 'Coaches sign up the same way — their accounts are activated after a head coach approves.';
+  }
+
+  // Submit button label shifts for coach
+  const submitBtn = document.getElementById('signup-submit');
+  if (submitBtn) submitBtn.textContent = selectedRole === 'coach' ? 'Request access' : 'Create account';
 
   ['signup-first','signup-last','signup-email','signup-phone','signup-username','signup-password'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -3196,14 +3227,14 @@ async function submitForgot() {
 }
 
 async function submitSignup() {
-  if (selectedRole !== 'player' && selectedRole !== 'parent') return;
+  if (selectedRole !== 'player' && selectedRole !== 'parent' && selectedRole !== 'coach') return;
   const first    = document.getElementById('signup-first').value.trim();
   const last     = document.getElementById('signup-last').value.trim();
   const email    = document.getElementById('signup-email').value.trim();
   const phone    = document.getElementById('signup-phone').value.trim();
   const username = document.getElementById('signup-username').value.trim().toLowerCase();
   const password = document.getElementById('signup-password').value;
-  const playerLink = document.getElementById('signup-player').value || null;
+  const playerLink = (selectedRole === 'coach') ? null : (document.getElementById('signup-player').value || null);
   const err = document.getElementById('signup-err');
   const btn = document.getElementById('signup-submit');
   err.style.display = 'none';
@@ -3214,10 +3245,11 @@ async function submitSignup() {
   if (!username)         return fail('Please pick a username.');
   if (!/^[a-z0-9._-]{3,}$/i.test(username)) return fail('Username must be at least 3 characters (letters, numbers, dot, dash, or underscore).');
   if (!password || password.length < 6) return fail('Password must be at least 6 characters.');
+  if (selectedRole === 'coach' && !email) return fail('Please enter an email so a head coach can reach you about approval.');
 
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'Creating account…';
+  btn.textContent = selectedRole === 'coach' ? 'Submitting…' : 'Creating account…';
 
   try {
     const res = await fetch('/api/auth/signup', {
@@ -3228,11 +3260,25 @@ async function submitSignup() {
         username, password, role: selectedRole,
         email: email || null, phone: phone || null,
         player_link: playerLink,
+        title: selectedRole === 'coach' ? 'coach' : selectedRole,
       }),
     });
     const data = await res.json();
     if (!res.ok || data.error) {
       fail(data.error || 'Could not create your account. Please try again.');
+      return;
+    }
+    if (data.pending) {
+      // Coach signup: don't auto-login. Show a pending confirmation.
+      document.getElementById('signup-step').style.display = 'none';
+      const step = document.getElementById('login-step');
+      step.style.display = 'block';
+      const errBox = document.getElementById('login-err');
+      errBox.style.background = 'rgba(46,204,113,0.12)';
+      errBox.style.border = '1px solid rgba(46,204,113,0.4)';
+      errBox.style.color = '#7CE3A4';
+      errBox.textContent = 'Request submitted! A head coach will review your account. You\'ll be able to sign in once it\'s approved.';
+      errBox.style.display = 'block';
       return;
     }
     // Auto sign-in: set currentUser, persist session, hide the portal.
@@ -3608,7 +3654,9 @@ function renderUsersTable() {
       '<td>' + emailCell + '</td>' +
       '<td>' + phoneCell + '</td>' +
       '<td style="color:var(--text-muted);font-size:11px">' + (u.playerLink || (u.role==='player'?'<span style=color:#E74C3C>Not linked</span>':'-')) + '</td>' +
-      '<td><span style="color:#2ECC71;font-size:11px">Active</span></td>' +
+      '<td>' + (u.status === 'pending'
+        ? '<span style="color:#FFC72C;font-size:11px">Pending</span>'
+        : '<span style="color:#2ECC71;font-size:11px">Active</span>') + '</td>' +
       '<td style="white-space:nowrap"><button ' + editAttrs + '>Edit</button><button ' + showPwAttrs + '>Change pw</button><button ' + removeAttrs + '>Remove</button></td>' +
       '</tr>';
   }).join('');
@@ -3623,6 +3671,80 @@ function renderUsersTable() {
   // Refresh pending reset requests whenever the users table re-renders so the
   // coach sees new requests every time they open Manage Users.
   if (typeof loadResetRequests === 'function') loadResetRequests();
+  if (typeof renderPendingCoaches === 'function') renderPendingCoaches();
+}
+
+// ── Coach approval (admin-only) ───────────────────────────────
+// Sean O'Donnell is the program owner and can always approve coach
+// signups; head coaches can too. Other coaches don't see the card.
+function isApprovalAdmin(user) {
+  if (!user) return false;
+  const u = (user.username || '').toLowerCase();
+  if (u === 'googs' || u === 'coach') return true; // Sean + lockout-fallback coach
+  if ((user.name || '').toLowerCase() === 'sean o’donnell' || (user.name || '').toLowerCase() === "sean o'donnell") return true;
+  const t = (user.title || '').toLowerCase();
+  return t === 'head_coach' || t === 'head coach';
+}
+
+function renderPendingCoaches() {
+  const card = document.getElementById('pending-coaches-card');
+  const body = document.getElementById('pending-coaches-body');
+  if (!card || !body) return;
+
+  // Only admins see this card.
+  if (!isApprovalAdmin(currentUser)) { card.style.display = 'none'; return; }
+
+  const pending = (USERS || []).filter(u => u.status === 'pending');
+  if (!pending.length) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+  body.innerHTML = pending.map(u => {
+    const id = u.id || '';
+    const safeName = (u.name || '(no name)').replace(/</g,'&lt;');
+    const meta = [u.username && ('@' + u.username), u.email, u.phone].filter(Boolean).join(' &middot; ');
+    return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;gap:10px">' +
+      '<div>' +
+        '<div style="color:white;font-size:13px;font-weight:600">' + safeName + '</div>' +
+        '<div style="color:var(--text-muted);font-size:11px;margin-top:2px">' + meta + '</div>' +
+      '</div>' +
+      '<div style="white-space:nowrap">' +
+        '<button class="btn" style="font-size:10px;padding:3px 8px;margin-right:4px;color:#2ECC71;border-color:rgba(46,204,113,0.4)" onclick="approveCoach(\'' + id + '\')">Approve</button>' +
+        '<button class="btn" style="font-size:10px;padding:3px 8px;color:#E74C3C;border-color:rgba(231,76,60,0.3)" onclick="denyCoach(\'' + id + '\')">Deny</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function approveCoach(id) {
+  if (!isApprovalAdmin(currentUser)) { alert('Only Sean O’Donnell or a head coach can approve coaches.'); return; }
+  const idx = USERS.findIndex(u => String(u.id) === String(id));
+  if (idx < 0) { alert('Could not find that pending coach. Reload and try again.'); return; }
+  const target = USERS[idx];
+  if (!confirm('Approve ' + target.name + ' as a coach? They’ll be able to sign in immediately.')) return;
+
+  const res = await apiPatch('users', id, { status: 'active' });
+  if (res && res.error) { alert('Could not approve: ' + res.error); return; }
+
+  USERS[idx] = { ...USERS[idx], status: 'active' };
+  saveUsers();
+  renderUsersTable();
+  alert('Approved ' + target.name + '. They can sign in now.');
+}
+
+async function denyCoach(id) {
+  if (!isApprovalAdmin(currentUser)) { alert('Only Sean O’Donnell or a head coach can deny coaches.'); return; }
+  const idx = USERS.findIndex(u => String(u.id) === String(id));
+  if (idx < 0) { alert('Could not find that pending coach. Reload and try again.'); return; }
+  const target = USERS[idx];
+  if (!confirm('Deny and remove ' + target.name + '’s coach request?')) return;
+
+  if (typeof apiDelete === 'function') {
+    const res = await apiDelete('users', id);
+    if (res && res.error) { alert('Could not deny: ' + res.error); return; }
+  }
+  USERS.splice(idx, 1);
+  saveUsers();
+  renderUsersTable();
 }
 
 // ── Password reset requests (coach side) ─────────────────────
@@ -4401,13 +4523,14 @@ window.attemptLogin = async function() {
     const data = await res.json();
     if (!res.ok || data.error) {
       err.style.display = 'block';
-      err.textContent = 'Incorrect username or password.';
+      err.textContent = data.error || 'Incorrect username or password.';
       document.getElementById('login-password').value = '';
       return;
     }
     currentUser = {
       id: data.user.id, name: data.user.name,
       username: data.user.username, role: data.user.role,
+      title: data.user.title || null,
       playerLink: data.user.player_link
     };
     saveSession(currentUser);
@@ -4533,6 +4656,7 @@ async function bootstrapLiveData() {
         email: u.email || '',
         phone: u.phone || '',
         notes: u.notes || '',
+        status: u.status || 'active',
         playerLink: u.player_link || null,
       }));
       if (typeof saveUsers === 'function') saveUsers();
@@ -5039,8 +5163,8 @@ attemptLogin = async function() {
   try {
     const res  = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, role: selectedRole }) });
     const data = await res.json();
-    if (!res.ok || data.error) { err.style.display='block'; document.getElementById('login-password').value=''; return; }
-    currentUser = { id:data.user.id, name:data.user.name, username:data.user.username, role:data.user.role, playerLink:data.user.player_link };
+    if (!res.ok || data.error) { err.style.display='block'; err.textContent = data.error || 'Incorrect username or password.'; document.getElementById('login-password').value=''; return; }
+    currentUser = { id:data.user.id, name:data.user.name, username:data.user.username, role:data.user.role, title:data.user.title||null, playerLink:data.user.player_link };
     saveSession(currentUser);
     document.getElementById('portal-screen').style.display='none';
     applyRoleAccess(currentUser);

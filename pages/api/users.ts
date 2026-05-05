@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { id } = req.query
     if (!id) return res.status(400).json({ error: 'Missing id' })
 
-    const { name, username, password, role, player_link, title, email, phone, notes } = req.body
+    const { name, username, password, role, player_link, title, email, phone, notes, status } = req.body
     const core: Record<string, any> = {}
     if (name != null) core.name = name
     if (username != null) core.username = String(username).toLowerCase()
@@ -65,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (email !== undefined) extras.email = email
     if (phone !== undefined) extras.phone = phone
     if (notes !== undefined) extras.notes = notes
+    if (status !== undefined) extras.status = status
 
     let { data, error } = await db
       .from('users')

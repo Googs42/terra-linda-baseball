@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let candidates: any[] = []
   const tryFull = await db
     .from('users')
-    .select('id, name, username, role, password, email, title, player_link')
+    .select('id, name, username, role, password, email, title, player_link, status')
   if (tryFull.error && /column .* does not exist/i.test(tryFull.error.message)) {
     const minimal = await db
       .from('users')
@@ -60,12 +60,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     )
   )
   if (match) {
+    if (match.status === 'pending') {
+      return res.status(403).json({ error: 'Your coach account is awaiting approval from a head coach. You\'ll be able to sign in once it\'s approved.' })
+    }
     return res.status(200).json({
       user: {
         id: match.id,
         name: match.name,
         username: match.username,
         role: canonicalRole(match),
+        title: match.title || null,
         player_link: match.player_link,
       },
     })

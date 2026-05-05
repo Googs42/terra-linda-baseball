@@ -24,6 +24,8 @@ alter table users add column if not exists title text;
 alter table users add column if not exists email text;
 alter table users add column if not exists phone text;
 alter table users add column if not exists notes text;
+alter table users add column if not exists status text not null default 'active'
+  check (status in ('active','pending'));
 
 -- Seed the default coach account (can be deleted later in Manage Users —
 -- the login API has a hardcoded 'coach'/'trojans2025' fallback so the coach
