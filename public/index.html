@@ -1129,6 +1129,17 @@ body.print-size-half   { page: half-page; }
 
       <!-- DASHBOARD -->
       <div class="section active" id="section-dashboard">
+        <div id="admin-alert-banner" style="display:none;background:linear-gradient(90deg,rgba(231,76,60,0.18),rgba(231,76,60,0.08));border:1px solid rgba(231,76,60,0.5);border-radius:8px;padding:12px 16px;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(231,76,60,0.25);color:#FF8A80;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px" id="admin-alert-count">0</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:white" id="admin-alert-title">Pending coach requests</div>
+              <div style="font-size:11px;color:var(--text-muted)" id="admin-alert-sub">Review and approve to activate their account.</div>
+            </div>
+          </div>
+          <button class="btn" style="font-size:11px;padding:6px 12px;color:#FF8A80;border-color:rgba(231,76,60,0.5)" onclick="showSection('users', document.getElementById('nav-users'))">Review &rarr;</button>
+        </div>
+
         <div class="stats-row">
           <div class="stat-card" style="cursor:pointer" onclick="jumpToTile('roster','varsity')" role="button" tabindex="0">
             <div class="stat-label">Varsity roster</div>
@@ -3125,7 +3136,7 @@ function showSignup() {
   } else if (selectedRole === 'parent') {
     intro.textContent = 'Create your parent account. Link to your kid so you see their schedule and workout progress.';
   } else {
-    intro.textContent = 'Request a coach account. Sean O’Donnell or a head coach will review your request before you can sign in.';
+    intro.textContent = 'Request a coach account. An admin will review your request before you can sign in.';
   }
 
   // Populate the player picker (player + parent only)
@@ -3152,7 +3163,7 @@ function showSignup() {
   const footEl = document.getElementById('signup-foot');
   if (footEl) {
     footEl.textContent = selectedRole === 'coach'
-      ? 'Coach accounts are reviewed by Sean O’Donnell and head coaches before activation.'
+      ? 'Coach accounts are reviewed by an admin before activation.'
       : 'Coaches sign up the same way — their accounts are activated after a head coach approves.';
   }
 
@@ -3405,6 +3416,9 @@ function applyRoleAccess(user) {
 
   // Check Supabase connection and surface the result if something's broken.
   if (role === 'coach' && typeof checkHealth === 'function') checkHealth();
+
+  // Surface pending coach requests on the dashboard for admins.
+  if (typeof renderAdminAlertBanner === 'function') renderAdminAlertBanner();
 }
 
 // ── Supabase connection health check ────────────────────────
@@ -3675,7 +3689,7 @@ function renderUsersTable() {
 }
 
 // ── Coach approval (admin-only) ───────────────────────────────
-// Sean O'Donnell is the program owner and can always approve coach
+// The program owner (username 'googs') can always approve coach
 // signups; head coaches can too. Other coaches don't see the card.
 function isApprovalAdmin(user) {
   if (!user) return false;
@@ -3686,7 +3700,24 @@ function isApprovalAdmin(user) {
   return t === 'head_coach' || t === 'head coach';
 }
 
+function renderAdminAlertBanner() {
+  const banner = document.getElementById('admin-alert-banner');
+  if (!banner) return;
+  if (!isApprovalAdmin(currentUser)) { banner.style.display = 'none'; return; }
+  const pending = (USERS || []).filter(u => u.status === 'pending');
+  if (!pending.length) { banner.style.display = 'none'; return; }
+  document.getElementById('admin-alert-count').textContent = pending.length;
+  document.getElementById('admin-alert-title').textContent = pending.length === 1
+    ? '1 pending coach request'
+    : pending.length + ' pending coach requests';
+  const names = pending.map(u => u.name).slice(0, 2).join(', ');
+  const more = pending.length > 2 ? ' +' + (pending.length - 2) + ' more' : '';
+  document.getElementById('admin-alert-sub').textContent = names + more + ' — review and approve to activate.';
+  banner.style.display = 'flex';
+}
+
 function renderPendingCoaches() {
+  renderAdminAlertBanner();
   const card = document.getElementById('pending-coaches-card');
   const body = document.getElementById('pending-coaches-body');
   if (!card || !body) return;
@@ -3716,7 +3747,7 @@ function renderPendingCoaches() {
 }
 
 async function approveCoach(id) {
-  if (!isApprovalAdmin(currentUser)) { alert('Only Sean O’Donnell or a head coach can approve coaches.'); return; }
+  if (!isApprovalAdmin(currentUser)) { alert('Only an admin can approve coaches.'); return; }
   const idx = USERS.findIndex(u => String(u.id) === String(id));
   if (idx < 0) { alert('Could not find that pending coach. Reload and try again.'); return; }
   const target = USERS[idx];
@@ -3732,7 +3763,7 @@ async function approveCoach(id) {
 }
 
 async function denyCoach(id) {
-  if (!isApprovalAdmin(currentUser)) { alert('Only Sean O’Donnell or a head coach can deny coaches.'); return; }
+  if (!isApprovalAdmin(currentUser)) { alert('Only an admin can deny coaches.'); return; }
   const idx = USERS.findIndex(u => String(u.id) === String(id));
   if (idx < 0) { alert('Could not find that pending coach. Reload and try again.'); return; }
   const target = USERS[idx];
