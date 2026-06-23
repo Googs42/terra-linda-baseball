@@ -38,22 +38,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     candidates = tryFull.data || []
   }
 
-  // Map anything stored in role or title to canonical coach/player/parent
+  // Map anything stored in role or title to canonical coach/player/parent/viewer
   function canonicalRole(u: any): string {
+    // Field crew title overrides the stored role — they get read-only viewer access
+    const title = String(u.title || '').toLowerCase()
+    if (title === 'field_crew' || title === 'field crew') return 'viewer'
     const raw = String(u.role || u.title || '').toLowerCase()
     if (raw === 'player') return 'player'
     if (raw === 'parent') return 'parent'
+    if (raw === 'viewer') return 'viewer'
     // Everything coaching-staff-ish collapses to 'coach'
     if (raw === 'coach' || raw === 'head_coach' || raw === 'assistant_coach' ||
         raw === 'head coach' || raw === 'assistant coach' ||
         raw === 'costumes' || raw === 'idea_guy' || raw === 'idea guy' ||
-        raw.includes('coach')) return 'coach'
+        raw === 'admin' || raw.includes('coach')) return 'coach'
     return raw
   }
 
+  // Viewer accounts log in via the Coach card since they're team staff
   const match = candidates.find(u =>
     String(u.password || '') === String(password) &&
-    canonicalRole(u) === wantedRole &&
+    (canonicalRole(u) === wantedRole || (wantedRole === 'coach' && canonicalRole(u) === 'viewer')) &&
     (
       (u.username || '').toLowerCase() === inputLower ||
       (u.email || '').toLowerCase() === inputLower

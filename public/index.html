@@ -2673,6 +2673,10 @@ body.print-size-half   { page: half-page; }
           <option value="costumes">Man of Many Costumes</option>
           <option value="idea_guy">Idea Guy</option>
         </optgroup>
+        <optgroup label="Staff">
+          <option value="admin">Admin</option>
+          <option value="field_crew">Field Crew</option>
+        </optgroup>
         <optgroup label="Team">
           <option value="player">Player</option>
           <option value="parent">Parent</option>
@@ -3077,6 +3081,7 @@ function renderRecentRoster() {
 // Nav access rules per role
 const NAV_ACCESS = {
   coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
+  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   player: ['player-home','roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
   parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
 };
@@ -3392,13 +3397,15 @@ function applyRoleAccess(user) {
 
   // Update topbar user badge
   const initials = user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const colors = {coach:'rgba(200,16,46,0.2);color:#ff6b6b', player:'rgba(0,61,165,0.3);color:#7AADFF', parent:'rgba(46,204,113,0.15);color:#2ECC71'};
-  document.getElementById('topbar-avatar').style.cssText = 'width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:' + colors[role];
+  const colors = {coach:'rgba(200,16,46,0.2);color:#ff6b6b', viewer:'rgba(255,140,0,0.18);color:#FFA040', player:'rgba(0,61,165,0.3);color:#7AADFF', parent:'rgba(46,204,113,0.15);color:#2ECC71'};
+  const roleLabels = {coach:'Coach', viewer:'Field Crew', player:'Player', parent:'Parent'};
+  const roleDisplay = roleLabels[role] || role.charAt(0).toUpperCase() + role.slice(1);
+  document.getElementById('topbar-avatar').style.cssText = 'width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:' + (colors[role] || colors.coach);
   document.getElementById('topbar-avatar').textContent = initials;
   document.getElementById('topbar-username').textContent = user.name;
-  document.getElementById('topbar-role').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  document.getElementById('topbar-role').textContent = roleDisplay;
   document.getElementById('menu-username').textContent = user.name;
-  document.getElementById('menu-role').textContent = role.charAt(0).toUpperCase() + role.slice(1) + ' Account';
+  document.getElementById('menu-role').textContent = roleDisplay + ' Account';
 
   // Show/hide Add Player button (coach only)
   document.getElementById('add-player-btn').style.display = role === 'coach' ? '' : 'none';
@@ -3429,7 +3436,7 @@ function applyRoleAccess(user) {
   });
 
   // Navigate to correct home section
-  if (role === 'coach') {
+  if (role === 'coach' || role === 'viewer') {
     activateSection('dashboard');
   } else if (role === 'player') {
     loadPlayerDashboard(user);
@@ -3941,6 +3948,8 @@ const TITLE_LABELS = {
   coach: 'Coach',
   costumes: 'Man of Many Costumes',
   idea_guy: 'Idea Guy',
+  admin: 'Admin',
+  field_crew: 'Field Crew',
   player: 'Player',
   parent: 'Parent',
 };
