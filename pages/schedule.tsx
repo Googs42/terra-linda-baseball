@@ -6,11 +6,14 @@ import GameFormModal from '@/components/GameFormModal';
 import { apiDelete, apiGet, apiPatch, apiPost } from '@/lib/apiClient';
 import { GameRow, Team } from '@/lib/types';
 import { csvSplitLine, fmtDisplayDate, fmtDisplayDay, fmtDisplayTime, parseLooseDate, parseLooseTime } from '@/lib/csv';
+import { useSession } from '@/lib/useSession';
 
 type TabKey = 'Varsity' | 'JV';
 type YearView = 'current' | 'archive';
 
 export default function SchedulePage() {
+  const { user } = useSession();
+  const canEdit = user?.role === 'coach';
   const [games, setGames] = useState<GameRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>('Varsity');
@@ -358,22 +361,26 @@ export default function SchedulePage() {
               {archiveYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           )}
-          <button className="btn" onClick={startNewSeason} title="Start a new season for next year">+ New Season</button>
-          <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>
-          <button className="btn" onClick={() => fileRef.current?.click()} title={'Import will add games to the ' + tab + ' schedule'}>
-            Import {tab} CSV / Excel
-          </button>
-          <button className="btn" onClick={exportCsv}>Export CSV</button>
-          <button className={'btn' + (manageMode ? ' btn-red' : '')} onClick={() => manageMode ? exitManage() : setManageMode(true)}>
-            {manageMode ? 'Done' : 'Manage'}
-          </button>
+          {canEdit && <button className="btn" onClick={startNewSeason} title="Start a new season for next year">+ New Season</button>}
+          {canEdit && <button className="btn btn-red" onClick={openAdd}>+ Add Game</button>}
+          {canEdit && (
+            <button className="btn" onClick={() => fileRef.current?.click()} title={'Import will add games to the ' + tab + ' schedule'}>
+              Import {tab} CSV / Excel
+            </button>
+          )}
+          {canEdit && <button className="btn" onClick={exportCsv}>Export CSV</button>}
+          {canEdit && (
+            <button className={'btn' + (manageMode ? ' btn-red' : '')} onClick={() => manageMode ? exitManage() : setManageMode(true)}>
+              {manageMode ? 'Done' : 'Manage'}
+            </button>
+          )}
           <input ref={fileRef} type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display: 'none' }} onChange={importCsv} />
         </div>
       </div>
 
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: '1rem' }}>{seasonLabel}</div>
 
-      {manageMode && (
+      {manageMode && canEdit && (
         <div className="card" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem', padding: '10px 14px' }}>
           <strong style={{ fontSize: 13 }}>{selectedIds.size} selected</strong>
           <button className="btn btn-danger" onClick={bulkDelete} disabled={!selectedIds.size}>Delete selected</button>
@@ -422,9 +429,10 @@ export default function SchedulePage() {
         ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading schedule…</div>
         : <ScheduleTable
             games={visible}
+            canEdit={canEdit}
             onEdit={openEdit}
             onDelete={handleDelete}
-            manageMode={manageMode}
+            manageMode={canEdit ? manageMode : false}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}

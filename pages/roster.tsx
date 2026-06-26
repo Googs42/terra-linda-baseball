@@ -4,10 +4,13 @@ import RosterTable from '@/components/RosterTable';
 import PlayerFormModal from '@/components/PlayerFormModal';
 import { apiDelete, apiGet, apiPatch, apiPost } from '@/lib/apiClient';
 import { PlayerRow, Team } from '@/lib/types';
+import { useSession } from '@/lib/useSession';
 
 type TabKey = 'varsity' | 'jv' | 'all';
 
 export default function RosterPage() {
+  const { user } = useSession();
+  const canEdit = user?.role === 'coach';
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>('varsity');
@@ -115,8 +118,8 @@ export default function RosterPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <button className="btn btn-red" onClick={openAdd}>+ Add Player</button>
-        <button className="btn" onClick={exportCsv}>Export CSV</button>
+        {canEdit && <button className="btn btn-red" onClick={openAdd}>+ Add Player</button>}
+        {canEdit && <button className="btn" onClick={exportCsv}>Export CSV</button>}
       </div>
 
       <div className="tabs">
@@ -127,7 +130,7 @@ export default function RosterPage() {
 
       {loading
         ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading roster…</div>
-        : <RosterTable players={visible} onEdit={openEdit} onDelete={handleDelete} />}
+        : <RosterTable players={visible} canEdit={canEdit} onEdit={openEdit} onDelete={handleDelete} />}
 
       <PlayerFormModal
         open={modalOpen}

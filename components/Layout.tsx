@@ -1,25 +1,33 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { useSession } from '@/lib/useSession';
 
 type NavEntry = { label: string; href: string; section?: string; icon?: string; badge?: number; group?: string };
 
 const NAV: NavEntry[] = [
-  { label: 'Dashboard',         href: '/#dashboard',   section: 'dashboard',   icon: '■', group: 'TEAM' },
-  { label: 'Manage Users',      href: '/#users',       section: 'users',       icon: '■', group: 'TEAM' },
-  { label: 'Roster',            href: '/roster',       section: 'roster',      icon: '■', group: 'TEAM' },
-  { label: 'Game Stats',        href: '/#stats',       section: 'stats',       icon: '■', group: 'TEAM' },
-  { label: 'Schedule',          href: '/schedule',     section: 'schedule',    icon: '■', group: 'TEAM' },
-  { label: 'Lineup Card',       href: '/#lineup',      section: 'lineup',      icon: '■', group: 'TEAM' },
-  { label: 'Position Skills',   href: '/#skills',      section: 'skills',      icon: '■', group: 'TRAINING' },
-  { label: 'Workout Plans',     href: '/workouts',     section: 'workouts',    icon: '■', group: 'TRAINING' },
-  { label: 'Field Maintenance', href: '/#field',       section: 'field',       icon: '■', group: 'FACILITY' },
-  { label: 'Clinics',           href: '/#clinics',     section: 'clinics',     icon: '■', group: 'ACADEMY' },
-  { label: 'Summer Camp',       href: '/#camp',        section: 'camp',        icon: '■', group: 'ACADEMY' },
-  { label: 'Fundraising',       href: '/#fundraising', section: 'fundraising', icon: '■', group: 'ACADEMY' },
-  { label: 'MaxPreps Hub',      href: '/#maxpreps',    section: 'maxpreps',    icon: '■', group: 'ACADEMY' },
-  { label: 'Contact / Outreach',href: '/#contact',     section: 'contact',     icon: '■', group: 'ACADEMY' },
+  { label: 'Dashboard',          href: '/#dashboard',   section: 'dashboard',   icon: '■', group: 'TEAM' },
+  { label: 'Manage Users',       href: '/#users',       section: 'users',       icon: '■', group: 'TEAM' },
+  { label: 'Roster',             href: '/roster',       section: 'roster',      icon: '■', group: 'TEAM' },
+  { label: 'Game Stats',         href: '/#stats',       section: 'stats',       icon: '■', group: 'TEAM' },
+  { label: 'Schedule',           href: '/schedule',     section: 'schedule',    icon: '■', group: 'TEAM' },
+  { label: 'Lineup Card',        href: '/#lineup',      section: 'lineup',      icon: '■', group: 'TEAM' },
+  { label: 'Position Skills',    href: '/#skills',      section: 'skills',      icon: '■', group: 'TRAINING' },
+  { label: 'Workout Plans',      href: '/workouts',     section: 'workouts',    icon: '■', group: 'TRAINING' },
+  { label: 'Field Maintenance',  href: '/#field',       section: 'field',       icon: '■', group: 'FACILITY' },
+  { label: 'Clinics',            href: '/#clinics',     section: 'clinics',     icon: '■', group: 'ACADEMY' },
+  { label: 'Summer Camp',        href: '/#camp',        section: 'camp',        icon: '■', group: 'ACADEMY' },
+  { label: 'Fundraising',        href: '/#fundraising', section: 'fundraising', icon: '■', group: 'ACADEMY' },
+  { label: 'MaxPreps Hub',       href: '/#maxpreps',    section: 'maxpreps',    icon: '■', group: 'ACADEMY' },
+  { label: 'Contact / Outreach', href: '/#contact',     section: 'contact',     icon: '■', group: 'ACADEMY' },
 ];
+
+const NAV_ACCESS: Record<string, string[]> = {
+  coach:  ['dashboard','users','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
+  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
+  player: ['roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
+  parent: ['roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
+};
 
 interface LayoutProps {
   title: string;
@@ -30,10 +38,23 @@ interface LayoutProps {
 
 export default function Layout({ title, activeSection, topbarRight, children }: LayoutProps) {
   const router = useRouter();
+  const { user, ready } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!ready) return;
+    if (!user) {
+      router.replace('/');
+    }
+  }, [ready, user, router]);
+
+  if (!ready || !user) return null;
+
+  const allowed = NAV_ACCESS[user.role] || NAV_ACCESS.coach;
+  const visibleNav = NAV.filter(n => !n.section || allowed.includes(n.section));
+
   const groups: Record<string, NavEntry[]> = {};
-  for (const n of NAV) {
+  for (const n of visibleNav) {
     const g = n.group || 'TEAM';
     if (!groups[g]) groups[g] = [];
     groups[g].push(n);

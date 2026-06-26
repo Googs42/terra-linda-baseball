@@ -3,11 +3,12 @@ import { PlayerRow } from '@/lib/types';
 
 interface Props {
   players: PlayerRow[];
+  canEdit?: boolean;
   onEdit: (p: PlayerRow) => void;
   onDelete: (p: PlayerRow) => void;
 }
 
-export default function RosterTable({ players, onEdit, onDelete }: Props) {
+export default function RosterTable({ players, canEdit = false, onEdit, onDelete }: Props) {
   if (!players.length) {
     return (
       <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
@@ -36,7 +37,7 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
             <th>B/T</th>
             <th>Team</th>
             <th>Status</th>
-            <th>Actions</th>
+            {canEdit && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -51,7 +52,9 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
                   {p.num ? '#' + p.num : <span style={{ color: '#F39C12' }}>—</span>}
                 </td>
                 <td style={{ fontWeight: 500 }}>
-                  <Link href={'/players/' + p.id} style={{ color: 'var(--white)', textDecoration: 'none' }}>{p.name}</Link>
+                  {canEdit
+                    ? <Link href={'/players/' + p.id} style={{ color: 'var(--white)', textDecoration: 'none' }}>{p.name}</Link>
+                    : p.name}
                 </td>
                 <td>
                   {p.pos && p.pos !== 'TBD'
@@ -62,11 +65,13 @@ export default function RosterTable({ players, onEdit, onDelete }: Props) {
                 <td style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: 'var(--white)', fontWeight: 500 }}>{bt}</td>
                 <td><span className={'team-tag ' + tagClass}>{p.team}</span></td>
                 <td style={{ color: statusColor, fontSize: 12 }}>{status}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  <Link href={'/players/' + p.id} className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4, textDecoration: 'none', display: 'inline-block' }}>Profile</Link>
-                  <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(p)}>Edit</button>
-                  <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => onDelete(p)}>Delete</button>
-                </td>
+                {canEdit && (
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <Link href={'/players/' + p.id} className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4, textDecoration: 'none', display: 'inline-block' }}>Profile</Link>
+                    <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(p)}>Edit</button>
+                    <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => onDelete(p)}>Delete</button>
+                  </td>
+                )}
               </tr>
             );
           })}

@@ -3,6 +3,7 @@ import { fmtDisplayDate, fmtDisplayDay, fmtDisplayTime } from '@/lib/csv';
 
 interface Props {
   games: GameRow[];
+  canEdit?: boolean;
   onEdit: (g: GameRow) => void;
   onDelete: (g: GameRow) => void;
   manageMode?: boolean;
@@ -11,11 +12,11 @@ interface Props {
   onToggleSelectAll?: () => void;
 }
 
-export default function ScheduleTable({ games, onEdit, onDelete, manageMode, selectedIds, onToggleSelect, onToggleSelectAll }: Props) {
+export default function ScheduleTable({ games, canEdit = false, onEdit, onDelete, manageMode, selectedIds, onToggleSelect, onToggleSelectAll }: Props) {
   if (!games.length) {
     return (
       <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
-        No games yet — click <strong>+ Add Game</strong> or <strong>Import CSV</strong> to get started.
+        No games scheduled yet.
       </div>
     );
   }
@@ -27,7 +28,7 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
       <table className="stats-table">
         <thead>
           <tr>
-            {manageMode && (
+            {manageMode && canEdit && (
               <th style={{ width: 36 }}>
                 <input type="checkbox" checked={allSelected} onChange={() => onToggleSelectAll && onToggleSelectAll()} />
               </th>
@@ -42,7 +43,7 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
             <th>Score</th>
             <th>League</th>
             <th>Notes</th>
-            <th>Actions</th>
+            {canEdit && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -65,7 +66,7 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
             const isSelected = !!selectedIds && selectedIds.has(g.id);
             return (
               <tr key={g.id} style={isSelected ? { background: 'rgba(255,199,44,0.08)' } : undefined}>
-                {manageMode && (
+                {manageMode && canEdit && (
                   <td>
                     <input type="checkbox" checked={isSelected} onChange={() => onToggleSelect && onToggleSelect(g.id)} />
                   </td>
@@ -89,10 +90,12 @@ export default function ScheduleTable({ games, onEdit, onDelete, manageMode, sel
                   })()}
                 </td>
                 <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{g.notes || ''}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(g)}>Edit</button>
-                  <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => onDelete(g)}>Delete</button>
-                </td>
+                {canEdit && (
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <button className="btn" style={{ fontSize: 10, padding: '3px 8px', marginRight: 4 }} onClick={() => onEdit(g)}>Edit</button>
+                    <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => onDelete(g)}>Delete</button>
+                  </td>
+                )}
               </tr>
             );
           })}

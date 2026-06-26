@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { apiGet, apiPatch } from '@/lib/apiClient';
 import { PlayerRow } from '@/lib/types';
+import { useSession } from '@/lib/useSession';
 
 interface BattingStat {
   id: string; player_name: string; season: string; team: string;
@@ -30,6 +31,8 @@ const FIELD_ICONS: Record<string, string> = {
 
 export default function PlayerProfilePage() {
   const router = useRouter();
+  const { user } = useSession();
+  const canEdit = user?.role === 'coach';
   const playerId = typeof router.query.id === 'string' ? router.query.id : '';
   const [player, setPlayer] = useState<PlayerRow | null>(null);
   const [batting, setBatting] = useState<BattingStat[]>([]);
@@ -190,11 +193,11 @@ export default function PlayerProfilePage() {
             {player.weight ? <><span>·</span><span>{player.weight} lbs</span></> : null}
           </div>
         </div>
-        <button className="btn" onClick={beginEditBasics} style={{ fontSize: 11 }}>Edit basics</button>
+        {canEdit && <button className="btn" onClick={beginEditBasics} style={{ fontSize: 11 }}>Edit basics</button>}
       </div>
 
       {/* Basics edit */}
-      {editing === 'basics' && (
+      {canEdit && editing === 'basics' && (
         <div className="card" style={{ marginBottom: '1.25rem' }}>
           <div className="card-title" style={{ marginBottom: 10 }}>Edit basics</div>
           <div className="form-row">
@@ -287,6 +290,7 @@ export default function PlayerProfilePage() {
           editing={editing}
           draft={draft}
           saving={saving}
+          canEdit={canEdit}
           onBegin={beginEdit}
           onChange={setDraft}
           onCancel={cancelEdit}
@@ -301,6 +305,7 @@ export default function PlayerProfilePage() {
           editing={editing}
           draft={draft}
           saving={saving}
+          canEdit={canEdit}
           onBegin={beginEdit}
           onChange={setDraft}
           onCancel={cancelEdit}
@@ -309,27 +314,29 @@ export default function PlayerProfilePage() {
         />
       </div>
 
-      <div className="card" style={{ marginBottom: '1.25rem', borderColor: 'rgba(200,16,46,0.25)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div className="card-title" style={{ margin: 0 }}>{FIELD_ICONS.coach_notes} Coach notes <span style={{ color: 'var(--text-muted)', fontSize: 10, fontWeight: 400, marginLeft: 6 }}>(coach only)</span></div>
-          {editing !== 'coach_notes'
-            ? <button className="btn" style={{ fontSize: 11 }} onClick={() => beginEdit('coach_notes')}>{player.coach_notes ? 'Edit' : 'Add notes'}</button>
-            : null}
-        </div>
-        {editing === 'coach_notes' ? (
-          <>
-            <textarea className="form-input" rows={4} value={draft} onChange={e => setDraft(e.target.value)} placeholder="Strengths, areas to work on, attitude, anything else." />
-            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-              <button className="btn" style={{ flex: 1 }} onClick={cancelEdit} disabled={saving}>Cancel</button>
-              <button className="btn btn-red" style={{ flex: 2 }} onClick={() => saveField('coach_notes')} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
-            </div>
-          </>
-        ) : (
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap', minHeight: 40 }}>
-            {player.coach_notes || <em style={{ opacity: 0.6 }}>No notes yet.</em>}
+      {canEdit && (
+        <div className="card" style={{ marginBottom: '1.25rem', borderColor: 'rgba(200,16,46,0.25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div className="card-title" style={{ margin: 0 }}>{FIELD_ICONS.coach_notes} Coach notes <span style={{ color: 'var(--text-muted)', fontSize: 10, fontWeight: 400, marginLeft: 6 }}>(coach only)</span></div>
+            {editing !== 'coach_notes'
+              ? <button className="btn" style={{ fontSize: 11 }} onClick={() => beginEdit('coach_notes')}>{player.coach_notes ? 'Edit' : 'Add notes'}</button>
+              : null}
           </div>
-        )}
-      </div>
+          {editing === 'coach_notes' ? (
+            <>
+              <textarea className="form-input" rows={4} value={draft} onChange={e => setDraft(e.target.value)} placeholder="Strengths, areas to work on, attitude, anything else." />
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button className="btn" style={{ flex: 1 }} onClick={cancelEdit} disabled={saving}>Cancel</button>
+                <button className="btn btn-red" style={{ flex: 2 }} onClick={() => saveField('coach_notes')} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap', minHeight: 40 }}>
+              {player.coach_notes || <em style={{ opacity: 0.6 }}>No notes yet.</em>}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Career history */}
       <div className="card" style={{ marginBottom: '1.25rem' }}>
@@ -413,12 +420,12 @@ export default function PlayerProfilePage() {
 // Inline goals card — shared between Season and Offseason goals so behaviour
 // stays identical in both places.
 function GoalsCard({
-  title, icon, value, field, editing, draft, saving, placeholder,
+  title, icon, value, field, editing, draft, saving, placeholder, canEdit,
   onBegin, onChange, onCancel, onSave,
 }: {
   title: string; icon: string; value: string | null | undefined;
   field: 'season_goals' | 'offseason_goals';
-  editing: string | null; draft: string; saving: boolean; placeholder: string;
+  editing: string | null; draft: string; saving: boolean; placeholder: string; canEdit?: boolean;
   onBegin: (f: 'season_goals' | 'offseason_goals') => void;
   onChange: (v: string) => void;
   onCancel: () => void;
@@ -429,7 +436,7 @@ function GoalsCard({
     <div className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div className="card-title" style={{ margin: 0 }}>{icon} {title}</div>
-        {!isEditing && (
+        {canEdit && !isEditing && (
           <button className="btn" style={{ fontSize: 11 }} onClick={() => onBegin(field)}>{value ? 'Edit' : 'Add'}</button>
         )}
       </div>
