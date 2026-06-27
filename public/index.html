@@ -878,6 +878,12 @@ body.print-size-half   { page: half-page; }
       <div class="nav-item active" onclick="showSection('dashboard', this)">
         <span class="nav-icon">&#9632;</span> Dashboard
       </div>
+      <div class="nav-item" onclick="showSection('parent-home', this)">
+        <span class="nav-icon">&#9632;</span> My Dashboard
+      </div>
+      <div class="nav-item" onclick="showSection('player-home', this)">
+        <span class="nav-icon">&#9632;</span> My Dashboard
+      </div>
       <div class="nav-item coach-only" id="nav-users" onclick="showSection('users', this)">
         <span class="nav-icon">&#9632;</span> Manage Users
       </div>
@@ -1137,11 +1143,13 @@ body.print-size-half   { page: half-page; }
 
       <!-- PARENT HOME -->
       <div class="section" id="section-parent-home">
-        <div style="background:rgba(0,61,165,0.15);border:1px solid rgba(0,61,165,0.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">
-          <div style="font-size:24px">&#128075;</div>
+        <div style="background:linear-gradient(135deg,rgba(0,30,90,0.6) 0%,rgba(0,61,165,0.2) 100%);border:1px solid rgba(0,61,165,0.35);border-radius:10px;padding:1.1rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px" id="parent-welcome-name">Welcome</div>
-            <div style="font-size:12px;color:var(--text-muted)">Terra Linda Trojans Baseball - Parent Portal</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;line-height:1" id="parent-welcome-name">Welcome</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">Terra Linda Trojans Baseball &mdash; Parent Portal</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:38px;height:38px;border-radius:50%;background:rgba(0,61,165,0.4);border:2px solid rgba(0,61,165,0.6);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:#7AADFF" id="parent-welcome-initials">P</div>
           </div>
         </div>
 
@@ -4514,6 +4522,9 @@ function statMini(label, val) {
 // ── Load parent dashboard ─────────────────────────────────────
 function loadParentDashboard(user) {
   document.getElementById('parent-welcome-name').textContent = 'Welcome, ' + user.name.split(' ')[0];
+  const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const av = document.getElementById('parent-welcome-initials');
+  if (av) av.textContent = initials;
   const upcoming = varsityGames.filter(g => g.result === 'Upcoming').slice(0,4);
   const div = document.getElementById('parent-schedule-display');
   div.innerHTML = upcoming.map(g =>
