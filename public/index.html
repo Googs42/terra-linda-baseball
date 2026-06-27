@@ -1004,10 +1004,14 @@ body.print-size-half   { page: half-page; }
 
       <!-- ADMIN (admin only — Sean + head coaches) -->
       <div class="section" id="section-admin">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
-          <div style="font-size:12px;color:var(--text-muted)">Admin tools — coach approvals and program-level controls. Visible to head coaches only.</div>
-          <button class="btn" style="font-size:11px;padding:6px 12px" onclick="renderPendingCoaches()">Refresh</button>
+        <div class="tabs" style="margin-bottom:1.25rem">
+          <div class="tab active" onclick="adminTab(this,'admin-tab-requests')">Requests</div>
+          <div class="tab" onclick="adminTab(this,'admin-tab-parent')">Parent Dashboard</div>
+          <div class="tab" onclick="adminTab(this,'admin-tab-player')">Player Dashboard</div>
         </div>
+
+        <!-- ── TAB: REQUESTS ─────────────────────────────────── -->
+        <div id="admin-tab-requests">
 
         <div id="pending-coaches-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,107,107,0.4)">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
@@ -1033,6 +1037,46 @@ body.print-size-half   { page: half-page; }
           <div style="font-size:14px;font-weight:600;color:white;margin-bottom:4px">All clear</div>
           <div style="font-size:12px;color:var(--text-muted)">No pending items. New contact requests and coach approvals will appear here automatically.</div>
         </div>
+        </div><!-- /admin-tab-requests -->
+
+        <!-- ── TAB: PARENT DASHBOARD EDITOR ──────────────────── -->
+        <div id="admin-tab-parent" style="display:none">
+          <div class="card" style="margin-bottom:1rem">
+            <div class="card-title">Announcement Banner</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Shows as a highlighted banner at the top of the Parent Dashboard. Leave blank to hide.</div>
+            <textarea class="form-input" id="dash-parent-announcement" rows="2" placeholder="e.g. Season is complete — thanks for a great year! Summer Camp registration is now open." style="font-size:13px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:8px"></textarea>
+            <button class="btn btn-red" style="font-size:12px" onclick="saveDashAnnouncement('parent')">Save Announcement</button>
+            <span id="dash-parent-ann-saved" style="display:none;font-size:11px;color:#2ECC71;margin-left:10px">&#10003; Saved</span>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Upcoming Events (shown on Parent Dashboard)</div>
+              <button class="btn btn-red" style="font-size:11px;padding:5px 12px" onclick="addDashEvent('parent')">+ Add Event</button>
+            </div>
+            <div id="dash-parent-events-list"></div>
+          </div>
+        </div>
+
+        <!-- ── TAB: PLAYER DASHBOARD EDITOR ──────────────────── -->
+        <div id="admin-tab-player" style="display:none">
+          <div class="card" style="margin-bottom:1rem">
+            <div class="card-title">Announcement Banner</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:.75rem">Shows as a highlighted banner at the top of the Player Dashboard. Leave blank to hide.</div>
+            <textarea class="form-input" id="dash-player-announcement" rows="2" placeholder="e.g. Fall ball registration is open — sign up for TL Gamecocks through Gallinas Valley LL!" style="font-size:13px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:8px"></textarea>
+            <button class="btn btn-red" style="font-size:12px" onclick="saveDashAnnouncement('player')">Save Announcement</button>
+            <span id="dash-player-ann-saved" style="display:none;font-size:11px;color:#2ECC71;margin-left:10px">&#10003; Saved</span>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+              <div class="card-title" style="margin:0">Upcoming Events (shown on Player Dashboard)</div>
+              <button class="btn btn-red" style="font-size:11px;padding:5px 12px" onclick="addDashEvent('player')">+ Add Event</button>
+            </div>
+            <div id="dash-player-events-list"></div>
+          </div>
+        </div>
+
       </div>
 
       <!-- MANAGE USERS (coach only) -->
@@ -1096,6 +1140,8 @@ body.print-size-half   { page: half-page; }
           </div>
         </div>
 
+        <div style="display:none;background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.3);border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.85)"><span id="player-dash-announcement"></span></div>
+
         <div class="grid-2" style="margin-bottom:1.25rem">
           <div class="card">
             <div class="card-title">My season stats</div>
@@ -1119,23 +1165,8 @@ body.print-size-half   { page: half-page; }
             </div>
           </div>
           <div class="card">
-            <div class="card-title">Quick links</div>
-            <div class="drill-row" style="cursor:pointer" onclick="showSection('workouts',null)">
-              <div class="drill-dot" style="background:var(--gold)"></div>
-              <div class="drill-info"><div class="drill-name">Workout Plans</div><div class="drill-desc">In-season and off-season lifting programs</div></div>
-            </div>
-            <div class="drill-row" style="cursor:pointer" onclick="showSection('skills',null)">
-              <div class="drill-dot" style="background:var(--gold)"></div>
-              <div class="drill-info"><div class="drill-name">All Position Skills</div><div class="drill-desc">Fundamental, Advanced, and Elite skill breakdowns</div></div>
-            </div>
-            <div class="drill-row" style="cursor:pointer" onclick="showSection('clinics',null)">
-              <div class="drill-dot" style="background:var(--gold)"></div>
-              <div class="drill-info"><div class="drill-name">Academy Clinics</div><div class="drill-desc">Upcoming clinics and summer camp sessions</div></div>
-            </div>
-            <div class="drill-row" style="cursor:pointer" onclick="showSection('maxpreps',null)">
-              <div class="drill-dot" style="background:var(--gold)"></div>
-              <div class="drill-info"><div class="drill-name">MaxPreps Hub</div><div class="drill-desc">Your public stats and team rankings</div></div>
-            </div>
+            <div class="card-title">Upcoming events</div>
+            <div id="player-dash-events"><div style="font-size:12px;color:var(--text-muted)">Loading...</div></div>
           </div>
         </div>
       </div>
@@ -1153,6 +1184,8 @@ body.print-size-half   { page: half-page; }
           </div>
         </div>
 
+        <div style="display:none;background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.3);border-radius:8px;padding:10px 14px;margin-bottom:1.25rem;font-size:13px;color:rgba(255,255,255,0.85)"><span id="parent-dash-announcement"></span></div>
+
         <div class="grid-2" style="margin-bottom:1.25rem">
           <div class="card">
             <div class="card-title">Upcoming games</div>
@@ -1165,13 +1198,7 @@ body.print-size-half   { page: half-page; }
           </div>
           <div class="card">
             <div class="card-title">Upcoming events</div>
-            <div class="event-item"><div class="event-name">Summer Camp — Week 1</div><div class="event-meta"><span>July 6–10 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register now</span></div></div>
-            <div class="event-item"><div class="event-name">Summer Camp — Week 2</div><div class="event-meta"><span>July 13–17 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register now</span></div></div>
-            <div class="event-item"><div class="event-name">Fall Ball — TL Gamecocks</div><div class="event-meta"><span>Gallinas Valley Little League</span><span class="event-spots" style="color:#7AADFF">Sign up now</span></div></div>
-            <div style="margin-top:10px;display:flex;gap:8px">
-              <button class="btn btn-red" style="font-size:11px" onclick="showSection('camp',null)">Summer Camp &rarr;</button>
-              <button class="btn" style="font-size:11px" onclick="showSection('contact',null)">Fall Ball info &rarr;</button>
-            </div>
+            <div id="parent-dash-events"><div style="font-size:12px;color:var(--text-muted)">Loading...</div></div>
           </div>
         </div>
 
@@ -4580,7 +4607,24 @@ function loadPlayerDashboard(user) {
       '<span style="color:' + (g.ha==='Home'?'#7AADFF':'var(--text-muted)') + '">' + g.ha + '</span></div></div>'
     ).join('');
   } else {
-    schedDiv.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">No upcoming games.</div>';
+    schedDiv.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Season complete — see Schedule for results.</div>';
+  }
+
+  // Announcement + editable events from config
+  const cfg = getDashConfig();
+  const ann = cfg.player.announcement || '';
+  const annEl = document.getElementById('player-dash-announcement');
+  if (annEl) { annEl.textContent = ann; annEl.parentElement.style.display = ann ? '' : 'none'; }
+  const eventsEl = document.getElementById('player-dash-events');
+  if (eventsEl) {
+    const events = cfg.player.events || [];
+    eventsEl.innerHTML = events.map(ev =>
+      '<div class="event-item" style="cursor:pointer" onclick="showSection(\'' + (ev.link||'contact') + '\',null)">' +
+      '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
+      '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
+      (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
+      '</div></div>'
+    ).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
   }
 }
 
@@ -4596,13 +4640,34 @@ function loadParentDashboard(user) {
   const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const av = document.getElementById('parent-welcome-initials');
   if (av) av.textContent = initials;
-  const upcoming = varsityGames.filter(g => g.result === 'Upcoming').slice(0,4);
+
+  // Announcement banner
+  const cfg = getDashConfig();
+  const ann = cfg.parent.announcement || '';
+  const annEl = document.getElementById('parent-dash-announcement');
+  if (annEl) { annEl.textContent = ann; annEl.parentElement.style.display = ann ? '' : 'none'; }
+
+  // Upcoming games from schedule
+  const upcoming = varsityGames.filter(g => g.result === 'Upcoming').slice(0, 4);
   const div = document.getElementById('parent-schedule-display');
   div.innerHTML = upcoming.map(g =>
     '<div class="event-item"><div class="event-name">' + (g.ha==='Home'?'vs ':'@ ') + g.opp + '</div>' +
     '<div class="event-meta"><span>' + fmtDate(g.date) + ' · ' + fmtTime(g.time) + '</span>' +
     '<span style="color:' + (g.ha==='Home'?'#7AADFF':'var(--text-muted)') + '">' + g.ha + ' · ' + g.loc + '</span></div></div>'
-  ).join('') || '<div style="font-size:12px;color:var(--text-muted)">No upcoming games.</div>';
+  ).join('') || '<div style="font-size:12px;color:var(--text-muted)">Season complete — see Schedule for results.</div>';
+
+  // Editable events
+  const eventsEl = document.getElementById('parent-dash-events');
+  if (eventsEl) {
+    const events = cfg.parent.events || [];
+    eventsEl.innerHTML = events.map(ev =>
+      '<div class="event-item" style="cursor:pointer" onclick="showSection(\'' + (ev.link||'contact') + '\',null)">' +
+      '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
+      '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
+      (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
+      '</div></div>'
+    ).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
+  }
 }
 
 // ── Manage Users ──────────────────────────────────────────────
@@ -5804,6 +5869,97 @@ async function submitCampReg(btn) {
   alert('Registration submitted! We will follow up by email within 24 hours.');
 }
 
+// ── Admin tab switcher ────────────────────────────────────────────────────────
+function adminTab(el, tabId) {
+  document.querySelectorAll('#section-admin .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['admin-tab-requests','admin-tab-parent','admin-tab-player'].forEach(id => {
+    const div = document.getElementById(id);
+    if (div) div.style.display = id === tabId ? '' : 'none';
+  });
+  if (tabId === 'admin-tab-parent') renderDashEditor('parent');
+  if (tabId === 'admin-tab-player') renderDashEditor('player');
+}
+
+// ── Dashboard content editor ──────────────────────────────────────────────────
+const DASH_DEFAULT = {
+  parent: {
+    announcement: '',
+    events: [
+      { name: 'Summer Camp — Week 1', detail: 'July 6–10 · 9 AM–3 PM', status: 'Register now', link: 'camp', statusColor: 'var(--gold)' },
+      { name: 'Summer Camp — Week 2', detail: 'July 13–17 · 9 AM–3 PM', status: 'Register now', link: 'camp', statusColor: 'var(--gold)' },
+      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'contact', statusColor: '#7AADFF' },
+    ]
+  },
+  player: {
+    announcement: '',
+    events: [
+      { name: 'Summer Camp — Week 1', detail: 'July 6–10 · 9 AM–3 PM', status: 'Register', link: 'camp', statusColor: 'var(--gold)' },
+      { name: 'Summer Camp — Week 2', detail: 'July 13–17 · 9 AM–3 PM', status: 'Register', link: 'camp', statusColor: 'var(--gold)' },
+      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'contact', statusColor: '#7AADFF' },
+      { name: 'Counselor Applications Open', detail: 'Help coach summer camp', status: 'Apply below', link: 'camp', statusColor: '#2ECC71' },
+    ]
+  }
+};
+
+function getDashConfig() {
+  try { return JSON.parse(localStorage.getItem('tl_dash_config') || 'null') || JSON.parse(JSON.stringify(DASH_DEFAULT)); }
+  catch(e) { return JSON.parse(JSON.stringify(DASH_DEFAULT)); }
+}
+function saveDashConfig(cfg) { localStorage.setItem('tl_dash_config', JSON.stringify(cfg)); }
+
+function saveDashAnnouncement(role) {
+  const val = document.getElementById('dash-' + role + '-announcement')?.value.trim() || '';
+  const cfg = getDashConfig();
+  cfg[role].announcement = val;
+  saveDashConfig(cfg);
+  const saved = document.getElementById('dash-' + role + '-ann-saved');
+  if (saved) { saved.style.display = ''; setTimeout(() => saved.style.display = 'none', 2000); }
+}
+
+function renderDashEditor(role) {
+  const cfg = getDashConfig();
+  const annEl = document.getElementById('dash-' + role + '-announcement');
+  if (annEl) annEl.value = cfg[role].announcement || '';
+  const list = document.getElementById('dash-' + role + '-events-list');
+  if (!list) return;
+  const events = cfg[role].events || [];
+  if (!events.length) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:1rem">No events yet. Click + Add Event to add one.</div>';
+    return;
+  }
+  list.innerHTML = events.map((ev, i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;margin-bottom:8px" id="dash-ev-${role}-${i}">
+      <input class="form-input" value="${escHtml(ev.name||'')}" placeholder="Event name" style="font-size:12px;padding:6px 8px" oninput="updateDashEvent('${role}',${i},'name',this.value)">
+      <input class="form-input" value="${escHtml(ev.detail||'')}" placeholder="Date / detail" style="font-size:12px;padding:6px 8px" oninput="updateDashEvent('${role}',${i},'detail',this.value)">
+      <input class="form-input" value="${escHtml(ev.status||'')}" placeholder="Status label (e.g. Register now)" style="font-size:12px;padding:6px 8px" oninput="updateDashEvent('${role}',${i},'status',this.value)">
+      <button class="btn" style="font-size:10px;padding:4px 10px;color:#ff6b6b;border-color:rgba(255,107,107,0.3);white-space:nowrap" onclick="removeDashEvent('${role}',${i})">Remove</button>
+    </div>
+  `).join('');
+}
+
+function updateDashEvent(role, idx, field, value) {
+  const cfg = getDashConfig();
+  if (cfg[role].events[idx]) {
+    cfg[role].events[idx][field] = value;
+    saveDashConfig(cfg);
+  }
+}
+
+function removeDashEvent(role, idx) {
+  const cfg = getDashConfig();
+  cfg[role].events.splice(idx, 1);
+  saveDashConfig(cfg);
+  renderDashEditor(role);
+}
+
+function addDashEvent(role) {
+  const cfg = getDashConfig();
+  cfg[role].events.push({ name: '', detail: '', status: '', link: 'contact', statusColor: 'var(--gold)' });
+  saveDashConfig(cfg);
+  renderDashEditor(role);
+}
+
 // ── Fundraising ──────────────────────────────────────────────────────────────
 const FR_GOAL = 8000;
 function getFrContribs() { return JSON.parse(localStorage.getItem('tl_fr_contribs') || '[]'); }
@@ -6828,7 +6984,7 @@ function renderLineupCard() {
   for (let i = 0; i < 10; i++) {
     const slot = lineupState.order[i];
     const filled = !!slot;
-    const orderLabel = i === 9 ? '10 <span style="font-size:9px;font-weight:400;color:#666">DH</span>' : (i+1);
+    const orderLabel = i + 1;
     rowsHtml += '<tr>' +
       '<td><strong>' + orderLabel + '</strong></td>' +
       '<td class="lineup-slot" data-filled="' + filled + '"' +
