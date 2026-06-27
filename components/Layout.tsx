@@ -3,30 +3,51 @@ import { useRouter } from 'next/router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useSession } from '@/lib/useSession';
 
-type NavEntry = { label: string; href: string; section?: string; icon?: string; badge?: number; group?: string };
+type NavEntry = {
+  label: string;
+  href: string;
+  section?: string;
+  icon?: string;
+  badge?: number;
+  group: string;
+  external?: boolean;
+};
+
+const GROUP_ORDER = ['TEAM', 'TRAINING', 'FACILITY', 'ACADEMY', 'LINKS'];
 
 const NAV: NavEntry[] = [
-  { label: 'Dashboard',          href: '/#dashboard',   section: 'dashboard',   icon: '■', group: 'TEAM' },
-  { label: 'Manage Users',       href: '/#users',       section: 'users',       icon: '■', group: 'TEAM' },
-  { label: 'Roster',             href: '/roster',       section: 'roster',      icon: '■', group: 'TEAM' },
-  { label: 'Game Stats',         href: '/#stats',       section: 'stats',       icon: '■', group: 'TEAM' },
-  { label: 'Schedule',           href: '/schedule',     section: 'schedule',    icon: '■', group: 'TEAM' },
-  { label: 'Lineup Card',        href: '/#lineup',      section: 'lineup',      icon: '■', group: 'TEAM' },
-  { label: 'Position Skills',    href: '/#skills',      section: 'skills',      icon: '■', group: 'TRAINING' },
-  { label: 'Workout Plans',      href: '/workouts',     section: 'workouts',    icon: '■', group: 'TRAINING' },
-  { label: 'Field Maintenance',  href: '/#field',       section: 'field',       icon: '■', group: 'FACILITY' },
-  { label: 'Clinics',            href: '/#clinics',     section: 'clinics',     icon: '■', group: 'ACADEMY' },
-  { label: 'Summer Camp',        href: '/#camp',        section: 'camp',        icon: '■', group: 'ACADEMY' },
-  { label: 'Fundraising',        href: '/#fundraising', section: 'fundraising', icon: '■', group: 'ACADEMY' },
-  { label: 'MaxPreps Hub',       href: '/#maxpreps',    section: 'maxpreps',    icon: '■', group: 'ACADEMY' },
-  { label: 'Contact / Outreach', href: '/#contact',     section: 'contact',     icon: '■', group: 'ACADEMY' },
+  // ── TEAM ──────────────────────────────────────────────────────
+  { label: 'Dashboard',          href: '/#dashboard',    section: 'dashboard',    icon: '■', group: 'TEAM' },
+  { label: 'My Dashboard',       href: '/#parent-home',  section: 'parent-home',  icon: '■', group: 'TEAM' },
+  { label: 'My Dashboard',       href: '/#player-home',  section: 'player-home',  icon: '■', group: 'TEAM' },
+  { label: 'Admin',              href: '/#admin',        section: 'admin',        icon: '■', group: 'TEAM' },
+  { label: 'Manage Users',       href: '/#users',        section: 'users',        icon: '■', group: 'TEAM' },
+  { label: 'Roster',             href: '/roster',        section: 'roster',       icon: '■', group: 'TEAM' },
+  { label: 'Schedule',           href: '/schedule',      section: 'schedule',     icon: '■', group: 'TEAM' },
+  { label: 'Lineup Card',        href: '/#lineup',       section: 'lineup',       icon: '■', group: 'TEAM' },
+  // ── TRAINING ──────────────────────────────────────────────────
+  { label: 'Position Skills',    href: '/#skills',       section: 'skills',       icon: '■', group: 'TRAINING' },
+  { label: 'Workout Plans',      href: '/workouts',      section: 'workouts',     icon: '■', group: 'TRAINING' },
+  // ── FACILITY ──────────────────────────────────────────────────
+  { label: 'Field Maintenance',  href: '/#field',        section: 'field',        icon: '■', group: 'FACILITY' },
+  // ── ACADEMY ───────────────────────────────────────────────────
+  { label: 'Clinics',            href: '/#clinics',      section: 'clinics',      icon: '■', group: 'ACADEMY' },
+  { label: 'Summer Camp',        href: '/#camp',         section: 'camp',         icon: '■', group: 'ACADEMY' },
+  { label: 'Fundraising',        href: '/#fundraising',  section: 'fundraising',  icon: '■', group: 'ACADEMY' },
+  { label: 'Team Store',         href: '/#store',        section: 'store',        icon: '■', group: 'ACADEMY' },
+  { label: 'Volunteer & Donate', href: '/#volunteer',    section: 'volunteer',    icon: '■', group: 'ACADEMY' },
+  { label: 'Contact / Outreach', href: '/#contact',      section: 'contact',      icon: '■', group: 'ACADEMY' },
+  // ── LINKS ─────────────────────────────────────────────────────
+  { label: 'Game Stats',         href: '/#stats',        section: 'stats',        icon: '■', group: 'LINKS' },
+  { label: 'MaxPreps Hub',       href: '/#maxpreps',     section: 'maxpreps',     icon: '■', group: 'LINKS' },
+  { label: 'GameChanger ↗',      href: 'https://gc.com/', section: undefined,     icon: '■', group: 'LINKS', external: true },
 ];
 
 const NAV_ACCESS: Record<string, string[]> = {
-  coach:  ['dashboard','users','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  player: ['roster','stats','schedule','skills','workouts','field','clinics','camp','maxpreps'],
-  parent: ['roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
+  coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','store','volunteer','maxpreps','contact'],
+  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','store','maxpreps','contact'],
+  player: ['player-home','roster','stats','schedule','skills','workouts','field','clinics','camp','store','maxpreps'],
+  parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','store','volunteer','maxpreps','contact'],
 };
 
 interface LayoutProps {
@@ -43,26 +64,28 @@ export default function Layout({ title, activeSection, topbarRight, children }: 
 
   useEffect(() => {
     if (!ready) return;
-    if (!user) {
-      router.replace('/');
-    }
+    if (!user) router.replace('/');
   }, [ready, user, router]);
 
   if (!ready || !user) return null;
 
-  const allowed = NAV_ACCESS[user.role] || NAV_ACCESS.coach;
+  const allowed = NAV_ACCESS[user.role] ?? NAV_ACCESS.coach;
   const visibleNav = NAV.filter(n => !n.section || allowed.includes(n.section));
 
   const groups: Record<string, NavEntry[]> = {};
   for (const n of visibleNav) {
-    const g = n.group || 'TEAM';
-    if (!groups[g]) groups[g] = [];
-    groups[g].push(n);
+    if (!groups[n.group]) groups[n.group] = [];
+    groups[n.group].push(n);
   }
 
   const isActive = (entry: NavEntry) =>
     (activeSection && entry.section === activeSection) ||
     (!activeSection && entry.href === router.asPath);
+
+  const close = () => {
+    setSidebarOpen(false);
+    document.body.classList.remove('sidebar-open');
+  };
 
   return (
     <div className={'shell' + (sidebarOpen ? ' sidebar-open-wrapper' : '')}>
@@ -77,29 +100,40 @@ export default function Layout({ title, activeSection, topbarRight, children }: 
           </div>
         </div>
 
-        {Object.entries(groups).map(([group, items]) => (
+        {GROUP_ORDER.filter(g => groups[g]?.length).map(group => (
           <div className="nav-section" key={group}>
             <div className="nav-label">{group}</div>
-            {items.map(entry => (
-              <Link
-                key={entry.href}
-                href={entry.href}
-                className={'nav-item' + (isActive(entry) ? ' active' : '')}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <span className="nav-icon">{entry.icon}</span>
-                {entry.label}
-                {entry.badge ? <span className="nav-badge">{entry.badge}</span> : null}
-              </Link>
-            ))}
+            {groups[group].map(entry =>
+              entry.external ? (
+                <a
+                  key={entry.href}
+                  href={entry.href}
+                  className="nav-item"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={close}
+                >
+                  <span className="nav-icon">{entry.icon}</span>
+                  {entry.label}
+                </a>
+              ) : (
+                <Link
+                  key={entry.section ?? entry.href}
+                  href={entry.href}
+                  className={'nav-item' + (isActive(entry) ? ' active' : '')}
+                  onClick={close}
+                >
+                  <span className="nav-icon">{entry.icon}</span>
+                  {entry.label}
+                  {entry.badge ? <span className="nav-badge">{entry.badge}</span> : null}
+                </Link>
+              )
+            )}
           </div>
         ))}
       </aside>
 
-      <div
-        className="sidebar-backdrop"
-        onClick={() => { setSidebarOpen(false); document.body.classList.remove('sidebar-open'); }}
-      />
+      <div className="sidebar-backdrop" onClick={close} />
 
       <main className="main">
         <div className="topbar">
