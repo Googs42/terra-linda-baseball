@@ -492,7 +492,6 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   #lineup-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 0; margin: 0; }
   #lineup-print-area .lineup-card { box-shadow: none; margin: 0 auto; }
   .lineup-slot .slot-remove { display: none !important; }
-  /* Dropdowns print as plain centered text — no arrow, no form chrome. */
   select.pos-input {
     -webkit-appearance: none; appearance: none;
     background: transparent; border: none; text-align: center;
@@ -500,6 +499,19 @@ body.sidebar-open .sidebar-backdrop { display: block; }
   }
   body.print-size-letter #lineup-print-area .lineup-card { width: 8.5in; min-height: 10.5in; }
   body.print-size-half   #lineup-print-area .lineup-card { width: 5in;   min-height: 7.5in; }
+  /* Time card print mode */
+  body.print-timecard * { visibility: hidden !important; }
+  body.print-timecard #field-timecard, body.print-timecard #field-timecard * { visibility: visible !important; }
+  body.print-timecard #field-timecard {
+    position: absolute; left: 0; top: 0; width: 100%;
+    background: white !important; color: black !important;
+    padding: 24px; box-shadow: none; border: none;
+  }
+  body.print-timecard #field-timecard * { color: black !important; background: transparent !important; border-color: #ccc !important; }
+  body.print-timecard #field-timecard input { border: none; border-bottom: 1px solid #999 !important; border-radius: 0; }
+  body.print-timecard #field-timecard table, body.print-timecard #field-timecard th, body.print-timecard #field-timecard td { border: 1px solid #ccc !important; }
+  body.print-timecard #field-timecard .card-title { font-size: 18px; font-weight: 700; }
+  body.print-timecard .print-hide { display: none !important; }
 }
 /* Named pages let the print size switch based on which toggle is active.
    Without this, a 5x8 card would print on a letter sheet with a huge margin. */
@@ -1574,16 +1586,116 @@ body.print-size-half   { page: half-page; }
       <div class="section" id="section-field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
           <div style="font-size:12px;color:var(--text-muted)">Track field tasks, assign to players or staff, and mark complete.</div>
-          <button class="btn btn-red" onclick="openAddTaskModal()">+ Add Task</button>
+          <button class="btn btn-red coach-only" onclick="openAddTaskModal()">+ Add Task</button>
         </div>
 
         <div class="tabs">
           <div class="tab active" onclick="fieldTab(this,'all-tasks')">All Tasks</div>
           <div class="tab" onclick="fieldTab(this,'needed-tasks')">Needed</div>
           <div class="tab" onclick="fieldTab(this,'done-tasks')">Completed</div>
+          <div class="tab" onclick="fieldTab(this,'timecard-view')">&#128336; Time Card</div>
         </div>
 
         <div id="field-tasks"></div>
+
+        <!-- TIME CARD TAB -->
+        <div id="timecard-view" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+            <div style="font-size:12px;color:var(--text-muted)">Complete one time card per workweek. Enter actual times &mdash; do not round or estimate.</div>
+            <button class="btn" onclick="printTimeCard()" style="font-size:12px">&#128438; Print / Save PDF</button>
+          </div>
+
+          <div class="card" id="field-timecard">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <div style="font-size:32px;flex-shrink:0">&#127944;</div>
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--gold);letter-spacing:0.03em">TLBCA Weekly Time Card</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Terra Linda Baseball Academy &mdash; Field Maintenance</div>
+              </div>
+            </div>
+
+            <!-- Meta row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.25rem">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Employee name</label>
+                <input class="form-input" id="tc-employee" placeholder="First and last name">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Week ending</label>
+                <input class="form-input" id="tc-week-ending" type="date">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Supervisor</label>
+                <input class="form-input" id="tc-supervisor" placeholder="Supervisor name">
+              </div>
+            </div>
+
+            <!-- Time table -->
+            <div style="overflow-x:auto;margin-bottom:1.25rem">
+              <table class="stats-table" id="tc-table" style="min-width:700px">
+                <thead>
+                  <tr>
+                    <th style="text-align:left">Day</th>
+                    <th style="text-align:left">Date</th>
+                    <th>Sched. Start</th>
+                    <th>Clock In</th>
+                    <th>Meal Start</th>
+                    <th>Meal End</th>
+                    <th>Clock Out</th>
+                    <th>Total Hrs</th>
+                  </tr>
+                </thead>
+                <tbody id="tc-body">
+                  <!-- rows injected by initTimeCard() -->
+                </tbody>
+                <tfoot>
+                  <tr style="border-top:2px solid rgba(255,255,255,0.15)">
+                    <td colspan="7" style="font-weight:700;padding:10px 8px;font-size:12px">Weekly Total</td>
+                    <td style="font-weight:700;font-family:'DM Mono',monospace;color:var(--gold);padding:10px 8px;text-align:center" id="tc-total-hrs">0.00</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- CA certification statement -->
+            <div style="background:rgba(0,34,112,0.3);border:1px solid rgba(0,61,165,0.4);border-radius:10px;padding:14px 16px;margin-bottom:1.25rem">
+              <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;letter-spacing:0.04em">EMPLOYEE CERTIFICATION</div>
+              <div style="font-size:12px;color:var(--white);line-height:1.7">
+                I certify that this time card accurately records all hours I worked during this workweek, including my actual start time, meal period start and end times, end time, and total hours worked.
+                I further certify that I received all meal periods and rest breaks to which I was entitled under California law &mdash; specifically, a 30-minute unpaid meal period for shifts over five hours and a paid 10-minute rest break for every four hours worked (or major fraction thereof) &mdash; or that any missed, late, short, or interrupted meal period or rest break has been reported to my supervisor.
+                I understand that falsifying this record is grounds for disciplinary action.
+              </div>
+            </div>
+
+            <!-- Signatures -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:0.75rem">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px;letter-spacing:0.04em">EMPLOYEE SIGNATURE</div>
+                <div style="border-bottom:1px solid rgba(255,255,255,0.3);height:36px;margin-bottom:6px;position:relative">
+                  <input class="form-input" id="tc-emp-sig" placeholder="Type full name as signature" style="background:transparent;border:none;border-bottom:none;padding:6px 0;font-style:italic;font-size:13px;width:100%">
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                  <label class="form-label" style="margin:0;white-space:nowrap">Date</label>
+                  <input class="form-input" id="tc-emp-date" type="date" style="flex:1">
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px;letter-spacing:0.04em">SUPERVISOR REVIEW</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.5">I have reviewed this time card for completeness and accuracy before payroll processing.</div>
+                <div style="border-bottom:1px solid rgba(255,255,255,0.3);height:36px;margin-bottom:6px;position:relative">
+                  <input class="form-input" id="tc-sup-sig" placeholder="Supervisor signature" style="background:transparent;border:none;border-bottom:none;padding:6px 0;font-style:italic;font-size:13px;width:100%">
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                  <label class="form-label" style="margin:0;white-space:nowrap">Date</label>
+                  <input class="form-input" id="tc-sup-date" type="date" style="flex:1">
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /card -->
+        </div><!-- /timecard-view -->
       </div>
 
       <!-- CLINICS -->
@@ -4355,6 +4467,75 @@ function workoutTab(el, name) {
 function fieldTab(el, id) {
   document.querySelectorAll('#section-field .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  // Show/hide the time card view vs the task list
+  const taskList = document.getElementById('field-tasks');
+  const tcView   = document.getElementById('timecard-view');
+  if (id === 'timecard-view') {
+    if (taskList) taskList.style.display = 'none';
+    if (tcView)   { tcView.style.display = ''; initTimeCard(); }
+  } else {
+    if (taskList) taskList.style.display = '';
+    if (tcView)   tcView.style.display = 'none';
+    // Re-filter task list
+    const allCards = document.querySelectorAll('#field-tasks .field-task');
+    allCards.forEach(c => {
+      const done = c.querySelector('.task-done-badge');
+      if (id === 'all-tasks')    c.style.display = '';
+      else if (id === 'needed-tasks')  c.style.display = done ? 'none' : '';
+      else if (id === 'done-tasks')    c.style.display = done ? '' : 'none';
+    });
+  }
+}
+
+const TC_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function initTimeCard() {
+  const body = document.getElementById('tc-body');
+  if (!body || body.children.length > 0) return; // already built
+  body.innerHTML = TC_DAYS.map((day, i) =>
+    '<tr id="tc-row-' + i + '">' +
+      '<td style="font-size:12px;padding:6px 8px;white-space:nowrap">' + day + '</td>' +
+      '<td><input type="date" class="form-input tc-date" data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:130px" oninput="tcRecalc()"></td>' +
+      '<td><input type="time" class="form-input tc-sched" data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:100px"></td>' +
+      '<td><input type="time" class="form-input tc-in"    data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:100px" oninput="tcRecalc()"></td>' +
+      '<td><input type="time" class="form-input tc-ms"    data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:100px" oninput="tcRecalc()"></td>' +
+      '<td><input type="time" class="form-input tc-me"    data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:100px" oninput="tcRecalc()"></td>' +
+      '<td><input type="time" class="form-input tc-out"   data-row="' + i + '" style="padding:4px 6px;font-size:11px;width:100px" oninput="tcRecalc()"></td>' +
+      '<td style="text-align:center;font-family:\'DM Mono\',monospace;font-size:12px;color:var(--gold)" id="tc-hrs-' + i + '">—</td>' +
+    '</tr>'
+  ).join('');
+}
+
+function tcTimeToMins(val) {
+  if (!val) return null;
+  const [h, m] = val.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function tcRecalc() {
+  let totalMins = 0;
+  TC_DAYS.forEach((_, i) => {
+    const inVal  = document.querySelector('#tc-row-' + i + ' .tc-in')?.value;
+    const outVal = document.querySelector('#tc-row-' + i + ' .tc-out')?.value;
+    const msVal  = document.querySelector('#tc-row-' + i + ' .tc-ms')?.value;
+    const meVal  = document.querySelector('#tc-row-' + i + ' .tc-me')?.value;
+    const cell   = document.getElementById('tc-hrs-' + i);
+    if (!inVal || !outVal) { if (cell) cell.textContent = '—'; return; }
+    let mins = tcTimeToMins(outVal) - tcTimeToMins(inVal);
+    if (msVal && meVal) mins -= (tcTimeToMins(meVal) - tcTimeToMins(msVal));
+    if (mins < 0) mins += 1440; // overnight
+    const hrs = mins / 60;
+    if (cell) cell.textContent = hrs.toFixed(2);
+    totalMins += mins;
+  });
+  const tot = document.getElementById('tc-total-hrs');
+  if (tot) tot.textContent = (totalMins / 60).toFixed(2);
+}
+
+function printTimeCard() {
+  document.body.classList.add('print-timecard');
+  window.print();
+  document.body.classList.remove('print-timecard');
 }
 
 function toggleDay(header) {
