@@ -3828,6 +3828,13 @@ function applyRoleAccess(user) {
     }
   });
 
+  // Hide nav section groups where all items are hidden
+  document.querySelectorAll('.nav-section').forEach(section => {
+    const items = section.querySelectorAll('.nav-item');
+    const anyVisible = Array.from(items).some(el => el.style.display !== 'none');
+    section.style.display = anyVisible ? '' : 'none';
+  });
+
   // Camp role visibility:
   //   parent  → registration form only
   //   player  → counselor docs + counselor signup form
