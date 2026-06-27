@@ -25,7 +25,7 @@ const NAV: NavEntry[] = [
 const NAV_ACCESS: Record<string, string[]> = {
   coach:  ['dashboard','users','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  player: ['roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
+  player: ['roster','stats','schedule','skills','workouts','field','clinics','camp','maxpreps'],
   parent: ['roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
 };
 

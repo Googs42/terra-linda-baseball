@@ -939,8 +939,8 @@ body.print-size-half   { page: half-page; }
       <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="team-pills">
-        <span class="pill pill-varsity on" title="Open Varsity team page on MaxPreps" onclick="window.open('https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/varsity/','_blank')">Open Varsity &#8599;</span>
-        <span class="pill pill-jv on" title="Open JV team page on MaxPreps" onclick="window.open('https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/jv/','_blank')">Open JV &#8599;</span>
+        <span id="topbar-pill-varsity" class="pill pill-varsity on" onclick="teamPillClick('varsity')">Varsity</span>
+        <span id="topbar-pill-jv" class="pill pill-jv" onclick="teamPillClick('jv')">JV</span>
       </div>
       <button class="btn btn-red" id="add-player-btn" onclick="openAddPlayerModal()">+ Add Player</button>
       <button id="admin-bell" type="button" onclick="openAdminBell()" title="Pending coach requests" style="display:none;position:relative;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:50%;width:36px;height:36px;padding:0;cursor:pointer;color:#FFC72C">
@@ -3286,7 +3286,7 @@ function renderRecentRoster() {
 const NAV_ACCESS = {
   coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  player: ['player-home','roster','stats','schedule','skills','workouts','clinics','camp','maxpreps'],
+  player: ['player-home','roster','stats','schedule','skills','workouts','field','clinics','camp','maxpreps'],
   parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
 };
 
@@ -4581,6 +4581,25 @@ function scheduleTab(el, id) {
   el.classList.add('active');
   document.getElementById('varsity-sched').style.display = id === 'varsity-sched' ? 'block' : 'none';
   document.getElementById('jv-sched').style.display = id === 'jv-sched' ? 'block' : 'none';
+  // Sync topbar pills
+  document.getElementById('topbar-pill-varsity').classList.toggle('on', id === 'varsity-sched');
+  document.getElementById('topbar-pill-jv').classList.toggle('on', id === 'jv-sched');
+}
+
+function teamPillClick(team) {
+  const scheduleActive = document.getElementById('section-schedule')?.classList.contains('active');
+  if (scheduleActive) {
+    // Switch the schedule tab
+    const tabId = team === 'varsity' ? 'varsity-sched' : 'jv-sched';
+    const tabEl = document.querySelector('#section-schedule .tab[onclick*="' + tabId + '"]');
+    if (tabEl) scheduleTab(tabEl, tabId);
+  } else {
+    // Navigate to MaxPreps in same tab (avoids popup blocker)
+    const url = team === 'varsity'
+      ? 'https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/varsity/'
+      : 'https://www.maxpreps.com/ca/san-rafael/terra-linda-trojans/baseball/jv/';
+    window.open(url, '_blank', 'noopener');
+  }
 }
 
 function exportSchedule() {
