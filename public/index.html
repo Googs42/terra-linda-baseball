@@ -1010,10 +1010,22 @@ body.print-size-half   { page: half-page; }
           <div id="pending-coaches-body" style="font-size:12px;color:var(--text-muted)">No pending coach requests.</div>
         </div>
 
+        <!-- Contact / Outreach requests -->
+        <div id="contact-requests-card" class="card" style="margin-bottom:1rem;display:none;border-color:rgba(255,199,44,0.3)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="card-title" style="margin:0">Contact / Outreach Requests</div>
+              <span id="contact-requests-count" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(255,199,44,0.15);color:var(--gold)"></span>
+            </div>
+            <button class="btn" style="font-size:10px;padding:3px 8px" onclick="loadContactRequests()">Refresh</button>
+          </div>
+          <div id="contact-requests-body" style="font-size:12px;color:var(--text-muted)">Loading…</div>
+        </div>
+
         <div id="admin-empty-state" class="card" style="text-align:center;padding:32px">
           <div style="font-size:36px;margin-bottom:8px">&#128737;</div>
           <div style="font-size:14px;font-weight:600;color:white;margin-bottom:4px">All clear</div>
-          <div style="font-size:12px;color:var(--text-muted)">No pending coach requests at the moment. New requests will show up here automatically.</div>
+          <div style="font-size:12px;color:var(--text-muted)">No pending items. New contact requests and coach approvals will appear here automatically.</div>
         </div>
       </div>
 
@@ -4183,7 +4195,7 @@ function applyRoleAccess(user) {
   if (typeof renderAdminAlertBanner === 'function') renderAdminAlertBanner();
 
   // Load counselor signups and doc tracker for coaches
-  if (role === 'coach') { loadCounselorApps(); renderDocTracker(); }
+  if (role === 'coach') { loadCounselorApps(); loadContactRequests(); renderDocTracker(); }
 }
 
 function renderCounselorSignupsList() {
@@ -4567,7 +4579,9 @@ function isApprovalAdmin(user) {
 }
 
 let COUNSELOR_APPS = [];
-let COUNSELOR_APPS_SEEN = 0; // timestamp (ms) of last time coach viewed signups
+let COUNSELOR_APPS_SEEN = 0;
+let CONTACT_REQUESTS = [];
+let CONTACT_SEEN = 0;
 
 async function loadCounselorApps() {
   if (!currentUser || (currentUser.role !== 'coach')) return;
@@ -4583,6 +4597,81 @@ async function loadCounselorApps() {
   } catch(e) {}
 }
 
+async function loadContactRequests() {
+  if (!currentUser || (currentUser.role !== 'coach')) return;
+  try {
+    const res = await fetch('/api/contact');
+    if (res.ok) {
+      CONTACT_REQUESTS = await res.json();
+      CONTACT_SEEN = parseInt(localStorage.getItem('tl_contact_seen') || '0', 10);
+      renderAdminAlertBanner();
+      renderContactRequests();
+    }
+  } catch(e) {}
+}
+
+function unseenContactCount() {
+  return CONTACT_REQUESTS.filter(r => r.status !== 'reviewed' && new Date(r.created_at).getTime() > CONTACT_SEEN).length;
+}
+
+async function markContactReviewed(id) {
+  await fetch('/api/contact?id=' + id, { method: 'PATCH' });
+  CONTACT_REQUESTS = CONTACT_REQUESTS.map(r => r.id === id ? { ...r, status: 'reviewed' } : r);
+  renderContactRequests();
+  renderAdminAlertBanner();
+}
+
+async function deleteContactRequest(id) {
+  if (!confirm('Delete this contact request?')) return;
+  await fetch('/api/contact?id=' + id, { method: 'DELETE' });
+  CONTACT_REQUESTS = CONTACT_REQUESTS.filter(r => r.id !== id);
+  renderContactRequests();
+  renderAdminAlertBanner();
+}
+
+function renderContactRequests() {
+  const body = document.getElementById('contact-requests-body');
+  const card = document.getElementById('contact-requests-card');
+  if (!body || !card) return;
+  const pending = CONTACT_REQUESTS.filter(r => r.status !== 'reviewed');
+  const reviewed = CONTACT_REQUESTS.filter(r => r.status === 'reviewed');
+  card.style.display = CONTACT_REQUESTS.length ? '' : 'none';
+  const fmt = r => {
+    const d = new Date(r.created_at);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const isNew = r.status !== 'reviewed' && d.getTime() > CONTACT_SEEN;
+    return `<div style="padding:12px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,${r.status==='reviewed'?'0.02':'0.05'});border:1px solid ${r.status==='reviewed'?'var(--border)':'rgba(255,199,44,0.3)'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+        <div>
+          ${isNew ? '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;background:rgba(255,199,44,0.2);color:var(--gold);margin-right:6px">NEW</span>' : ''}
+          <strong style="font-size:13px">${escHtml(r.contact_name||'')}</strong>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:8px">${escHtml(r.org_name||'')} &middot; ${escHtml(r.org_type||'')}</span>
+        </div>
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${dateStr}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;line-height:1.5">
+        ${escHtml(r.email||'')}${r.phone?' &middot; '+escHtml(r.phone):''}
+        ${r.program_type?' &middot; <em>'+escHtml(r.program_type)+'</em>':''}
+        ${r.preferred_dates?' &middot; '+escHtml(r.preferred_dates):''}
+        ${r.headcount?' &middot; '+r.headcount+' players':''}
+      </div>
+      ${r.message?'<div style="font-size:12px;color:var(--white);background:rgba(0,0,0,0.2);border-radius:6px;padding:8px;margin-bottom:8px">'+escHtml(r.message)+'</div>':''}
+      <div style="display:flex;gap:6px">
+        ${r.status!=='reviewed'?`<button class="btn" style="font-size:10px;padding:3px 10px;color:#2ECC71;border-color:rgba(46,204,113,0.3)" onclick="markContactReviewed('${r.id}')">&#10003; Mark Reviewed</button>`:'<span style="font-size:10px;color:var(--text-muted)">&#10003; Reviewed</span>'}
+        <a href="mailto:${escHtml(r.email||'')}" style="text-decoration:none"><button class="btn" style="font-size:10px;padding:3px 10px">Reply &rarr;</button></a>
+        <button class="btn" style="font-size:10px;padding:3px 10px;color:#ff6b6b;border-color:rgba(255,107,107,0.3)" onclick="deleteContactRequest('${r.id}')">Delete</button>
+      </div>
+    </div>`;
+  };
+  const pendingHtml = pending.map(fmt).join('');
+  const reviewedHtml = reviewed.length
+    ? `<div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px">Reviewed (${reviewed.length})</div>` + reviewed.slice(0,5).map(fmt).join('')
+    : '';
+  body.innerHTML = pendingHtml + reviewedHtml || '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:1rem">No contact requests yet.</div>';
+  const countEl = document.getElementById('contact-requests-count');
+  if (countEl) countEl.textContent = pending.length || '';
+}
+
 function unseenCounselorCount() {
   return COUNSELOR_APPS.filter(a => new Date(a.submitted_at || a.created_at).getTime() > COUNSELOR_APPS_SEEN).length;
 }
@@ -4595,7 +4684,8 @@ function renderAdminAlertBanner() {
   const isCoach = currentUser && (currentUser.role === 'coach');
   const pending = (USERS || []).filter(u => u.status === 'pending');
   const unseen = unseenCounselorCount();
-  const total = pending.length + unseen;
+  const unseenContact = unseenContactCount();
+  const total = pending.length + unseen + unseenContact;
 
   if (bell && countEl) {
     if ((!isAdmin && !isCoach) || !total) {
@@ -4606,6 +4696,7 @@ function renderAdminAlertBanner() {
       const parts = [];
       if (isAdmin && pending.length) parts.push(pending.length + ' pending coach request' + (pending.length > 1 ? 's' : ''));
       if (unseen) parts.push(unseen + ' new counselor application' + (unseen > 1 ? 's' : ''));
+      if (unseenContact) parts.push(unseenContact + ' new contact request' + (unseenContact > 1 ? 's' : ''));
       bell.title = parts.join(' · ');
     }
   }
@@ -4623,7 +4714,9 @@ window.openAdminBell = function() {
   if (!currentUser || (currentUser.role !== 'coach')) return;
   const isAdmin = isApprovalAdmin(currentUser);
   const unseen = unseenCounselorCount();
-  // If there are counselor apps, navigate to camp section to see signups
+  const unseenContact = unseenContactCount();
+
+  // Counselor apps → camp section
   if (unseen > 0 || COUNSELOR_APPS.length > 0) {
     localStorage.setItem('tl_counselor_seen', Date.now().toString());
     COUNSELOR_APPS_SEEN = Date.now();
@@ -4636,9 +4729,20 @@ window.openAdminBell = function() {
     }, 150);
     return;
   }
-  if (isAdmin) {
+
+  // Contact requests or pending coach approvals → admin section
+  if (unseenContact > 0 || isAdmin) {
+    localStorage.setItem('tl_contact_seen', Date.now().toString());
+    CONTACT_SEEN = Date.now();
+    renderAdminAlertBanner();
+    renderContactRequests();
     const navAdmin = document.getElementById('nav-admin');
     showSection('admin', navAdmin);
+    setTimeout(() => {
+      const el = document.getElementById('contact-requests-card');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    return;
   }
 };
 
@@ -4657,9 +4761,10 @@ function renderPendingCoaches() {
   }
 
   const pending = (USERS || []).filter(u => u.status === 'pending');
+  const hasContact = CONTACT_REQUESTS.length > 0;
   if (!pending.length) {
     card.style.display = 'none';
-    if (empty) empty.style.display = '';
+    if (empty) empty.style.display = hasContact ? 'none' : '';
     return;
   }
   if (empty) empty.style.display = 'none';
