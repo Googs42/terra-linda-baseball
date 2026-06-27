@@ -435,15 +435,15 @@ body.sidebar-open .sidebar-backdrop { display: block; }
 .lineup-card.size-letter { width: 8.5in; min-height: 11in; }
 .lineup-card.size-half   { width: 5in;   min-height: 8in; padding: 0.35in; font-size: 11px; }
 /* Stretch rows so the letter-size card fills the whole page */
-.lineup-card.size-letter .lineup-table:first-of-type tbody tr td { height: 58px; }
-.lineup-card.size-letter .lineup-table:first-of-type thead th    { height: 34px; }
-.lineup-card.size-letter .lineup-table:nth-of-type(2) tbody tr td { height: 38px; }
-.lineup-card.size-letter .meta-table td { height: 32px; }
+.lineup-card.size-letter .lineup-table:first-of-type tbody tr td { height: 52px; }
+.lineup-card.size-letter .lineup-table:first-of-type thead th    { height: 30px; }
+.lineup-card.size-letter .lineup-table:nth-of-type(2) tbody tr td { height: 34px; }
+.lineup-card.size-letter .meta-table td { height: 30px; }
 /* Stretch rows so the 5x8 card fills its page too */
-.lineup-card.size-half .lineup-table:first-of-type tbody tr td { height: 38px; }
-.lineup-card.size-half .lineup-table:first-of-type thead th    { height: 26px; }
-.lineup-card.size-half .lineup-table:nth-of-type(2) tbody tr td { height: 28px; }
-.lineup-card.size-half .meta-table td { height: 26px; }
+.lineup-card.size-half .lineup-table:first-of-type tbody tr td { height: 34px; }
+.lineup-card.size-half .lineup-table:first-of-type thead th    { height: 22px; }
+.lineup-card.size-half .lineup-table:nth-of-type(2) tbody tr td { height: 24px; }
+.lineup-card.size-half .meta-table td { height: 22px; }
 .lineup-card-header {
   display: flex; align-items: center; gap: 16px;
   border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 14px;
@@ -6114,7 +6114,7 @@ addContrib = async function() {
 // ═══════════════════════════════════════════════════════════════
 let lineupSize = 'letter';
 const lineupState = {
-  order: new Array(9).fill(null),
+  order: new Array(10).fill(null),
   subs:  new Array(8).fill(null),
 };
 
@@ -6164,11 +6164,12 @@ function renderLineupCard() {
   if (!rows || !subs) return;
 
   let rowsHtml = '';
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     const slot = lineupState.order[i];
     const filled = !!slot;
+    const orderLabel = i === 9 ? '10 <span style="font-size:9px;font-weight:400;color:#666">DH</span>' : (i+1);
     rowsHtml += '<tr>' +
-      '<td><strong>' + (i+1) + '</strong></td>' +
+      '<td><strong>' + orderLabel + '</strong></td>' +
       '<td class="lineup-slot" data-filled="' + filled + '"' +
         ' ondragover="lineupDragOver(event)" ondragleave="lineupDragLeave(event)"' +
         ' ondrop="lineupDrop(event, \'order\', ' + i + ')">' +
@@ -6308,7 +6309,7 @@ function renderPosPicker(slot, i) {
 }
 function clearLineup() {
   if (!confirm('Clear the entire lineup card?')) return;
-  lineupState.order = new Array(9).fill(null);
+  lineupState.order = new Array(10).fill(null);
   lineupState.subs  = new Array(8).fill(null);
   ['meta-opponent','meta-location','meta-date','meta-time','meta-coach'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
