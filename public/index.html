@@ -1747,10 +1747,9 @@ body.print-size-half   { page: half-page; }
               <label class="form-label">Session</label>
               <select class="form-input form-select">
                 <option>Select session</option>
-                <option>Session 1 - June 9-13 (Foundations)</option>
-                <option>Session 2 - June 16-20 (Advanced)</option>
-                <option>Session 3 - June 23-27 (Pitching)</option>
-                <option>Session 4 - July 7-11 (All Skills)</option>
+                <option>Week 1 - July 6-10</option>
+                <option>Week 2 - July 13-17</option>
+                <option>Both weeks</option>
               </select>
             </div>
             <div class="form-group">
@@ -1770,6 +1769,17 @@ body.print-size-half   { page: half-page; }
               <textarea class="form-input" placeholder="Any medical notes, questions, prior experience..."></textarea>
             </div>
             <button class="btn btn-red" style="width:100%;padding:10px" onclick="alert('Registration submitted! We will follow up by email within 24 hours.')">Submit Registration</button>
+          </div>
+
+          <!-- Coach only: counselor signups list -->
+          <div class="card" id="counselor-signups-card" style="display:none;margin-top:1.25rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+              <div class="card-title" style="margin:0">&#9995; Counselor Signups</div>
+              <span id="counselor-signups-count" style="font-size:11px;background:rgba(255,199,44,0.15);color:var(--gold);border-radius:10px;padding:2px 10px;font-weight:600">0</span>
+            </div>
+            <div id="counselor-signups-body">
+              <div style="color:var(--text-muted);font-size:13px;text-align:center;padding:1rem 0">No signups yet.</div>
+            </div>
           </div>
 
           <!-- Player: counselor documents -->
@@ -1823,10 +1833,8 @@ body.print-size-half   { page: half-page; }
             <div class="form-group">
               <label class="form-label">Session(s) available (check all that apply)</label>
               <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s1"> Session 1 &mdash; June 9-13 (Foundations, Ages 8-14)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s2"> Session 2 &mdash; June 16-20 (Advanced Skills, Ages 13-18)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s3"> Session 3 &mdash; June 23-27 (Pitching Intensive, Ages 12-18)</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s4"> Session 4 &mdash; July 7-11 (All Skills, Ages 8-18)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="Week 1 (July 6-10)"> Week 1 &mdash; July 6&ndash;10</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="Week 2 (July 13-17)"> Week 2 &mdash; July 13&ndash;17</label>
               </div>
             </div>
             <div class="form-group">
@@ -3611,10 +3619,12 @@ function applyRoleAccess(user) {
   const campRegForm = document.getElementById('camp-register-form');
   const campCounselorDocs = document.getElementById('camp-counselor-docs');
   const campCounselorForm = document.getElementById('camp-counselor-form');
+  const counselorSignupsCard = document.getElementById('counselor-signups-card');
   if (campRegForm && campCounselorForm) {
     campRegForm.style.display = role === 'player' ? 'none' : '';
     if (campCounselorDocs) campCounselorDocs.style.display = role === 'player' ? '' : 'none';
     campCounselorForm.style.display = role === 'player' ? '' : 'none';
+    if (counselorSignupsCard) counselorSignupsCard.style.display = role === 'coach' ? '' : 'none';
   }
 
   // Clinics: players see the volunteer/coaching signup; others see admin view
@@ -3641,6 +3651,41 @@ function applyRoleAccess(user) {
 
   // Surface pending coach requests on the dashboard for admins.
   if (typeof renderAdminAlertBanner === 'function') renderAdminAlertBanner();
+
+  // Load counselor signups for coaches
+  if (role === 'coach') loadCounselorApps();
+}
+
+function renderCounselorSignupsList() {
+  const body = document.getElementById('counselor-signups-body');
+  const countEl = document.getElementById('counselor-signups-count');
+  if (!body) return;
+  if (countEl) countEl.textContent = COUNSELOR_APPS.length;
+  if (!COUNSELOR_APPS.length) {
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:1rem 0">No signups yet.</div>';
+    return;
+  }
+  body.innerHTML = COUNSELOR_APPS.map(a => {
+    const dt = a.submitted_at || a.created_at;
+    const date = dt ? new Date(dt).toLocaleDateString('en-US', { month:'short', day:'numeric' }) : '';
+    const isNew = dt && new Date(dt).getTime() > COUNSELOR_APPS_SEEN;
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;font-size:13px;color:var(--white);display:flex;align-items:center;gap:8px">' +
+          (a.name || '—') +
+          (isNew ? '<span style="font-size:9px;background:#E74C3C;color:white;border-radius:8px;padding:1px 7px;font-weight:700">NEW</span>' : '') +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' +
+          (a.position || '') + (a.position && a.sessions ? ' &middot; ' : '') + (a.sessions || '') +
+        '</div>' +
+        (a.focus_area ? '<div style="font-size:11px;color:var(--gold);margin-top:2px">' + a.focus_area + '</div>' : '') +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + (a.email || '') + '</div>' +
+        (a.notes ? '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;font-style:italic">' + a.notes + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);flex-shrink:0">' + date + '</div>' +
+    '</div>';
+  }).join('') +
+  '<div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:right">' + COUNSELOR_APPS.length + ' total applicant' + (COUNSELOR_APPS.length > 1 ? 's' : '') + '</div>';
 }
 
 // ── Supabase connection health check ────────────────────────
@@ -3922,21 +3967,46 @@ function isApprovalAdmin(user) {
   return t === 'head_coach' || t === 'head coach';
 }
 
+let COUNSELOR_APPS = [];
+let COUNSELOR_APPS_SEEN = 0; // timestamp (ms) of last time coach viewed signups
+
+async function loadCounselorApps() {
+  if (!currentUser || (currentUser.role !== 'coach')) return;
+  try {
+    const res = await fetch('/api/counselor-apps');
+    if (res.ok) {
+      COUNSELOR_APPS = await res.json();
+      COUNSELOR_APPS_SEEN = parseInt(localStorage.getItem('tl_counselor_seen') || '0', 10);
+      renderAdminAlertBanner();
+      renderCounselorSignupsList();
+    }
+  } catch(e) {}
+}
+
+function unseenCounselorCount() {
+  return COUNSELOR_APPS.filter(a => new Date(a.submitted_at || a.created_at).getTime() > COUNSELOR_APPS_SEEN).length;
+}
+
 function renderAdminAlertBanner() {
   const bell = document.getElementById('admin-bell');
   const countEl = document.getElementById('admin-bell-count');
   const navBadge = document.getElementById('nav-admin-badge');
   const isAdmin = isApprovalAdmin(currentUser);
+  const isCoach = currentUser && (currentUser.role === 'coach');
   const pending = (USERS || []).filter(u => u.status === 'pending');
+  const unseen = unseenCounselorCount();
+  const total = pending.length + unseen;
 
   if (bell && countEl) {
-    if (!isAdmin || !pending.length) {
+    if ((!isAdmin && !isCoach) || !total) {
       bell.style.display = 'none';
     } else {
-      countEl.textContent = pending.length;
+      countEl.textContent = total;
       bell.style.display = 'inline-flex';
-      bell.title = (pending.length === 1 ? '1 pending coach request' : pending.length + ' pending coach requests') +
-        ' — ' + pending.map(u => u.name).slice(0, 3).join(', ') + (pending.length > 3 ? ', …' : '');
+      const parts = [];
+      if (isAdmin && pending.length) parts.push(pending.length + ' pending coach request' + (pending.length > 1 ? 's' : ''));
+      if (unseen) parts.push(unseen + ' new counselor application' + (unseen > 1 ? 's' : ''));
+      bell.title = parts.join(' · ');
     }
   }
   if (navBadge) {
@@ -3950,9 +4020,26 @@ function renderAdminAlertBanner() {
 }
 
 window.openAdminBell = function() {
-  if (!isApprovalAdmin(currentUser)) return;
-  const navAdmin = document.getElementById('nav-admin');
-  showSection('admin', navAdmin);
+  if (!currentUser || (currentUser.role !== 'coach')) return;
+  const isAdmin = isApprovalAdmin(currentUser);
+  const unseen = unseenCounselorCount();
+  // If there are counselor apps, navigate to camp section to see signups
+  if (unseen > 0 || COUNSELOR_APPS.length > 0) {
+    localStorage.setItem('tl_counselor_seen', Date.now().toString());
+    COUNSELOR_APPS_SEEN = Date.now();
+    renderAdminAlertBanner();
+    const navCamp = document.querySelector('[data-section="camp"]');
+    showSection('camp', navCamp);
+    setTimeout(() => {
+      const el = document.getElementById('counselor-signups-card');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    return;
+  }
+  if (isAdmin) {
+    const navAdmin = document.getElementById('nav-admin');
+    showSection('admin', navAdmin);
+  }
 };
 
 function renderPendingCoaches() {
@@ -4861,7 +4948,7 @@ async function submitContact(btn) {
 }
 
 
-function submitCounselorApp() {
+async function submitCounselorApp() {
   const name = document.getElementById('counselor-name')?.value.trim();
   const pos  = document.getElementById('counselor-pos')?.value;
   const focus = document.getElementById('counselor-focus')?.value;
@@ -4871,9 +4958,21 @@ function submitCounselorApp() {
   if (!name) { alert('Please enter your name.'); return; }
   if (!sessions.length) { alert('Please select at least one session you can work.'); return; }
   if (!email) { alert('Please enter a contact email.'); return; }
-  alert('Application submitted! The coaching staff will be in touch to confirm your slot.\n\nName: ' + name + '\nSessions: ' + sessions.join(', '));
-  ['counselor-name','counselor-email','counselor-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  document.querySelectorAll('#camp-counselor-form input[type=checkbox]').forEach(cb => cb.checked = false);
+  try {
+    const res = await fetch('/api/counselor-apps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, position: pos, sessions: sessions.join(', '), focus_area: focus, email, notes, submitted_at: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error('Server error');
+    alert('Application submitted! The coaching staff will be in touch to confirm your slot.');
+    ['counselor-name','counselor-email','counselor-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.querySelectorAll('#camp-counselor-form input[type=checkbox]').forEach(cb => cb.checked = false);
+    const pos2 = document.getElementById('counselor-pos'); if (pos2) pos2.selectedIndex = 0;
+    const foc = document.getElementById('counselor-focus'); if (foc) foc.selectedIndex = 0;
+  } catch(e) {
+    alert('Submission failed — please try again.');
+  }
 }
 
 function submitClinicHelper() {
