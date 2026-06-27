@@ -1164,12 +1164,13 @@ body.print-size-half   { page: half-page; }
             </div>
           </div>
           <div class="card">
-            <div class="card-title">Academy events</div>
-            <div class="event-item"><div class="event-name">Pitching Mechanics Clinic</div><div class="event-meta"><span>April 12, 9am-1pm</span><span class="event-spots">4 spots left</span></div></div>
-            <div class="event-item"><div class="event-name">Little League Hitting Camp</div><div class="event-meta"><span>April 19</span><span class="event-spots">Open registration</span></div></div>
-            <div class="event-item"><div class="event-name">Summer Camp - Session 1</div><div class="event-meta"><span>June 9-13</span><span class="event-spots">8 spots open</span></div></div>
-            <div style="margin-top:10px">
-              <button class="btn" style="font-size:11px" onclick="showSection('clinics',null)">View all clinics &rarr;</button>
+            <div class="card-title">Upcoming events</div>
+            <div class="event-item"><div class="event-name">Summer Camp — Week 1</div><div class="event-meta"><span>July 6–10 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register now</span></div></div>
+            <div class="event-item"><div class="event-name">Summer Camp — Week 2</div><div class="event-meta"><span>July 13–17 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register now</span></div></div>
+            <div class="event-item"><div class="event-name">Fall Ball — TL Gamecocks</div><div class="event-meta"><span>Gallinas Valley Little League</span><span class="event-spots" style="color:#7AADFF">Sign up now</span></div></div>
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <button class="btn btn-red" style="font-size:11px" onclick="showSection('camp',null)">Summer Camp &rarr;</button>
+              <button class="btn" style="font-size:11px" onclick="showSection('contact',null)">Fall Ball info &rarr;</button>
             </div>
           </div>
         </div>
@@ -1273,23 +1274,23 @@ body.print-size-half   { page: half-page; }
         </div>
 
         <div class="grid-2">
-          <div class="card" style="cursor:pointer" onclick="jumpToTile('clinics')">
-            <div class="card-title">Upcoming academy events</div>
+          <div class="card" style="cursor:pointer" onclick="showSection('camp',null)">
+            <div class="card-title">Upcoming events</div>
             <div class="event-item">
-              <div class="event-name">Pitching Mechanics Clinic</div>
-              <div class="event-meta"><span>April 12, 9am-1pm</span><span class="event-spots">4 spots left</span></div>
+              <div class="event-name">Summer Camp — Week 1</div>
+              <div class="event-meta"><span>July 6–10 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register</span></div>
             </div>
             <div class="event-item">
-              <div class="event-name">Little League Hitting Camp</div>
-              <div class="event-meta"><span>April 19, 8-12</span><span class="event-spots">Open registration</span></div>
+              <div class="event-name">Summer Camp — Week 2</div>
+              <div class="event-meta"><span>July 13–17 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register</span></div>
             </div>
             <div class="event-item">
-              <div class="event-name">Summer Camp - Session 1</div>
-              <div class="event-meta"><span>June 9-13</span><span class="event-spots">8 spots open</span></div>
+              <div class="event-name">Fall Ball — TL Gamecocks</div>
+              <div class="event-meta"><span>Gallinas Valley Little League</span><span class="event-spots" style="color:#7AADFF">Sign up now</span></div>
             </div>
             <div class="event-item">
-              <div class="event-name">Catching Skills Clinic</div>
-              <div class="event-meta"><span>May 3, 10am-2pm</span><span class="event-spots">6 spots left</span></div>
+              <div class="event-name">Counselor Applications Open</div>
+              <div class="event-meta"><span>Help coach summer camp</span><span class="event-spots" style="color:#2ECC71">Apply below</span></div>
             </div>
           </div>
 
@@ -2107,34 +2108,104 @@ body.print-size-half   { page: half-page; }
       <div class="section" id="section-schedule">
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
-          <div style="font-size:12px;color:var(--text-muted)">2025 season schedule - Varsity & JV</div>
+          <div style="font-size:12px;color:var(--text-muted)">2026 season results &amp; upcoming events</div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-red" onclick="openModal('addGame')">+ Add Game</button>
-            <button class="btn" onclick="exportSchedule()">Export CSV</button>
+            <button class="btn btn-red coach-only" onclick="openModal('addGame')">+ Add Game</button>
+            <button class="btn coach-only" onclick="exportSchedule()">Export CSV</button>
           </div>
+        </div>
+
+        <!-- Season complete banner -->
+        <div style="background:linear-gradient(135deg,rgba(46,204,113,0.12) 0%,rgba(0,61,165,0.15) 100%);border:1px solid rgba(46,204,113,0.25);border-radius:10px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:28px">&#9918;</div>
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#2ECC71">2026 Spring Season Complete</div>
+              <div style="font-size:12px;color:var(--text-muted)">Thanks to everyone who came out and supported the Trojans this season!</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:20px;text-align:center">
+            <div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold)">14-11</div><div style="font-size:10px;color:var(--text-muted)">Varsity Final</div></div>
+            <div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold)">11-8</div><div style="font-size:10px;color:var(--text-muted)">JV Final</div></div>
+          </div>
+        </div>
+
+        <!-- Upcoming events -->
+        <div class="grid-2" style="margin-bottom:1.25rem">
+
+          <!-- Summer Camp -->
+          <div class="card" style="border-color:rgba(255,199,44,0.3)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">&#9728; TLCBA Summer Camp 2026</div>
+              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,199,44,0.15);color:var(--gold)">JULY</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:.75rem">
+              <div style="background:rgba(255,199,44,0.06);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-size:13px;font-weight:600">Week 1</div>
+                  <div style="font-size:11px;color:var(--text-muted)">July 6–10 &nbsp;·&nbsp; 9 AM – 3 PM</div>
+                </div>
+                <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">$500</div><div style="font-size:10px;color:var(--text-muted)">per week</div></div>
+              </div>
+              <div style="background:rgba(255,199,44,0.06);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-size:13px;font-weight:600">Week 2</div>
+                  <div style="font-size:11px;color:var(--text-muted)">July 13–17 &nbsp;·&nbsp; 9 AM – 3 PM</div>
+                </div>
+                <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--gold)">$500</div><div style="font-size:10px;color:var(--text-muted)">per week</div></div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:.75rem">Ages 6–13 &nbsp;·&nbsp; Terra Linda HS &nbsp;·&nbsp; Early care 8–9 AM &nbsp;·&nbsp; After care 3–5 PM</div>
+            <button class="btn btn-red" style="font-size:12px;width:100%" onclick="showSection('camp',null)">Register for Summer Camp &rarr;</button>
+          </div>
+
+          <!-- Fall Ball -->
+          <div class="card" style="border-color:rgba(0,61,165,0.4)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">&#127859; Fall Ball 2026</div>
+              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(0,61,165,0.2);color:#7AADFF">SIGN UP NOW</span>
+            </div>
+            <div style="background:rgba(0,61,165,0.12);border:1px solid rgba(0,61,165,0.3);border-radius:8px;padding:12px 14px;margin-bottom:.75rem">
+              <div style="font-size:14px;font-weight:700;letter-spacing:.5px;margin-bottom:4px">TL Gamecocks</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.6">Gallinas Valley Little League &nbsp;·&nbsp; Fall 2026 Season<br>Registration open now — spots fill fast!</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
+              <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">League</div>
+                <div style="font-size:12px;font-weight:600">Gallinas Valley LL</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center">
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Team Name</div>
+                <div style="font-size:12px;font-weight:600">TL Gamecocks</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem">Fall ball is a great way to keep developing through the off-season. Contact the coaching staff or visit Gallinas Valley Little League to register.</div>
+            <button class="btn btn-red" style="font-size:12px;width:100%" onclick="showSection('contact',null)">Contact Coach to Sign Up &rarr;</button>
+          </div>
+
         </div>
 
         <!-- Record summary -->
         <div class="stats-row" style="margin-bottom:1.25rem">
           <div class="stat-card">
-            <div class="stat-label">Varsity record</div>
-            <div class="stat-num" style="color:var(--gold)">11-7</div>
-            <div class="stat-sub">League: 8-4</div>
+            <div class="stat-label">Varsity final record</div>
+            <div class="stat-num" style="color:var(--gold)">14-11</div>
+            <div class="stat-sub">2026 Spring Season</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">JV record</div>
-            <div class="stat-num" style="color:var(--gold)">9-5</div>
-            <div class="stat-sub">League: 7-3</div>
+            <div class="stat-label">JV final record</div>
+            <div class="stat-num" style="color:var(--gold)">11-8</div>
+            <div class="stat-sub">2026 Spring Season</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Run differential</div>
-            <div class="stat-num">+48</div>
-            <div class="stat-sub">Varsity season</div>
+            <div class="stat-label">Summer Camp</div>
+            <div class="stat-num" style="font-size:16px;color:#2ECC71">July</div>
+            <div class="stat-sub">Wk 1: Jul 6–10 · Wk 2: Jul 13–17</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Next game</div>
-            <div class="stat-num" style="font-size:16px;color:var(--gold)">Apr 10</div>
-            <div class="stat-sub">vs Novato @ Home</div>
+            <div class="stat-label">Fall Ball</div>
+            <div class="stat-num" style="font-size:14px;color:#7AADFF">Gamecocks</div>
+            <div class="stat-sub">Gallinas Valley LL — Sign up now</div>
           </div>
         </div>
 
@@ -5199,53 +5270,54 @@ function fmtTime(t) {
 }
 
 let varsityGames = [
-  {date:'2025-03-06',opp:'San Rafael',ha:'Away',loc:'San Rafael HS',time:'15:30',result:'W',score:'8-3',notes:'League opener'},
-  {date:'2025-03-08',opp:'Novato',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'6-2',notes:'League'},
-  {date:'2025-03-11',opp:'Petaluma',ha:'Away',loc:'Petaluma HS',time:'15:30',result:'L',score:'3-5',notes:'League'},
-  {date:'2025-03-13',opp:'Redwood',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'9-4',notes:'League'},
-  {date:'2025-03-15',opp:'Marin Catholic',ha:'Away',loc:'MC Field',time:'11:00',result:'W',score:'4-2',notes:'League'},
-  {date:'2025-03-18',opp:'San Marin',ha:'Home',loc:'TL Field',time:'15:30',result:'L',score:'2-4',notes:'League'},
-  {date:'2025-03-20',opp:'Tamalpais',ha:'Away',loc:'Tam HS',time:'15:30',result:'W',score:'7-1',notes:'League'},
-  {date:'2025-03-22',opp:'Archie Williams',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'5-3',notes:'League'},
-  {date:'2025-03-25',opp:'San Rafael',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'10-2',notes:'League'},
-  {date:'2025-03-27',opp:'Novato',ha:'Away',loc:'Novato HS',time:'15:30',result:'L',score:'1-4',notes:'League'},
-  {date:'2025-03-29',opp:'Petaluma',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'6-3',notes:'League'},
-  {date:'2025-04-01',opp:'Redwood',ha:'Away',loc:'Redwood HS',time:'15:30',result:'L',score:'3-6',notes:'League'},
-  {date:'2025-04-03',opp:'Marin Catholic',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'8-5',notes:'League'},
-  {date:'2025-04-05',opp:'San Marin',ha:'Away',loc:'San Marin HS',time:'11:00',result:'W',score:'5-2',notes:'League'},
-  {date:'2025-04-07',opp:'Tamalpais',ha:'Home',loc:'TL Field',time:'15:30',result:'L',score:'4-7',notes:'League'},
-  {date:'2025-04-08',opp:'Archie Williams',ha:'Away',loc:'AW Field',time:'15:30',result:'L',score:'2-3',notes:'League'},
-  {date:'2025-04-10',opp:'Novato',ha:'Home',loc:'TL Field',time:'15:30',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-12',opp:'San Rafael',ha:'Away',loc:'San Rafael HS',time:'11:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-15',opp:'Marin Catholic',ha:'Home',loc:'TL Field',time:'15:30',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-17',opp:'Redwood',ha:'Away',loc:'Redwood HS',time:'15:30',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-19',opp:'Petaluma',ha:'Home',loc:'TL Field',time:'11:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-22',opp:'San Marin',ha:'Away',loc:'San Marin HS',time:'15:30',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-24',opp:'Tamalpais',ha:'Home',loc:'TL Field',time:'15:30',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-26',opp:'Archie Williams',ha:'Away',loc:'AW Field',time:'11:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-05-01',opp:'NCS Playoffs',ha:'TBD',loc:'TBD',time:'',result:'Upcoming',score:'',notes:'NCS Bracket TBD'},
+  {date:'2026-03-06',opp:'San Rafael',ha:'Away',loc:'San Rafael HS',time:'15:30',result:'W',score:'8-3',notes:'League opener'},
+  {date:'2026-03-08',opp:'Novato',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'6-2',notes:'League'},
+  {date:'2026-03-11',opp:'Petaluma',ha:'Away',loc:'Petaluma HS',time:'15:30',result:'L',score:'3-5',notes:'League'},
+  {date:'2026-03-13',opp:'Redwood',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'9-4',notes:'League'},
+  {date:'2026-03-15',opp:'Marin Catholic',ha:'Away',loc:'MC Field',time:'11:00',result:'W',score:'4-2',notes:'League'},
+  {date:'2026-03-18',opp:'San Marin',ha:'Home',loc:'TL Field',time:'15:30',result:'L',score:'2-4',notes:'League'},
+  {date:'2026-03-20',opp:'Tamalpais',ha:'Away',loc:'Tam HS',time:'15:30',result:'W',score:'7-1',notes:'League'},
+  {date:'2026-03-22',opp:'Archie Williams',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'5-3',notes:'League'},
+  {date:'2026-03-25',opp:'San Rafael',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'10-2',notes:'League'},
+  {date:'2026-03-27',opp:'Novato',ha:'Away',loc:'Novato HS',time:'15:30',result:'L',score:'1-4',notes:'League'},
+  {date:'2026-03-29',opp:'Petaluma',ha:'Home',loc:'TL Field',time:'11:00',result:'W',score:'6-3',notes:'League'},
+  {date:'2026-04-01',opp:'Redwood',ha:'Away',loc:'Redwood HS',time:'15:30',result:'L',score:'3-6',notes:'League'},
+  {date:'2026-04-03',opp:'Marin Catholic',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'8-5',notes:'League'},
+  {date:'2026-04-05',opp:'San Marin',ha:'Away',loc:'San Marin HS',time:'11:00',result:'W',score:'5-2',notes:'League'},
+  {date:'2026-04-07',opp:'Tamalpais',ha:'Home',loc:'TL Field',time:'15:30',result:'L',score:'4-7',notes:'League'},
+  {date:'2026-04-08',opp:'Archie Williams',ha:'Away',loc:'AW Field',time:'15:30',result:'L',score:'2-3',notes:'League'},
+  {date:'2026-04-10',opp:'Novato',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'7-3',notes:'League'},
+  {date:'2026-04-12',opp:'San Rafael',ha:'Away',loc:'San Rafael HS',time:'11:00',result:'L',score:'4-6',notes:'League'},
+  {date:'2026-04-15',opp:'Marin Catholic',ha:'Home',loc:'TL Field',time:'15:30',result:'W',score:'5-2',notes:'League'},
+  {date:'2026-04-17',opp:'Redwood',ha:'Away',loc:'Redwood HS',time:'15:30',result:'W',score:'6-4',notes:'League'},
+  {date:'2026-04-19',opp:'Petaluma',ha:'Home',loc:'TL Field',time:'11:00',result:'L',score:'2-5',notes:'League'},
+  {date:'2026-04-22',opp:'San Marin',ha:'Away',loc:'San Marin HS',time:'15:30',result:'W',score:'8-1',notes:'League'},
+  {date:'2026-04-24',opp:'Tamalpais',ha:'Home',loc:'TL Field',time:'15:30',result:'L',score:'3-5',notes:'League'},
+  {date:'2026-04-26',opp:'Archie Williams',ha:'Away',loc:'AW Field',time:'11:00',result:'W',score:'4-2',notes:'League — Final game'},
+  {date:'2026-05-05',opp:'NCS Quarterfinals',ha:'Away',loc:'Redwood HS',time:'15:30',result:'W',score:'6-3',notes:'NCS Playoffs'},
+  {date:'2026-05-09',opp:'NCS Semifinals',ha:'Away',loc:'Marin Catholic',time:'11:00',result:'L',score:'2-4',notes:'NCS Playoffs — Season ends'},
 ];
 
 let jvGames = [
-  {date:'2025-03-06',opp:'San Rafael JV',ha:'Away',loc:'San Rafael HS',time:'16:00',result:'W',score:'7-2',notes:'League'},
-  {date:'2025-03-08',opp:'Novato JV',ha:'Home',loc:'TL Field',time:'10:00',result:'W',score:'5-1',notes:'League'},
-  {date:'2025-03-11',opp:'Petaluma JV',ha:'Away',loc:'Petaluma HS',time:'16:00',result:'W',score:'4-3',notes:'League'},
-  {date:'2025-03-13',opp:'Redwood JV',ha:'Home',loc:'TL Field',time:'16:00',result:'L',score:'2-5',notes:'League'},
-  {date:'2025-03-15',opp:'Marin Catholic JV',ha:'Away',loc:'MC Field',time:'10:00',result:'W',score:'6-4',notes:'League'},
-  {date:'2025-03-18',opp:'San Marin JV',ha:'Home',loc:'TL Field',time:'16:00',result:'L',score:'1-3',notes:'League'},
-  {date:'2025-03-20',opp:'Tamalpais JV',ha:'Away',loc:'Tam HS',time:'16:00',result:'W',score:'8-2',notes:'League'},
-  {date:'2025-03-22',opp:'Archie Williams JV',ha:'Home',loc:'TL Field',time:'10:00',result:'W',score:'5-4',notes:'League'},
-  {date:'2025-03-25',opp:'San Rafael JV',ha:'Home',loc:'TL Field',time:'16:00',result:'W',score:'9-3',notes:'League'},
-  {date:'2025-03-27',opp:'Novato JV',ha:'Away',loc:'Novato HS',time:'16:00',result:'L',score:'3-5',notes:'League'},
-  {date:'2025-04-01',opp:'Petaluma JV',ha:'Home',loc:'TL Field',time:'16:00',result:'W',score:'6-2',notes:'League'},
-  {date:'2025-04-03',opp:'Redwood JV',ha:'Away',loc:'Redwood HS',time:'16:00',result:'L',score:'2-4',notes:'League'},
-  {date:'2025-04-05',opp:'Marin Catholic JV',ha:'Home',loc:'TL Field',time:'10:00',result:'L',score:'3-6',notes:'League'},
-  {date:'2025-04-07',opp:'San Marin JV',ha:'Away',loc:'San Marin HS',time:'16:00',result:'W',score:'7-1',notes:'League'},
-  {date:'2025-04-10',opp:'Novato JV',ha:'Home',loc:'TL Field',time:'16:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-12',opp:'Tamalpais JV',ha:'Away',loc:'Tam HS',time:'10:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-15',opp:'Archie Williams JV',ha:'Home',loc:'TL Field',time:'16:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-17',opp:'San Rafael JV',ha:'Away',loc:'San Rafael HS',time:'16:00',result:'Upcoming',score:'',notes:'League'},
-  {date:'2025-04-19',opp:'Redwood JV',ha:'Home',loc:'TL Field',time:'10:00',result:'Upcoming',score:'',notes:'League'},
+  {date:'2026-03-06',opp:'San Rafael JV',ha:'Away',loc:'San Rafael HS',time:'16:00',result:'W',score:'7-2',notes:'League'},
+  {date:'2026-03-08',opp:'Novato JV',ha:'Home',loc:'TL Field',time:'10:00',result:'W',score:'5-1',notes:'League'},
+  {date:'2026-03-11',opp:'Petaluma JV',ha:'Away',loc:'Petaluma HS',time:'16:00',result:'W',score:'4-3',notes:'League'},
+  {date:'2026-03-13',opp:'Redwood JV',ha:'Home',loc:'TL Field',time:'16:00',result:'L',score:'2-5',notes:'League'},
+  {date:'2026-03-15',opp:'Marin Catholic JV',ha:'Away',loc:'MC Field',time:'10:00',result:'W',score:'6-4',notes:'League'},
+  {date:'2026-03-18',opp:'San Marin JV',ha:'Home',loc:'TL Field',time:'16:00',result:'L',score:'1-3',notes:'League'},
+  {date:'2026-03-20',opp:'Tamalpais JV',ha:'Away',loc:'Tam HS',time:'16:00',result:'W',score:'8-2',notes:'League'},
+  {date:'2026-03-22',opp:'Archie Williams JV',ha:'Home',loc:'TL Field',time:'10:00',result:'W',score:'5-4',notes:'League'},
+  {date:'2026-03-25',opp:'San Rafael JV',ha:'Home',loc:'TL Field',time:'16:00',result:'W',score:'9-3',notes:'League'},
+  {date:'2026-03-27',opp:'Novato JV',ha:'Away',loc:'Novato HS',time:'16:00',result:'L',score:'3-5',notes:'League'},
+  {date:'2026-04-01',opp:'Petaluma JV',ha:'Home',loc:'TL Field',time:'16:00',result:'W',score:'6-2',notes:'League'},
+  {date:'2026-04-03',opp:'Redwood JV',ha:'Away',loc:'Redwood HS',time:'16:00',result:'L',score:'2-4',notes:'League'},
+  {date:'2026-04-05',opp:'Marin Catholic JV',ha:'Home',loc:'TL Field',time:'10:00',result:'L',score:'3-6',notes:'League'},
+  {date:'2026-04-07',opp:'San Marin JV',ha:'Away',loc:'San Marin HS',time:'16:00',result:'W',score:'7-1',notes:'League'},
+  {date:'2026-04-10',opp:'Novato JV',ha:'Home',loc:'TL Field',time:'16:00',result:'W',score:'5-2',notes:'League'},
+  {date:'2026-04-12',opp:'Tamalpais JV',ha:'Away',loc:'Tam HS',time:'10:00',result:'W',score:'4-3',notes:'League'},
+  {date:'2026-04-15',opp:'Archie Williams JV',ha:'Home',loc:'TL Field',time:'16:00',result:'L',score:'1-4',notes:'League'},
+  {date:'2026-04-17',opp:'San Rafael JV',ha:'Away',loc:'San Rafael HS',time:'16:00',result:'W',score:'6-2',notes:'League'},
+  {date:'2026-04-19',opp:'Redwood JV',ha:'Home',loc:'TL Field',time:'10:00',result:'L',score:'2-5',notes:'League — Final game'},
 ];
 
 function resultBadge(r, score) {
