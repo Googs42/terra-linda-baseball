@@ -7,7 +7,11 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(curl -sI \"https://terra-linda-baseball.vercel.app/app.html\")"
+      "Bash(curl -sI \"https://terra-linda-baseball.vercel.app/app.html\")",
+      "Bash(mkdir -p \"e:/Apps/tlbaseball/public/docs\" && cp \"/c/Users/seano/Desktop/TLCBA_Camp_Counselor_Agreement_Professional.pdf\" \"e:/Apps/tlbaseball/public/docs/TLCBA_Camp_Counselor_Agreement_Professional.pdf\" && ls \"e:/Apps/tlbaseball/public/docs/\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\seano\\Desktop"
     ]
   }
 }

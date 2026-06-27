@@ -1764,6 +1764,35 @@ body.print-size-half   { page: half-page; }
             <button class="btn btn-red" style="width:100%;padding:10px" onclick="alert('Registration submitted! We will follow up by email within 24 hours.')">Submit Registration</button>
           </div>
 
+          <!-- Player: counselor documents -->
+          <div id="camp-counselor-docs" style="display:none;margin-bottom:1.25rem">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:1rem">&#128196; Counselor Documents</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Complete and return all required documents before your first day. More will be added here as the program grows.</div>
+
+              <!-- Document 1 -->
+              <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(0,61,165,0.18);border:1px solid rgba(0,61,165,0.35);border-radius:10px;margin-bottom:10px">
+                <div style="font-size:30px;flex-shrink:0">&#128196;</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:13px;color:var(--white);margin-bottom:3px">Camp Counselor Appointment &amp; Training Agreement</div>
+                  <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Required before your first shift. Covers your appointment, required training checklist, and handbook acknowledgment. Parent/guardian signature required if under 18.</div>
+                  <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+                    <span style="font-size:10px;background:rgba(231,76,60,0.18);color:#E74C3C;border:1px solid rgba(231,76,60,0.35);border-radius:4px;padding:2px 7px;font-weight:600">REQUIRED</span>
+                    <span style="font-size:10px;color:var(--text-muted)">PDF &middot; 1 page</span>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+                  <a href="/docs/TLCBA_Camp_Counselor_Agreement_Professional.pdf" target="_blank" class="btn btn-red" style="font-size:11px;padding:6px 12px;text-decoration:none;text-align:center">View / Print</a>
+                  <a href="/docs/TLCBA_Camp_Counselor_Agreement_Professional.pdf" download class="btn" style="font-size:11px;padding:6px 12px;text-decoration:none;text-align:center">Download</a>
+                </div>
+              </div>
+
+              <div style="font-size:11px;color:var(--text-muted);padding:8px 4px">
+                Print, complete, and hand your signed agreement to a coach before camp begins.
+              </div>
+            </div>
+          </div>
+
           <!-- Player: sign up to be a camp counselor -->
           <div class="card" id="camp-counselor-form" style="display:none">
             <div class="card-title">&#127867; Sign Up as Camp Counselor</div>
@@ -3570,11 +3599,13 @@ function applyRoleAccess(user) {
     }
   });
 
-  // Camp: players see counselor signup; coaches/parents see camper registration
+  // Camp: players see counselor docs + signup; coaches/parents see camper registration
   const campRegForm = document.getElementById('camp-register-form');
+  const campCounselorDocs = document.getElementById('camp-counselor-docs');
   const campCounselorForm = document.getElementById('camp-counselor-form');
   if (campRegForm && campCounselorForm) {
     campRegForm.style.display = role === 'player' ? 'none' : '';
+    if (campCounselorDocs) campCounselorDocs.style.display = role === 'player' ? '' : 'none';
     campCounselorForm.style.display = role === 'player' ? '' : 'none';
   }
 
