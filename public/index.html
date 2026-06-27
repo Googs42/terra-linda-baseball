@@ -925,6 +925,9 @@ body.print-size-half   { page: half-page; }
       <div class="nav-item" onclick="showSection('fundraising', this)">
         <span class="nav-icon">&#9632;</span> Fundraising
       </div>
+      <div class="nav-item" onclick="showSection('volunteer', this)">
+        <span class="nav-icon">&#9632;</span> Volunteer & Donate
+      </div>
       <div class="nav-item" onclick="showSection('contact', this)">
         <span class="nav-icon">&#9632;</span> Contact / Outreach
       </div>
@@ -2817,6 +2820,94 @@ body.print-size-half   { page: half-page; }
 
       </div>
 
+      <!-- VOLUNTEER & DONATE -->
+      <div class="section" id="section-volunteer">
+        <div style="background:rgba(0,61,165,0.15);border:1px solid rgba(0,61,165,0.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">
+          <div style="font-size:24px">&#129309;</div>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">Volunteer &amp; Support the Program</div>
+            <div style="font-size:12px;color:var(--text-muted)">Help us give TL Baseball players the best experience possible</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:1.25rem">
+
+          <!-- Field & Facility -->
+          <div class="card">
+            <div class="card-title">&#9918; Field &amp; Facility Help</div>
+            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">Help us prep and maintain Marv Maples Field — dragging the infield, lining the base paths, setting up for home games, and general cleanup. No experience needed, just a willingness to get your hands dirty!</div>
+            <form onsubmit="submitVolunteerForm('field', event)">
+              <div style="display:grid;gap:10px">
+                <input class="form-input" id="vol-field-name" placeholder="Your name" required style="font-size:13px;padding:8px 10px">
+                <input class="form-input" id="vol-field-email" type="email" placeholder="Email address" required style="font-size:13px;padding:8px 10px">
+                <input class="form-input" id="vol-field-phone" placeholder="Phone (optional)" style="font-size:13px;padding:8px 10px">
+                <select class="form-input" id="vol-field-avail" style="font-size:13px;padding:8px 10px">
+                  <option value="">Availability</option>
+                  <option>Weekday mornings</option>
+                  <option>Weekday evenings</option>
+                  <option>Weekend mornings</option>
+                  <option>Weekend afternoons</option>
+                  <option>Flexible / any time</option>
+                </select>
+                <button type="submit" class="btn btn-red" style="font-size:12px">Sign Me Up</button>
+              </div>
+            </form>
+            <div id="vol-field-confirm" style="display:none;margin-top:10px;color:#2ECC71;font-size:13px;font-weight:600">&#10003; Thanks! We&apos;ll be in touch.</div>
+          </div>
+
+          <!-- Snack Shack -->
+          <div class="card">
+            <div class="card-title">&#127830; Snack Shack Volunteers</div>
+            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">Run the snack shack during home games — selling drinks, snacks, and team merchandise. Shifts are typically 2-3 hours. This is a great way to support the team and meet other TL Baseball families!</div>
+            <form onsubmit="submitVolunteerForm('snack', event)">
+              <div style="display:grid;gap:10px">
+                <input class="form-input" id="vol-snack-name" placeholder="Your name" required style="font-size:13px;padding:8px 10px">
+                <input class="form-input" id="vol-snack-email" type="email" placeholder="Email address" required style="font-size:13px;padding:8px 10px">
+                <input class="form-input" id="vol-snack-phone" placeholder="Phone (optional)" style="font-size:13px;padding:8px 10px">
+                <select class="form-input" id="vol-snack-avail" style="font-size:13px;padding:8px 10px">
+                  <option value="">Preferred game days</option>
+                  <option>Tuesday/Thursday games</option>
+                  <option>Saturday games</option>
+                  <option>Any home game</option>
+                  <option>Playoffs / big games only</option>
+                </select>
+                <button type="submit" class="btn btn-red" style="font-size:12px">Sign Me Up</button>
+              </div>
+            </form>
+            <div id="vol-snack-confirm" style="display:none;margin-top:10px;color:#2ECC71;font-size:13px;font-weight:600">&#10003; Thanks! We&apos;ll be in touch.</div>
+          </div>
+
+        </div>
+
+        <!-- Donations -->
+        <div class="card">
+          <div class="card-title">&#128176; Donate to the Program</div>
+          <div class="grid-3" style="margin-bottom:1.25rem">
+            <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px">$50</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Supporter</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Helps cover baseballs and practice supplies for one game week</div>
+            </div>
+            <div style="background:rgba(0,61,165,0.12);border:1px solid rgba(0,61,165,0.3);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#7AADFF;margin-bottom:4px">$150</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Booster</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Funds team travel to an away game or tournament entry fee</div>
+            </div>
+            <div style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.25);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#ff6b6b;margin-bottom:4px">$500+</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Program Sponsor</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Major support — helps fund equipment upgrades or uniform sets</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">All donations directly support TL Baseball players. Funds go toward equipment, travel costs, clinic programs, and keeping the Summer Camp affordable for all families. To donate, reach out directly to the booster club or coaching staff.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-red" onclick="showSection('contact',null)">Contact Coaching Staff &rarr;</button>
+            <a href="mailto:ridgelinesproject@gmail.com" style="text-decoration:none"><button class="btn" style="font-size:12px">Email Booster Club</button></a>
+          </div>
+        </div>
+
+      </div>
+
       <!-- CONTACT / OUTREACH -->
       <div class="section" id="section-contact">
         <div class="grid-2">
@@ -3466,7 +3557,7 @@ const NAV_ACCESS = {
   coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
   player: ['player-home','roster','stats','schedule','skills','workouts','field','clinics','camp','maxpreps'],
-  parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','maxpreps','contact'],
+  parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','volunteer','maxpreps','contact'],
 };
 
 // All nav items and their section keys (data attribute approach)
@@ -3476,7 +3567,7 @@ const NAV_LABELS = {
   skills:'Position Skills',
   workouts:'Workout Plans', field:'Field Maintenance',
   clinics:'Clinics', camp:'Summer Camp', fundraising:'Fundraising',
-  maxpreps:'MaxPreps Hub', contact:'Contact / Outreach',
+  maxpreps:'MaxPreps Hub', contact:'Contact / Outreach', volunteer:'Volunteer & Donate',
   'player-home':'My Dashboard', 'parent-home':'My Dashboard',
 };
 
@@ -3817,9 +3908,15 @@ function applyRoleAccess(user) {
   // Hide nav items not allowed for this role
   document.querySelectorAll('.nav-item[onclick]').forEach(navEl => {
     const onclick = navEl.getAttribute('onclick') || '';
-    const match = onclick.match(/showSection\('([^']+)'/);
-    if (match) {
-      const section = match[1];
+    let section = null;
+    const showMatch = onclick.match(/showSection\('([^']+)'/);
+    const hrefMatch = onclick.match(/href='\/([^'?']+)/);
+    if (showMatch) {
+      section = showMatch[1];
+    } else if (hrefMatch) {
+      section = hrefMatch[1]; // e.g. 'workouts', 'roster', 'schedule'
+    }
+    if (section) {
       if (!allowed.includes(section)) {
         navEl.style.display = 'none';
       } else {
@@ -5310,6 +5407,23 @@ async function submitCampReg(btn) {
   const saved = await apiPost('camp', form);
   if (saved.error) { alert('Error submitting: '+saved.error); return; }
   alert('Registration submitted! We will follow up by email within 24 hours.');
+}
+
+function submitVolunteerForm(type, e) {
+  e.preventDefault();
+  const name  = document.getElementById('vol-' + type + '-name')?.value.trim();
+  const email = document.getElementById('vol-' + type + '-email')?.value.trim();
+  const phone = document.getElementById('vol-' + type + '-phone')?.value.trim();
+  const avail = document.getElementById('vol-' + type + '-avail')?.value;
+  if (!name || !email) return;
+  // Store locally (a Supabase table can be wired later if needed)
+  const key = 'tl_volunteers_' + type;
+  const entries = JSON.parse(localStorage.getItem(key) || '[]');
+  entries.push({ name, email, phone, avail, submitted: new Date().toISOString() });
+  localStorage.setItem(key, JSON.stringify(entries));
+  const confirm = document.getElementById('vol-' + type + '-confirm');
+  if (confirm) confirm.style.display = '';
+  e.target.reset();
 }
 
 async function submitContact(btn) {
