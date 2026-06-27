@@ -1894,6 +1894,73 @@ body.print-size-half   { page: half-page; }
             </div>
           </div>
 
+          <!-- Coach / Viewer: staff employee documents + document submission tracker -->
+          <div id="camp-coach-docs" style="display:none">
+
+            <!-- Staff docs -->
+            <div class="card" style="margin-bottom:1.25rem">
+              <div class="card-title" style="margin-bottom:1rem">&#128218; Staff Documents</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">Required documents for all camp counselors and field crew. Distribute and collect before first shift.</div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,61,165,0.18);border:1px solid rgba(0,61,165,0.35);border-radius:10px;margin-bottom:8px">
+                <div style="font-size:24px;flex-shrink:0">&#128196;</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:12px;color:var(--white)">Camp Counselor Appointment &amp; Training Agreement</div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Required &middot; Parent/guardian signature if under 18</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <a href="/docs/TLCBA_Camp_Counselor_Agreement_Professional.pdf" target="_blank" class="btn btn-red" style="font-size:10px;padding:5px 10px;text-decoration:none">View</a>
+                  <a href="/docs/TLCBA_Camp_Counselor_Agreement_Professional.pdf" download class="btn" style="font-size:10px;padding:5px 10px;text-decoration:none">&#8595;</a>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,61,165,0.18);border:1px solid rgba(0,61,165,0.35);border-radius:10px;margin-bottom:8px">
+                <div style="font-size:24px;flex-shrink:0">&#128218;</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:12px;color:var(--white)">TLBCA Employee Handbook</div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Required &middot; 17 pages &middot; Employee must sign acknowledgment page</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <a href="/docs/TLBCA_Employee_Handbook.pdf" target="_blank" class="btn btn-red" style="font-size:10px;padding:5px 10px;text-decoration:none">View</a>
+                  <a href="/docs/TLBCA_Employee_Handbook.pdf" download class="btn" style="font-size:10px;padding:5px 10px;text-decoration:none">&#8595;</a>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,61,165,0.18);border:1px solid rgba(0,61,165,0.35);border-radius:10px">
+                <div style="font-size:24px;flex-shrink:0">&#128197;</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:12px;color:var(--white)">Weekly Time Card</div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Submit weekly &middot; Includes CA meal/break certification</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0">
+                  <a href="/docs/TLBCA_Employee_TimeCard.pdf" target="_blank" class="btn btn-red" style="font-size:10px;padding:5px 10px;text-decoration:none">View</a>
+                  <a href="/docs/TLBCA_Employee_TimeCard.pdf" download class="btn" style="font-size:10px;padding:5px 10px;text-decoration:none">&#8595;</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document submission tracker (coach only) -->
+            <div class="card" id="doc-tracker-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+                <div class="card-title" style="margin:0">&#9989; Document Tracker</div>
+                <button class="btn" style="font-size:10px;padding:4px 10px" onclick="addDocEntry()">+ Add Employee</button>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:1rem">Track which signed documents you have received from each counselor / field crew member.</div>
+
+              <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:0;font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:0.05em;padding:0 6px;margin-bottom:6px">
+                <span>EMPLOYEE</span>
+                <span style="text-align:center;padding:0 8px">AGREEMENT</span>
+                <span style="text-align:center;padding:0 8px">HANDBOOK</span>
+                <span style="text-align:center;padding:0 8px">TIME CARD</span>
+              </div>
+
+              <div id="doc-tracker-body">
+                <div style="color:var(--text-muted);font-size:12px;text-align:center;padding:1.5rem 0">No employees added yet. Click &ldquo;+ Add Employee&rdquo; to start tracking.</div>
+              </div>
+            </div>
+
+          </div><!-- /camp-coach-docs -->
+
           <!-- Player: counselor documents -->
           <div id="camp-counselor-docs" style="display:none;margin-bottom:1.25rem">
             <div class="card">
@@ -3761,16 +3828,22 @@ function applyRoleAccess(user) {
     }
   });
 
-  // Camp: players see counselor docs + signup; coaches/parents see camper registration
-  const campRegForm = document.getElementById('camp-register-form');
-  const campCounselorDocs = document.getElementById('camp-counselor-docs');
-  const campCounselorForm = document.getElementById('camp-counselor-form');
-  const counselorSignupsCard = document.getElementById('counselor-signups-card');
-  if (campRegForm && campCounselorForm) {
-    campRegForm.style.display = role === 'player' ? 'none' : '';
-    if (campCounselorDocs) campCounselorDocs.style.display = role === 'player' ? '' : 'none';
-    campCounselorForm.style.display = role === 'player' ? '' : 'none';
+  // Camp role visibility:
+  //   parent  → registration form only
+  //   player  → counselor docs + counselor signup form
+  //   coach   → staff docs + document tracker + counselor signups list
+  //   viewer  → staff docs only
+  const campRegForm         = document.getElementById('camp-register-form');
+  const campCounselorDocs   = document.getElementById('camp-counselor-docs');
+  const campCounselorForm   = document.getElementById('camp-counselor-form');
+  const counselorSignupsCard= document.getElementById('counselor-signups-card');
+  const campCoachDocs       = document.getElementById('camp-coach-docs');
+  if (campRegForm) {
+    campRegForm.style.display         = role === 'parent' ? '' : 'none';
+    if (campCounselorDocs)  campCounselorDocs.style.display  = role === 'player' ? '' : 'none';
+    if (campCounselorForm)  campCounselorForm.style.display  = role === 'player' ? '' : 'none';
     if (counselorSignupsCard) counselorSignupsCard.style.display = role === 'coach' ? '' : 'none';
+    if (campCoachDocs)      campCoachDocs.style.display      = (role === 'coach' || role === 'viewer') ? '' : 'none';
   }
 
   // Clinics: players see the volunteer/coaching signup; others see admin view
@@ -3798,8 +3871,8 @@ function applyRoleAccess(user) {
   // Surface pending coach requests on the dashboard for admins.
   if (typeof renderAdminAlertBanner === 'function') renderAdminAlertBanner();
 
-  // Load counselor signups for coaches
-  if (role === 'coach') loadCounselorApps();
+  // Load counselor signups and doc tracker for coaches
+  if (role === 'coach') { loadCounselorApps(); renderDocTracker(); }
 }
 
 function renderCounselorSignupsList() {
@@ -3832,6 +3905,75 @@ function renderCounselorSignupsList() {
     '</div>';
   }).join('') +
   '<div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:right">' + COUNSELOR_APPS.length + ' total applicant' + (COUNSELOR_APPS.length > 1 ? 's' : '') + '</div>';
+}
+
+// ── Document Tracker ────────────────────────────────────────
+// Stored in localStorage: tl_doc_tracker = [{id, name, agreement, handbook, timecard}, ...]
+function getDocEntries() {
+  try { return JSON.parse(localStorage.getItem('tl_doc_tracker') || '[]'); } catch { return []; }
+}
+function saveDocEntries(entries) {
+  localStorage.setItem('tl_doc_tracker', JSON.stringify(entries));
+}
+
+function renderDocTracker() {
+  const body = document.getElementById('doc-tracker-body');
+  if (!body) return;
+  const entries = getDocEntries();
+  if (!entries.length) {
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:1.5rem 0">No employees added yet. Click &ldquo;+ Add Employee&rdquo; to start tracking.</div>';
+    return;
+  }
+  const DOC_TYPES = [
+    { key: 'agreement', label: 'Counselor Agreement' },
+    { key: 'handbook',  label: 'Handbook Acknowledgment' },
+    { key: 'timecard',  label: 'Time Card (weekly)' },
+  ];
+  body.innerHTML = entries.map((e, i) => {
+    const allDone = DOC_TYPES.every(d => e[d.key]);
+    return '<div style="display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:0;padding:9px 6px;border-bottom:1px solid rgba(255,255,255,0.06)' + (allDone ? ';background:rgba(46,204,113,0.05)' : '') + '">' +
+      '<div style="display:flex;align-items:center;gap:8px;min-width:0">' +
+        (allDone ? '<span style="font-size:12px">&#9989;</span>' : '<span style="font-size:12px;opacity:0.35">&#9711;</span>') +
+        '<span style="font-size:12px;font-weight:600;color:var(--white)">' + escHtml(e.name) + '</span>' +
+        '<button onclick="removeDocEntry(' + i + ')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0 4px;opacity:0.5" title="Remove">&times;</button>' +
+      '</div>' +
+      DOC_TYPES.map(d =>
+        '<div style="text-align:center;padding:0 8px">' +
+          '<input type="checkbox" title="' + d.label + '" ' + (e[d.key] ? 'checked' : '') +
+          ' onchange="toggleDocEntry(' + i + ',\'' + d.key + '\',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#2ECC71">' +
+        '</div>'
+      ).join('') +
+    '</div>';
+  }).join('');
+}
+
+function addDocEntry() {
+  const name = prompt('Employee name:');
+  if (!name || !name.trim()) return;
+  const entries = getDocEntries();
+  entries.push({ id: Date.now(), name: name.trim(), agreement: false, handbook: false, timecard: false });
+  saveDocEntries(entries);
+  renderDocTracker();
+}
+
+function removeDocEntry(index) {
+  if (!confirm('Remove this employee from the tracker?')) return;
+  const entries = getDocEntries();
+  entries.splice(index, 1);
+  saveDocEntries(entries);
+  renderDocTracker();
+}
+
+function toggleDocEntry(index, key, checked) {
+  const entries = getDocEntries();
+  if (!entries[index]) return;
+  entries[index][key] = checked;
+  saveDocEntries(entries);
+  renderDocTracker();
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Supabase connection health check ────────────────────────
@@ -4125,6 +4267,7 @@ async function loadCounselorApps() {
       COUNSELOR_APPS_SEEN = parseInt(localStorage.getItem('tl_counselor_seen') || '0', 10);
       renderAdminAlertBanner();
       renderCounselorSignupsList();
+      renderDocTracker();
     }
   } catch(e) {}
 }
