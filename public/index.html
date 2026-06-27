@@ -1647,7 +1647,8 @@ body.print-size-half   { page: half-page; }
             </div>
           </div>
 
-          <div class="card">
+          <!-- Parent / coach: register a camper -->
+          <div class="card" id="camp-register-form">
             <div class="card-title">Register for camp</div>
             <div class="form-group">
               <label class="form-label">Player name</label>
@@ -1697,6 +1698,57 @@ body.print-size-half   { page: half-page; }
               <textarea class="form-input" placeholder="Any medical notes, questions, prior experience..."></textarea>
             </div>
             <button class="btn btn-red" style="width:100%;padding:10px" onclick="alert('Registration submitted! We will follow up by email within 24 hours.')">Submit Registration</button>
+          </div>
+
+          <!-- Player: sign up to be a camp counselor -->
+          <div class="card" id="camp-counselor-form" style="display:none">
+            <div class="card-title">&#127867; Sign Up as Camp Counselor</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">Trojans players are invited to work as junior counselors during summer camp sessions. You'll help coach drills, lead warmups, and be a role model for younger players. A great way to give back and build leadership skills.</div>
+            <div class="form-group">
+              <label class="form-label">Your name</label>
+              <input class="form-input" id="counselor-name" placeholder="First and last name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Your position(s)</label>
+              <select class="form-input form-select" id="counselor-pos">
+                <option value="">Select your primary position</option>
+                <option>Pitcher</option><option>Catcher</option>
+                <option>First Base</option><option>Second Base</option>
+                <option>Shortstop</option><option>Third Base</option>
+                <option>Left Field</option><option>Center Field</option>
+                <option>Right Field</option><option>Utility / Multiple</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Session(s) available (check all that apply)</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s1"> Session 1 &mdash; June 9-13 (Foundations, Ages 8-14)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s2"> Session 2 &mdash; June 16-20 (Advanced Skills, Ages 13-18)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s3"> Session 3 &mdash; June 23-27 (Pitching Intensive, Ages 12-18)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" value="s4"> Session 4 &mdash; July 7-11 (All Skills, Ages 8-18)</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">What do you most want to help with?</label>
+              <select class="form-input form-select" id="counselor-focus">
+                <option value="">Select focus area</option>
+                <option>Hitting / batting drills</option>
+                <option>Pitching / bullpen work</option>
+                <option>Fielding / defense</option>
+                <option>Catching</option>
+                <option>Baserunning</option>
+                <option>Whatever the coaches need</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact email</label>
+              <input class="form-input" id="counselor-email" type="email" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Anything else? (optional)</label>
+              <textarea class="form-input" id="counselor-notes" rows="3" placeholder="Prior coaching or teaching experience, conflicts, questions..."></textarea>
+            </div>
+            <button class="btn btn-red" style="width:100%;padding:10px" onclick="submitCounselorApp()">Submit Application</button>
           </div>
         </div>
       </div>
