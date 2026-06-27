@@ -1311,9 +1311,9 @@ body.print-size-half   { page: half-page; }
               <div class="event-name">Summer Camp — Week 2</div>
               <div class="event-meta"><span>July 13–17 &nbsp;·&nbsp; 9 AM–3 PM</span><span class="event-spots" style="color:var(--gold)">Register</span></div>
             </div>
-            <div class="event-item">
+            <div class="event-item" style="cursor:pointer" onclick="event.stopPropagation();window.open('https://www.gallinasvalleylittleleague.org','_blank')">
               <div class="event-name">Fall Ball — TL Gamecocks</div>
-              <div class="event-meta"><span>Gallinas Valley Little League</span><span class="event-spots" style="color:#7AADFF">Sign up now</span></div>
+              <div class="event-meta"><span>Gallinas Valley Little League</span><span class="event-spots" style="color:#7AADFF">Register &rarr;</span></div>
             </div>
             <div class="event-item">
               <div class="event-name">Counselor Applications Open</div>
@@ -2206,8 +2206,11 @@ body.print-size-half   { page: half-page; }
                 <div style="font-size:12px;font-weight:600">TL Gamecocks</div>
               </div>
             </div>
-            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem">Fall ball is a great way to keep developing through the off-season. Contact the coaching staff or visit Gallinas Valley Little League to register.</div>
-            <button class="btn btn-red" style="font-size:12px;width:100%" onclick="showSection('contact',null)">Contact Coach to Sign Up &rarr;</button>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem">Fall ball is a great way to keep developing through the off-season. Register directly at Gallinas Valley Little League or contact the coaching staff.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-red" style="font-size:12px;flex:1" onclick="window.open('https://www.gallinasvalleylittleleague.org','_blank')">Register at GVLL &rarr;</button>
+              <button class="btn" style="font-size:12px;flex:1" onclick="showSection('contact',null)">Contact Coach &rarr;</button>
+            </div>
           </div>
 
         </div>
@@ -4618,13 +4621,15 @@ function loadPlayerDashboard(user) {
   const eventsEl = document.getElementById('player-dash-events');
   if (eventsEl) {
     const events = cfg.player.events || [];
-    eventsEl.innerHTML = events.map(ev =>
-      '<div class="event-item" style="cursor:pointer" onclick="showSection(\'' + (ev.link||'contact') + '\',null)">' +
-      '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
-      '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
-      (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
-      '</div></div>'
-    ).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
+    eventsEl.innerHTML = events.map(ev => {
+      const lnk = ev.link || 'contact';
+      const action = lnk.startsWith('http') ? 'window.open(\'' + lnk + '\',\'_blank\')' : 'showSection(\'' + lnk + '\',null)';
+      return '<div class="event-item" style="cursor:pointer" onclick="' + action + '">' +
+        '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
+        '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
+        (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
+        '</div></div>';
+    }).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
   }
 }
 
@@ -4660,13 +4665,15 @@ function loadParentDashboard(user) {
   const eventsEl = document.getElementById('parent-dash-events');
   if (eventsEl) {
     const events = cfg.parent.events || [];
-    eventsEl.innerHTML = events.map(ev =>
-      '<div class="event-item" style="cursor:pointer" onclick="showSection(\'' + (ev.link||'contact') + '\',null)">' +
-      '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
-      '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
-      (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
-      '</div></div>'
-    ).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
+    eventsEl.innerHTML = events.map(ev => {
+      const lnk = ev.link || 'contact';
+      const action = lnk.startsWith('http') ? 'window.open(\'' + lnk + '\',\'_blank\')' : 'showSection(\'' + lnk + '\',null)';
+      return '<div class="event-item" style="cursor:pointer" onclick="' + action + '">' +
+        '<div class="event-name">' + escHtml(ev.name||'') + '</div>' +
+        '<div class="event-meta"><span>' + escHtml(ev.detail||'') + '</span>' +
+        (ev.status ? '<span style="color:' + (ev.statusColor||'var(--gold)') + '">' + escHtml(ev.status) + '</span>' : '') +
+        '</div></div>';
+    }).join('') || '<div style="font-size:12px;color:var(--text-muted)">No events at this time.</div>';
   }
 }
 
@@ -5888,7 +5895,7 @@ const DASH_DEFAULT = {
     events: [
       { name: 'Summer Camp — Week 1', detail: 'July 6–10 · 9 AM–3 PM', status: 'Register now', link: 'camp', statusColor: 'var(--gold)' },
       { name: 'Summer Camp — Week 2', detail: 'July 13–17 · 9 AM–3 PM', status: 'Register now', link: 'camp', statusColor: 'var(--gold)' },
-      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'contact', statusColor: '#7AADFF' },
+      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'https://www.gallinasvalleylittleleague.org', statusColor: '#7AADFF' },
     ]
   },
   player: {
@@ -5896,7 +5903,7 @@ const DASH_DEFAULT = {
     events: [
       { name: 'Summer Camp — Week 1', detail: 'July 6–10 · 9 AM–3 PM', status: 'Register', link: 'camp', statusColor: 'var(--gold)' },
       { name: 'Summer Camp — Week 2', detail: 'July 13–17 · 9 AM–3 PM', status: 'Register', link: 'camp', statusColor: 'var(--gold)' },
-      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'contact', statusColor: '#7AADFF' },
+      { name: 'Fall Ball — TL Gamecocks', detail: 'Gallinas Valley Little League', status: 'Sign up now', link: 'https://www.gallinasvalleylittleleague.org', statusColor: '#7AADFF' },
       { name: 'Counselor Applications Open', detail: 'Help coach summer camp', status: 'Apply below', link: 'camp', statusColor: '#2ECC71' },
     ]
   }
