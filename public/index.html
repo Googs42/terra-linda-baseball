@@ -1588,16 +1588,80 @@ body.print-size-half   { page: half-page; }
 
       <!-- CLINICS -->
       <div class="section" id="section-clinics">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
-          <div style="font-size:12px;color:var(--text-muted)">Terra Linda Baseball - clinic schedule & registration management</div>
-          <button class="btn btn-red" onclick="openModal('addClinic')">+ Add Clinic</button>
+        <!-- Coach / admin view -->
+        <div id="clinics-admin-view">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <div style="font-size:12px;color:var(--text-muted)">Terra Linda Baseball - clinic schedule &amp; registration management</div>
+            <button class="btn btn-red coach-only" onclick="openModal('addClinic')">+ Add Clinic</button>
+          </div>
+          <div style="background:rgba(255,199,44,0.08);border:1px dashed rgba(255,199,44,0.4);border-radius:8px;padding:24px;text-align:center;margin-bottom:1.25rem">
+            <div style="font-size:28px;margin-bottom:6px">&#128679;</div>
+            <div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:4px">Still under construction</div>
+            <div style="font-size:12px;color:var(--text-muted)">Clinic scheduling and registration are coming soon. Check back shortly.</div>
+          </div>
+          <div class="grid-3" id="clinics-grid"></div>
         </div>
-        <div style="background:rgba(255,199,44,0.08);border:1px dashed rgba(255,199,44,0.4);border-radius:8px;padding:24px;text-align:center;margin-bottom:1.25rem">
-          <div style="font-size:28px;margin-bottom:6px">&#128679;</div>
-          <div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:4px">Still under construction</div>
-          <div style="font-size:12px;color:var(--text-muted)">Clinic scheduling and registration are coming soon. Check back shortly.</div>
+
+        <!-- Player view: sign up to help coach a clinic -->
+        <div id="clinics-player-view" style="display:none">
+          <div class="grid-2">
+            <div>
+              <div class="card" style="margin-bottom:1.25rem">
+                <div class="card-title">&#9876; Upcoming Clinics</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">As a Trojans player you're invited to help run these community clinics. Check back as new sessions are added.</div>
+                <div id="player-clinics-list">
+                  <div style="background:rgba(255,199,44,0.08);border:1px dashed rgba(255,199,44,0.3);border-radius:8px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px">
+                    No clinics scheduled yet. Check back soon.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Sign Up to Help Coach a Clinic</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">Want to give back and develop your own coaching skills? Sign up to assist at an upcoming Terra Linda Baseball clinic. Coaches will reach out to confirm your slot.</div>
+              <div class="form-group">
+                <label class="form-label">Your name</label>
+                <input class="form-input" id="clinic-helper-name" placeholder="First and last name">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Your position(s)</label>
+                <select class="form-input form-select" id="clinic-helper-pos">
+                  <option value="">Select your primary position</option>
+                  <option>Pitcher</option><option>Catcher</option>
+                  <option>First Base</option><option>Second Base</option>
+                  <option>Shortstop</option><option>Third Base</option>
+                  <option>Left Field</option><option>Center Field</option>
+                  <option>Right Field</option><option>Utility / Multiple</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">What clinic focus are you best suited for?</label>
+                <select class="form-input form-select" id="clinic-helper-focus">
+                  <option value="">Select a focus</option>
+                  <option>Hitting fundamentals</option>
+                  <option>Pitching mechanics</option>
+                  <option>Fielding &amp; defense</option>
+                  <option>Catching</option>
+                  <option>Baserunning &amp; speed</option>
+                  <option>General / all areas</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Availability</label>
+                <input class="form-input" id="clinic-helper-avail" placeholder="e.g. Saturdays, weekday afternoons, all summer...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Contact email</label>
+                <input class="form-input" id="clinic-helper-email" type="email" placeholder="email@example.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Anything else? (optional)</label>
+                <textarea class="form-input" id="clinic-helper-notes" rows="3" placeholder="Prior experience, questions, specific dates you're available..."></textarea>
+              </div>
+              <button class="btn btn-red" style="width:100%;padding:10px" onclick="submitClinicHelper()">Submit Interest</button>
+            </div>
+          </div>
         </div>
-        <div class="grid-3" id="clinics-grid"></div>
       </div>
 
       <!-- SUMMER CAMP -->
@@ -3506,6 +3570,22 @@ function applyRoleAccess(user) {
     }
   });
 
+  // Camp: players see counselor signup; coaches/parents see camper registration
+  const campRegForm = document.getElementById('camp-register-form');
+  const campCounselorForm = document.getElementById('camp-counselor-form');
+  if (campRegForm && campCounselorForm) {
+    campRegForm.style.display = role === 'player' ? 'none' : '';
+    campCounselorForm.style.display = role === 'player' ? '' : 'none';
+  }
+
+  // Clinics: players see the volunteer/coaching signup; others see admin view
+  const clinicsAdmin = document.getElementById('clinics-admin-view');
+  const clinicsPlayer = document.getElementById('clinics-player-view');
+  if (clinicsAdmin && clinicsPlayer) {
+    clinicsAdmin.style.display = role === 'player' ? 'none' : '';
+    clinicsPlayer.style.display = role === 'player' ? '' : 'none';
+  }
+
   // Navigate to correct home section
   if (role === 'coach' || role === 'viewer') {
     activateSection('dashboard');
@@ -4741,6 +4821,34 @@ async function submitContact(btn) {
   alert('Message sent! Coach will follow up within 48 hours.');
 }
 
+
+function submitCounselorApp() {
+  const name = document.getElementById('counselor-name')?.value.trim();
+  const pos  = document.getElementById('counselor-pos')?.value;
+  const focus = document.getElementById('counselor-focus')?.value;
+  const email = document.getElementById('counselor-email')?.value.trim();
+  const notes = document.getElementById('counselor-notes')?.value.trim();
+  const sessions = Array.from(document.querySelectorAll('#camp-counselor-form input[type=checkbox]:checked')).map(cb => cb.value);
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!sessions.length) { alert('Please select at least one session you can work.'); return; }
+  if (!email) { alert('Please enter a contact email.'); return; }
+  alert('Application submitted! The coaching staff will be in touch to confirm your slot.\n\nName: ' + name + '\nSessions: ' + sessions.join(', '));
+  ['counselor-name','counselor-email','counselor-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.querySelectorAll('#camp-counselor-form input[type=checkbox]').forEach(cb => cb.checked = false);
+}
+
+function submitClinicHelper() {
+  const name  = document.getElementById('clinic-helper-name')?.value.trim();
+  const pos   = document.getElementById('clinic-helper-pos')?.value;
+  const focus = document.getElementById('clinic-helper-focus')?.value;
+  const avail = document.getElementById('clinic-helper-avail')?.value.trim();
+  const email = document.getElementById('clinic-helper-email')?.value.trim();
+  const notes = document.getElementById('clinic-helper-notes')?.value.trim();
+  if (!name)  { alert('Please enter your name.'); return; }
+  if (!email) { alert('Please enter a contact email.'); return; }
+  alert('Interest submitted! A coach will reach out to confirm your role.\n\nName: ' + name + '\nFocus: ' + (focus || 'Not specified'));
+  ['clinic-helper-name','clinic-helper-avail','clinic-helper-email','clinic-helper-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
 
 // Init portal on page load. If a user is already signed in (session stored
 // in localStorage), skip the portal and apply their role. Otherwise leave
