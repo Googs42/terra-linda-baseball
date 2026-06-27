@@ -922,8 +922,11 @@ body.print-size-half   { page: half-page; }
       <div class="nav-item" onclick="showSection('camp', this)">
         <span class="nav-icon">&#9632;</span> Summer Camp
       </div>
-      <div class="nav-item" onclick="showSection('fundraising', this)">
+      <div class="nav-item" onclick="showSection('fundraising', this); if(typeof initFundraising==='function')initFundraising()">
         <span class="nav-icon">&#9632;</span> Fundraising
+      </div>
+      <div class="nav-item" onclick="showSection('store', this)">
+        <span class="nav-icon">&#9632;</span> Team Store
       </div>
       <div class="nav-item" onclick="showSection('volunteer', this)">
         <span class="nav-icon">&#9632;</span> Volunteer & Donate
@@ -2488,77 +2491,202 @@ body.print-size-half   { page: half-page; }
 
       <!-- FUNDRAISING -->
       <div class="section" id="section-fundraising">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
-          <div style="font-size:12px;color:var(--text-muted)">Track fundraisers, goals, and contributions for the Terra Linda Baseball program.</div>
-          <button class="btn btn-red" onclick="openModal('addFundraiser')">+ Add Fundraiser</button>
-        </div>
-
-        <div style="background:rgba(255,199,44,0.08);border:1px dashed rgba(255,199,44,0.4);border-radius:8px;padding:24px;text-align:center;margin-bottom:1.25rem">
-          <div style="font-size:28px;margin-bottom:6px">&#128679;</div>
-          <div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:4px">Still under construction</div>
-          <div style="font-size:12px;color:var(--text-muted)">Fundraising tracking is coming soon. Check back shortly.</div>
-        </div>
-
-        <!-- Summary stats -->
-        <div class="stats-row" style="margin-bottom:1.25rem">
-          <div class="stat-card">
-            <div class="stat-label">Total raised (season)</div>
-            <div class="stat-num" style="color:var(--gold)">$4,820</div>
-            <div class="stat-sub">Goal: $8,000</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Active fundraisers</div>
-            <div class="stat-num">3</div>
-            <div class="stat-sub">2 upcoming</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Top contributor</div>
-            <div class="stat-num" style="font-size:18px;color:var(--gold)">Booster Club</div>
-            <div class="stat-sub">$1,200 donated</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Players participating</div>
-            <div class="stat-num">24</div>
-            <div class="stat-sub">of 28 total</div>
-          </div>
-        </div>
-
-        <!-- Overall progress bar -->
+        <!-- Season progress -->
         <div class="card" style="margin-bottom:1.25rem">
-          <div class="card-title">Season fundraising goal</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <div class="card-title" style="margin:0">Season Fundraising Goal</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold)" id="fr-total">$0</div>
+          </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px">
             <span style="color:var(--text-muted)">$0</span>
-            <span style="color:var(--gold);font-weight:500">$4,820 raised of $8,000 goal</span>
+            <span style="color:var(--gold);font-weight:500" id="fr-progress-mid">$0 raised of $8,000 goal</span>
             <span style="color:var(--text-muted)">$8,000</span>
           </div>
           <div style="height:10px;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;margin-bottom:8px">
-            <div style="width:60%;height:100%;background:var(--gold);border-radius:6px;transition:width 0.6s"></div>
+            <div id="fr-progress-bar" style="width:0%;height:100%;background:var(--gold);border-radius:6px;transition:width 0.6s"></div>
           </div>
-          <div style="font-size:11px;color:var(--text-muted)">60% of season goal reached - $3,180 remaining</div>
+          <div id="fr-progress-sub" style="font-size:11px;color:var(--text-muted)">0% of season goal reached</div>
         </div>
 
+        <!-- Quick stats -->
+        <div class="stats-row" style="margin-bottom:1.25rem">
+          <div class="stat-card">
+            <div class="stat-label">Total raised</div>
+            <div class="stat-num" style="color:var(--gold)" id="fr-total-stat">$0</div>
+            <div class="stat-sub">of $8,000 goal</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Contributions</div>
+            <div class="stat-num" id="fr-count-stat">0</div>
+            <div class="stat-sub">logged</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Hit-a-Thon pledges</div>
+            <div class="stat-num" id="ha-pledge-count">0</div>
+            <div class="stat-sub">collected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Banner sponsors</div>
+            <div class="stat-num" id="fr-banner-count">0</div>
+            <div class="stat-sub">outfield panels</div>
+          </div>
+        </div>
+
+        <!-- Two fundraisers -->
         <div class="grid-2" style="margin-bottom:1.25rem">
 
-          <!-- Active fundraisers -->
+          <!-- Hit-a-Thon -->
           <div class="card">
-            <div class="card-title">Active fundraisers</div>
-            <div id="active-fundraisers"></div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem">
+              <div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px">&#9918; Hit-a-Thon 2026</div>
+                <div style="font-size:11px;color:var(--text-muted)">Pledges per hit &mdash; Fall 2026</div>
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(46,204,113,0.15);color:#2ECC71;white-space:nowrap">ACTIVE</span>
+            </div>
+            <div style="margin-bottom:.75rem">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px">
+                <span id="fr-hitathon-raised">$0 raised</span><span>Goal: $3,000</span>
+              </div>
+              <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
+                <div id="fr-hitathon-bar" style="width:0%;height:100%;background:#2ECC71;border-radius:4px;transition:width 0.6s"></div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">Family and friends pledge a dollar amount <strong style="color:var(--white)">per hit</strong> for a Trojans player during our Hit-a-Thon event. After the event, pledges are collected and totaled based on each player&apos;s hits. It&apos;s competitive, fun, and a great way for the whole family to get involved!</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">Submit a pledge:</div>
+            <form onsubmit="submitHitathonPledge(event)">
+              <div style="display:grid;gap:8px">
+                <input class="form-input" id="ha-player" placeholder="Player name (who you&apos;re pledging for)" required style="font-size:12px;padding:7px 10px">
+                <input class="form-input" id="ha-pledger" placeholder="Your name" required style="font-size:12px;padding:7px 10px">
+                <input class="form-input" id="ha-email" type="email" placeholder="Your email" required style="font-size:12px;padding:7px 10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:12px;color:var(--text-muted)">$</span>
+                  <input class="form-input" id="ha-perhit" type="number" min="1" step="1" placeholder="Amount per hit (e.g. 5)" required style="font-size:12px;padding:7px 10px;flex:1">
+                  <span style="font-size:12px;color:var(--text-muted)">per hit</span>
+                </div>
+                <button type="submit" class="btn btn-red" style="font-size:12px">Submit Pledge</button>
+              </div>
+            </form>
+            <div id="ha-confirm" style="display:none;margin-top:8px;color:#2ECC71;font-size:13px;font-weight:600">&#10003; Pledge received! We&apos;ll follow up after the event with totals.</div>
           </div>
 
-          <!-- Upcoming fundraisers -->
+          <!-- Outfield Banner -->
           <div class="card">
-            <div class="card-title">Upcoming fundraisers</div>
-            <div id="upcoming-fundraisers"></div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem">
+              <div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px">&#127960; Outfield Banner Sponsorship</div>
+                <div style="font-size:11px;color:var(--text-muted)">Advertise your business at Marv Maples Field</div>
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(255,199,44,0.15);color:var(--gold);white-space:nowrap">ONGOING</span>
+            </div>
+            <div style="margin-bottom:.75rem">
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px">
+                <span id="fr-banner-raised">$0 raised</span><span>Goal: $2,500</span>
+              </div>
+              <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
+                <div id="fr-banner-bar" style="width:0%;height:100%;background:var(--gold);border-radius:4px;transition:width 0.6s"></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
+              <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--gold)">$250</div>
+                <div style="font-size:11px;font-weight:600;margin:3px 0">Standard Panel</div>
+                <div style="font-size:10px;color:var(--text-muted);line-height:1.5">4&times;8 ft banner, full season display</div>
+              </div>
+              <div style="background:rgba(255,199,44,0.06);border:1px solid rgba(255,199,44,0.25);border-radius:8px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--gold)">$500</div>
+                <div style="font-size:11px;font-weight:600;margin:3px 0">Premium Corner</div>
+                <div style="font-size:10px;color:var(--text-muted);line-height:1.5">8&times;8 ft, corner position + program listing</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem">Seen by fans, players, and coaches at every Trojans home game. Includes your business name in the team program and on our website.</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:.5rem">Request sponsorship info:</div>
+            <form onsubmit="submitBannerInquiry(event)">
+              <div style="display:grid;gap:8px">
+                <input class="form-input" id="ban-business" placeholder="Business name" required style="font-size:12px;padding:7px 10px">
+                <input class="form-input" id="ban-contact" placeholder="Contact person" style="font-size:12px;padding:7px 10px">
+                <input class="form-input" id="ban-email" type="email" placeholder="Email address" required style="font-size:12px;padding:7px 10px">
+                <input class="form-input" id="ban-phone" placeholder="Phone (optional)" style="font-size:12px;padding:7px 10px">
+                <select class="form-input" id="ban-size" style="font-size:12px;padding:7px 10px">
+                  <option value="standard">Standard Panel &mdash; $250/yr</option>
+                  <option value="premium">Premium Corner &mdash; $500/yr</option>
+                </select>
+                <button type="submit" class="btn btn-red" style="font-size:12px">Request Info</button>
+              </div>
+            </form>
+            <div id="ban-confirm" style="display:none;margin-top:8px;color:#2ECC71;font-size:13px;font-weight:600">&#10003; Thanks! A coach will follow up within 48 hours.</div>
+          </div>
+
+        </div>
+
+        <!-- Make a Donation -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-title">&#128176; Make a Donation</div>
+          <div class="grid-3" style="margin-bottom:1rem">
+            <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px">$50</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Supporter</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Helps cover baseballs and practice supplies for one game week</div>
+            </div>
+            <div style="background:rgba(0,61,165,0.12);border:1px solid rgba(0,61,165,0.3);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#7AADFF;margin-bottom:4px">$150</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Booster</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Funds team travel to an away game or tournament entry fee</div>
+            </div>
+            <div style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.25);border-radius:8px;padding:1rem;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:#ff6b6b;margin-bottom:4px">$500+</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Program Sponsor</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Major support &mdash; helps fund equipment upgrades or uniform sets</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">All donations go directly to TL Baseball players &mdash; equipment, travel, clinics, and keeping the Summer Camp affordable. To donate by check or cash, contact the booster club or coaching staff.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-red" onclick="showSection('contact',null)">Contact Coaching Staff &rarr;</button>
+            <a href="mailto:ridgelinesproject@gmail.com" style="text-decoration:none"><button class="btn" style="font-size:12px">Email Booster Club</button></a>
           </div>
         </div>
 
-        <!-- What funds pay for -->
+        <!-- Contribution log -->
         <div class="card" style="margin-bottom:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <div class="card-title" style="margin:0">Contributions</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-red fr-coach-only" style="font-size:11px;padding:5px 12px" onclick="var f=document.getElementById('fr-add-form');f.style.display=f.style.display===''?'none':''">+ Log Contribution</button>
+              <button class="btn" style="font-size:11px;padding:5px 12px" onclick="exportFrContribs()">Export CSV</button>
+            </div>
+          </div>
+          <form id="fr-add-form" onsubmit="addFrContrib(event)" style="display:none;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:12px;font-weight:600;margin-bottom:.75rem">Log a contribution</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <input class="form-input" id="fr-add-contributor" placeholder="Contributor name" required style="font-size:12px;padding:7px 10px">
+              <input class="form-input" id="fr-add-amount" type="number" min="1" step="1" placeholder="Amount ($)" required style="font-size:12px;padding:7px 10px">
+              <select class="form-input" id="fr-add-fundraiser" style="font-size:12px;padding:7px 10px">
+                <option value="hit-athon">Hit-a-Thon</option>
+                <option value="banner">Outfield Banner</option>
+                <option value="general">General Donation</option>
+                <option value="other">Other</option>
+              </select>
+              <input class="form-input" id="fr-add-date" type="date" style="font-size:12px;padding:7px 10px">
+            </div>
+            <input class="form-input" id="fr-add-notes" placeholder="Notes (optional)" style="font-size:12px;padding:7px 10px;width:100%;box-sizing:border-box;margin-bottom:8px">
+            <div style="display:flex;gap:8px">
+              <button type="submit" class="btn btn-red" style="font-size:12px">Save</button>
+              <button type="button" class="btn" style="font-size:12px" onclick="document.getElementById('fr-add-form').style.display='none'">Cancel</button>
+            </div>
+          </form>
+          <table class="stats-table">
+            <thead><tr><th>Contributor</th><th>Amount</th><th>Fundraiser</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+            <tbody id="fr-log-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1rem">No contributions logged yet.</td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- How funds are used -->
+        <div class="card">
           <div class="card-title">How funds are used</div>
           <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:4px">
             <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:12px">
               <div style="font-size:18px;font-weight:500;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px">$2,400</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Equipment & gear</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Equipment &amp; gear</div>
             </div>
             <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:12px">
               <div style="font-size:18px;font-weight:500;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px">$1,800</div>
@@ -2570,28 +2698,8 @@ body.print-size-half   { page: half-page; }
             </div>
             <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:12px">
               <div style="font-size:18px;font-weight:500;color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px">$2,600</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Uniforms & spirit wear</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Uniforms &amp; spirit wear</div>
             </div>
-          </div>
-        </div>
-
-        <!-- Recent contributions -->
-        <div class="card">
-          <div class="card-title">Recent contributions</div>
-          <table class="stats-table">
-            <thead><tr><th>Contributor</th><th>Amount</th><th>Fundraiser</th><th>Date</th><th>Notes</th></tr></thead>
-            <tbody id="contributions-body">
-              <tr><td>Booster Club</td><td class="stat-highlight">$1,200</td><td>Pledge Drive</td><td style="color:var(--text-muted)">Apr 5</td><td style="color:var(--text-muted)">Annual spring contribution</td></tr>
-              <tr><td>Rodriguez Family</td><td class="stat-highlight">$250</td><td>Pledge Drive</td><td style="color:var(--text-muted)">Apr 4</td><td style="color:var(--text-muted)">In honor of Jake #4</td></tr>
-              <tr><td>Kim Family</td><td class="stat-highlight">$200</td><td>Pledge Drive</td><td style="color:var(--text-muted)">Apr 3</td><td style="color:var(--text-muted)">Senior night donation</td></tr>
-              <tr><td>Marin Sports Shop</td><td class="stat-highlight">$500</td><td>Pledge Drive</td><td style="color:var(--text-muted)">Apr 2</td><td style="color:var(--text-muted)">Local business sponsorship</td></tr>
-              <tr><td>Smith Family</td><td class="stat-highlight">$150</td><td>Pasta Dinner</td><td style="color:var(--text-muted)">Apr 1</td><td style="color:var(--text-muted)">10 tickets purchased</td></tr>
-              <tr><td>Northgate Parents Assoc.</td><td class="stat-highlight">$400</td><td>Pledge Drive</td><td style="color:var(--text-muted)">Mar 28</td><td style="color:var(--text-muted)">Community support</td></tr>
-            </tbody>
-          </table>
-          <div style="margin-top:12px;display:flex;gap:10px">
-            <button class="btn btn-red" onclick="openModal('addContrib')">+ Log Contribution</button>
-            <button class="btn" onclick="exportContribs()">Export CSV</button>
           </div>
         </div>
       </div>
@@ -2820,6 +2928,120 @@ body.print-size-half   { page: half-page; }
 
       </div>
 
+      <!-- TEAM STORE -->
+      <div class="section" id="section-store">
+        <div style="background:linear-gradient(135deg,rgba(200,16,46,0.25) 0%,rgba(0,30,90,0.3) 100%);border:1px solid rgba(200,16,46,0.3);border-radius:12px;padding:1.5rem 2rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1">&#128084; TL Trojans Team Store</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Official gear, spirit wear, and player equipment for Terra Linda Baseball</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);background:rgba(255,255,255,0.06);padding:8px 14px;border-radius:8px;border:1px solid var(--border)">Orders placed by coaches &mdash; pickup at practice</div>
+        </div>
+
+        <!-- Categories -->
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:1.25rem">
+
+          <!-- Spirit Wear -->
+          <div class="card">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:.75rem">&#128083; Spirit Wear</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Trojans Baseball T-Shirt</div><div style="font-size:10px;color:var(--text-muted)">Navy / White / Red &mdash; S/M/L/XL/XXL</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$25</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Trojans Hoodie</div><div style="font-size:10px;color:var(--text-muted)">Navy &mdash; S/M/L/XL/XXL</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$55</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Snapback Hat</div><div style="font-size:10px;color:var(--text-muted)">Navy/Gold &mdash; One size</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$30</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Quarter-Zip Pullover</div><div style="font-size:10px;color:var(--text-muted)">Navy &mdash; S/M/L/XL</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$65</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Trojans Tote Bag</div><div style="font-size:10px;color:var(--text-muted)">Heavy canvas, navy</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$20</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player Gear -->
+          <div class="card">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:.75rem">&#9918; Player Gear</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Game Belt (Navy)</div><div style="font-size:10px;color:var(--text-muted)">Required &mdash; S/M/L</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$14</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Game Socks (Navy/White)</div><div style="font-size:10px;color:var(--text-muted)">Required &mdash; S/M/L</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$12</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Batting Practice Jersey</div><div style="font-size:10px;color:var(--text-muted)">Navy w/ number &mdash; S/M/L/XL</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$40</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Sliding Shorts</div><div style="font-size:10px;color:var(--text-muted)">S/M/L/XL</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$28</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Equipment Bag (Large)</div><div style="font-size:10px;color:var(--text-muted)">Navy w/ TL logo</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$75</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fan Items -->
+          <div class="card">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:.75rem">&#128079; Fan Items</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Program / Roster Booklet</div><div style="font-size:10px;color:var(--text-muted)">2026 season</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$5</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Seat Cushion</div><div style="font-size:10px;color:var(--text-muted)">Navy &mdash; TL logo</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$18</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Sticker Pack (5)</div><div style="font-size:10px;color:var(--text-muted)">Trojans logos &amp; wordmarks</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$8</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Car Decal</div><div style="font-size:10px;color:var(--text-muted)">6&quot; TL Trojans Baseball</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$6</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px">
+                <div><div style="font-size:12px;font-weight:500">Drawstring Bag</div><div style="font-size:10px;color:var(--text-muted)">Navy/Gold</div></div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold)">$15</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order form -->
+        <div class="card">
+          <div class="card-title">&#128203; Place an Order</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">Submit your order below. A coach will confirm availability and arrange payment. Orders are batched weekly &mdash; pickup at the next home practice.</div>
+          <form onsubmit="submitStoreOrder(event)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+              <input class="form-input" id="store-name" placeholder="Your name" required style="font-size:13px;padding:8px 10px">
+              <input class="form-input" id="store-email" type="email" placeholder="Email address" required style="font-size:13px;padding:8px 10px">
+              <input class="form-input" id="store-player" placeholder="Player name (if ordering for a player)" style="font-size:13px;padding:8px 10px">
+              <input class="form-input" id="store-phone" placeholder="Phone (optional)" style="font-size:13px;padding:8px 10px">
+            </div>
+            <textarea class="form-input" id="store-items" rows="4" placeholder="List items, sizes, and quantities&#10;e.g. Trojans T-Shirt (Navy, L) x2&#10;     Snapback Hat x1&#10;     Game Belt (M) x1" required style="font-size:13px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:10px"></textarea>
+            <textarea class="form-input" id="store-notes" rows="2" placeholder="Any questions or special requests" style="font-size:13px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical;margin-bottom:10px"></textarea>
+            <button type="submit" class="btn btn-red" style="font-size:13px">Submit Order Request</button>
+          </form>
+          <div id="store-confirm" style="display:none;margin-top:12px;color:#2ECC71;font-size:13px;font-weight:600">&#10003; Order received! A coach will reach out within 48 hours to confirm and arrange payment.</div>
+        </div>
+      </div>
+
       <!-- VOLUNTEER & DONATE -->
       <div class="section" id="section-volunteer">
         <div style="background:rgba(0,61,165,0.15);border:1px solid rgba(0,61,165,0.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">
@@ -2879,30 +3101,15 @@ body.print-size-half   { page: half-page; }
 
         </div>
 
-        <!-- Donations -->
-        <div class="card">
-          <div class="card-title">&#128176; Donate to the Program</div>
-          <div class="grid-3" style="margin-bottom:1.25rem">
-            <div style="background:rgba(255,199,44,0.08);border:1px solid rgba(255,199,44,0.2);border-radius:8px;padding:1rem;text-align:center">
-              <div style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px">$50</div>
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Supporter</div>
-              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Helps cover baseballs and practice supplies for one game week</div>
+        <!-- Donations link -->
+        <div class="card" style="background:rgba(255,199,44,0.05);border-color:rgba(255,199,44,0.2)">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="font-size:28px">&#128176;</div>
+            <div style="flex:1">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:3px">Want to make a monetary donation?</div>
+              <div style="font-size:12px;color:var(--text-muted)">Donation tiers, Hit-a-Thon pledges, and outfield banner sponsorships are all in the Fundraising section.</div>
             </div>
-            <div style="background:rgba(0,61,165,0.12);border:1px solid rgba(0,61,165,0.3);border-radius:8px;padding:1rem;text-align:center">
-              <div style="font-size:22px;font-weight:700;color:#7AADFF;margin-bottom:4px">$150</div>
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Booster</div>
-              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Funds team travel to an away game or tournament entry fee</div>
-            </div>
-            <div style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.25);border-radius:8px;padding:1rem;text-align:center">
-              <div style="font-size:22px;font-weight:700;color:#ff6b6b;margin-bottom:4px">$500+</div>
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px">Program Sponsor</div>
-              <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Major support — helps fund equipment upgrades or uniform sets</div>
-            </div>
-          </div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">All donations directly support TL Baseball players. Funds go toward equipment, travel costs, clinic programs, and keeping the Summer Camp affordable for all families. To donate, reach out directly to the booster club or coaching staff.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-red" onclick="showSection('contact',null)">Contact Coaching Staff &rarr;</button>
-            <a href="mailto:ridgelinesproject@gmail.com" style="text-decoration:none"><button class="btn" style="font-size:12px">Email Booster Club</button></a>
+            <button class="btn btn-red" style="font-size:12px;white-space:nowrap" onclick="showSection('fundraising',null);if(typeof initFundraising==='function')initFundraising()">Go to Fundraising &rarr;</button>
           </div>
         </div>
 
@@ -3554,10 +3761,10 @@ function renderRecentRoster() {
 
 // Nav access rules per role
 const NAV_ACCESS = {
-  coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','maxpreps','contact'],
-  player: ['player-home','roster','stats','schedule','skills','workouts','field','clinics','camp','maxpreps'],
-  parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','volunteer','maxpreps','contact'],
+  coach:  ['dashboard','users','admin','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','store','volunteer','maxpreps','contact'],
+  viewer: ['dashboard','roster','stats','schedule','lineup','skills','workouts','field','clinics','camp','fundraising','store','maxpreps','contact'],
+  player: ['player-home','roster','stats','schedule','skills','workouts','field','clinics','camp','store','maxpreps'],
+  parent: ['parent-home','roster','stats','schedule','clinics','camp','fundraising','store','volunteer','maxpreps','contact'],
 };
 
 // All nav items and their section keys (data attribute approach)
@@ -3567,7 +3774,7 @@ const NAV_LABELS = {
   skills:'Position Skills',
   workouts:'Workout Plans', field:'Field Maintenance',
   clinics:'Clinics', camp:'Summer Camp', fundraising:'Fundraising',
-  maxpreps:'MaxPreps Hub', contact:'Contact / Outreach', volunteer:'Volunteer & Donate',
+  maxpreps:'MaxPreps Hub', contact:'Contact / Outreach', volunteer:'Volunteer & Donate', store:'Team Store',
   'player-home':'My Dashboard', 'parent-home':'My Dashboard',
 };
 
@@ -5407,6 +5614,151 @@ async function submitCampReg(btn) {
   const saved = await apiPost('camp', form);
   if (saved.error) { alert('Error submitting: '+saved.error); return; }
   alert('Registration submitted! We will follow up by email within 24 hours.');
+}
+
+// ── Fundraising ──────────────────────────────────────────────────────────────
+const FR_GOAL = 8000;
+function getFrContribs() { return JSON.parse(localStorage.getItem('tl_fr_contribs') || '[]'); }
+function saveFrContribs(d) { localStorage.setItem('tl_fr_contribs', JSON.stringify(d)); }
+
+function renderFrStats() {
+  const contribs = getFrContribs();
+  const total = contribs.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+  const pct = Math.min(100, Math.round(total / FR_GOAL * 100));
+  const remaining = Math.max(0, FR_GOAL - total);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('fr-total', '$' + total.toLocaleString());
+  set('fr-total-stat', '$' + total.toLocaleString());
+  set('fr-count-stat', contribs.length);
+  set('fr-progress-mid', '$' + total.toLocaleString() + ' raised of $' + FR_GOAL.toLocaleString() + ' goal');
+  set('fr-progress-sub', pct + '% of season goal reached – $' + remaining.toLocaleString() + ' remaining');
+  const bar = document.getElementById('fr-progress-bar');
+  if (bar) bar.style.width = pct + '%';
+  const haTotal = contribs.filter(c => c.fundraiser === 'hit-athon').reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+  const banTotal = contribs.filter(c => c.fundraiser === 'banner').reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+  set('fr-hitathon-raised', '$' + haTotal.toLocaleString() + ' raised');
+  set('fr-banner-raised', '$' + banTotal.toLocaleString() + ' raised');
+  const haBar = document.getElementById('fr-hitathon-bar');
+  if (haBar) haBar.style.width = Math.min(100, haTotal / 3000 * 100) + '%';
+  const banBar = document.getElementById('fr-banner-bar');
+  if (banBar) banBar.style.width = Math.min(100, banTotal / 2500 * 100) + '%';
+  const banners = JSON.parse(localStorage.getItem('tl_fr_banners') || '[]');
+  set('fr-banner-count', banners.length);
+}
+
+function renderFrLog() {
+  const tbody = document.getElementById('fr-log-tbody');
+  if (!tbody) return;
+  const contribs = getFrContribs();
+  const role = currentUser?.role;
+  if (!contribs.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:1rem">No contributions logged yet.</td></tr>';
+    return;
+  }
+  const labels = { 'hit-athon': 'Hit-a-Thon', banner: 'Outfield Banner', general: 'General', other: 'Other' };
+  tbody.innerHTML = [...contribs].reverse().map(c => {
+    const del = role === 'coach' ? `<button class="btn" style="font-size:10px;padding:2px 8px;color:#ff6b6b;border-color:rgba(255,107,107,0.3)" onclick="removeFrContrib('${c.id}')">Remove</button>` : '';
+    return `<tr><td>${escHtml(c.contributor||'')}</td><td class="stat-highlight">$${parseFloat(c.amount||0).toLocaleString()}</td><td style="color:var(--text-muted)">${labels[c.fundraiser]||c.fundraiser||'General'}</td><td style="color:var(--text-muted)">${escHtml(c.date||'')}</td><td style="color:var(--text-muted)">${escHtml(c.notes||'')}</td><td>${del}</td></tr>`;
+  }).join('');
+}
+
+function addFrContrib(e) {
+  e.preventDefault();
+  const contributor = document.getElementById('fr-add-contributor')?.value.trim();
+  const amount = parseFloat(document.getElementById('fr-add-amount')?.value) || 0;
+  const fundraiser = document.getElementById('fr-add-fundraiser')?.value || 'general';
+  const date = document.getElementById('fr-add-date')?.value || new Date().toISOString().slice(0, 10);
+  const notes = document.getElementById('fr-add-notes')?.value.trim() || '';
+  if (!contributor || !amount) { alert('Contributor name and amount required.'); return; }
+  const contribs = getFrContribs();
+  contribs.push({ id: 'fr_' + Date.now(), contributor, amount, fundraiser, date, notes });
+  saveFrContribs(contribs);
+  renderFrStats(); renderFrLog();
+  e.target.reset();
+  document.getElementById('fr-add-form').style.display = 'none';
+}
+
+function removeFrContrib(id) {
+  if (!confirm('Remove this contribution?')) return;
+  saveFrContribs(getFrContribs().filter(c => c.id !== id));
+  renderFrStats(); renderFrLog();
+}
+
+function exportFrContribs() {
+  const contribs = getFrContribs();
+  if (!contribs.length) { alert('No contributions to export.'); return; }
+  let csv = 'Contributor,Amount,Fundraiser,Date,Notes\n';
+  contribs.forEach(c => {
+    csv += ['"' + (c.contributor || '').replace(/"/g, '""') + '"', c.amount || 0, '"' + (c.fundraiser || '') + '"', c.date || '', '"' + (c.notes || '').replace(/"/g, '""') + '"'].join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'TL_Fundraising.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function submitHitathonPledge(e) {
+  e.preventDefault();
+  const pledges = JSON.parse(localStorage.getItem('tl_fr_pledges') || '[]');
+  pledges.push({
+    id: 'ha_' + Date.now(),
+    player: document.getElementById('ha-player')?.value.trim(),
+    pledger: document.getElementById('ha-pledger')?.value.trim(),
+    email: document.getElementById('ha-email')?.value.trim(),
+    perHit: parseFloat(document.getElementById('ha-perhit')?.value) || 0,
+    submitted: new Date().toISOString()
+  });
+  localStorage.setItem('tl_fr_pledges', JSON.stringify(pledges));
+  const el = document.getElementById('ha-pledge-count'); if (el) el.textContent = pledges.length;
+  document.getElementById('ha-confirm').style.display = '';
+  e.target.reset();
+}
+
+function submitBannerInquiry(e) {
+  e.preventDefault();
+  const banners = JSON.parse(localStorage.getItem('tl_fr_banners') || '[]');
+  banners.push({
+    id: 'ban_' + Date.now(),
+    business: document.getElementById('ban-business')?.value.trim(),
+    contact: document.getElementById('ban-contact')?.value.trim(),
+    email: document.getElementById('ban-email')?.value.trim(),
+    phone: document.getElementById('ban-phone')?.value.trim(),
+    size: document.getElementById('ban-size')?.value,
+    submitted: new Date().toISOString()
+  });
+  localStorage.setItem('tl_fr_banners', JSON.stringify(banners));
+  document.getElementById('ban-confirm').style.display = '';
+  renderFrStats();
+  e.target.reset();
+}
+
+function initFundraising() {
+  renderFrStats();
+  renderFrLog();
+  const pledges = JSON.parse(localStorage.getItem('tl_fr_pledges') || '[]');
+  const el = document.getElementById('ha-pledge-count'); if (el) el.textContent = pledges.length;
+  document.querySelectorAll('.fr-coach-only').forEach(el => {
+    el.style.display = currentUser?.role === 'coach' ? '' : 'none';
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function submitStoreOrder(e) {
+  e.preventDefault();
+  const orders = JSON.parse(localStorage.getItem('tl_store_orders') || '[]');
+  orders.push({
+    id: 'ord_' + Date.now(),
+    name: document.getElementById('store-name')?.value.trim(),
+    email: document.getElementById('store-email')?.value.trim(),
+    player: document.getElementById('store-player')?.value.trim(),
+    phone: document.getElementById('store-phone')?.value.trim(),
+    items: document.getElementById('store-items')?.value.trim(),
+    notes: document.getElementById('store-notes')?.value.trim(),
+    submitted: new Date().toISOString()
+  });
+  localStorage.setItem('tl_store_orders', JSON.stringify(orders));
+  document.getElementById('store-confirm').style.display = '';
+  e.target.reset();
 }
 
 function submitVolunteerForm(type, e) {
